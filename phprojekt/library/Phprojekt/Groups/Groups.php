@@ -42,9 +42,7 @@ class Phprojekt_Groups_Groups extends Phprojekt_ActiveRecord_Abstract implements
      *
      * @var array
      */
-    public $hasManyAndBelongsToMany = array('users' =>  array('classname' => 'Phprojekt_User_User',
-                                                              'module'    => 'User',
-                                                              'model'     => 'User'));
+    public $hasManyAndBelongsToMany = array('users' =>  array('classname' => 'Phprojekt_User_User'));
 
     /**
      * Current user ID

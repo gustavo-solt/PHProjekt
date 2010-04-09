@@ -42,18 +42,14 @@ class Phprojekt_User_User extends Phprojekt_ActiveRecord_Abstract implements Php
      *
      * @var array
      */
-    public $hasMany = array('settings' => array('classname' => 'Phprojekt_Setting',
-                                                'module'    => 'Setting',
-                                                'model'     => 'Setting'));
+    public $hasMany = array('settings' => array('classname' => 'Phprojekt_Setting'));
 
     /**
      * Has many and belongs to many declrations.
      *
      * @var array
      */
-    public $hasManyAndBelongsToMany = array('groups' => array('classname' => 'Phprojekt_Groups_Groups',
-                                                              'module'    => 'Groups',
-                                                              'model'     => 'Groups'));
+    public $hasManyAndBelongsToMany = array('groups' => array('classname' => 'Phprojekt_Groups_Groups'));
 
     /**
      * The standard information manager with hardcoded field definitions.
