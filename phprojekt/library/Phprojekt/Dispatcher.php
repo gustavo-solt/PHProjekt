@@ -67,4 +67,30 @@ class Phprojekt_Dispatcher extends Zend_Controller_Dispatcher_Standard
 
         return implode('_', $segments);
     }
+
+    /**
+     * Load a controller class
+     *
+     * Attempts to load the controller class file from
+     * {@link getControllerDirectory()}.
+     * If the controller belongs to a module, looks for the module prefix to the controller class.
+     * If exists a Customized controller, return this one.
+     *
+     * @param string $className Name of the class (xxxController).
+     *
+     * @throws Zend_Controller_Dispatcher_Exception If class not loaded.
+     *
+     * @return string Class name loaded.
+     */
+    public function loadClass($className)
+    {
+        if (($this->_defaultModule != $this->_curModule) || $this->getParam('prefixDefaultModule')) {
+            $finalClass = Phprojekt_Loader::getControllerClassname($this->formatClassName($this->_curModule,
+                $className));
+        } else {
+            $finalClass = Phprojekt_Loader::getControllerClassname($className);
+        }
+
+        return $finalClass;
+    }
 }

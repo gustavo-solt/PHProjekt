@@ -42,14 +42,6 @@
 class Phprojekt_Loader extends Zend_Loader
 {
     /**
-     * Identifier for views.
-     * It's normaly only needed by the internals.
-     *
-     * @see _getClass
-     */
-    const VIEW = 'Views';
-
-    /**
      * Identifier for models.
      * It's normaly only needed by the internals.
      *
@@ -58,11 +50,36 @@ class Phprojekt_Loader extends Zend_Loader
     const MODEL = 'Models';
 
     /**
-     * Directories.
+     * Identifier for views.
+     * It's normaly only needed by the internals.
      *
-     * @var array
+     * @see _getClass
      */
-    protected static $_directories = array(PHPR_CORE_PATH, PHPR_LIBRARY_PATH);
+    const VIEW = 'Views';
+
+    /**
+     * Identifier for Controllers.
+     * It's normaly only needed by the internals.
+     *
+     * @see _getClass
+     */
+    const CONTROLLER = 'Controllers';
+
+    /**
+     * Identifier for Helpers.
+     * It's normaly only needed by the internals.
+     *
+     * @see _getClass
+     */
+    const HELPER = 'Helpers';
+
+    /**
+     * Identifier for Controllers.
+     * It's normaly only needed by the internals.
+     *
+     * @see _getClass
+     */
+    const LIBRARY = 'Phprojekt';
 
     /**
      * Define the set of allowed characters for classes..
@@ -75,32 +92,41 @@ class Phprojekt_Loader extends Zend_Loader
      * @param string       $class Name of the class.
      * @param string|array $dirs  Directories to search.
      *
-     * @return void
+     * @see _getClass
+     *
+     * @throws Zend_Exception If class not found.
+     *
+     * @return string Class name.
      */
     public static function loadClass($class, $dirs = null)
     {
-        if (preg_match("@Controller$@", $class)) {
-            $names  = explode('_', $class);
-            $front  = Zend_Controller_Front::getInstance();
-            $module = (count($names) > 1) ? $names[0] : $front->getDefaultModule();
-
-            $file = PHPR_CORE_PATH . DIRECTORY_SEPARATOR
-                  . $module . DIRECTORY_SEPARATOR
-                  . $front->getModuleControllerDirectoryName()
-                  . DIRECTORY_SEPARATOR
-                  . array_pop($names) . '.php';
-
-            if (self::isReadable($file)) {
-                self::_includeFile($file, true);
+        try {
+            if (preg_match("@Controller$@", $class)) {
+                // Controller class
+                $class = self::getControllerClassname($class);
+            } else {
+                // Model class
+                $pattern = str_replace('_', '', self::CLASS_PATTERN);
+                if (preg_match("@^(" . $pattern . ")_Models_(" . self::CLASS_PATTERN . ")@", $class, $match)) {
+                    $class = self::getModelClassname($match[1], $match[2]);
+                } else {
+                    // Helper class
+                    if (preg_match("@^(" . $pattern . ")_Helpers_(" . self::CLASS_PATTERN . ")@", $class, $match)) {
+                        $class = self::getHelperClassname($match[1], $match[2]);
+                    } else {
+                        // Library Class
+                        if (null === $dirs) {
+                            $dirs = array(PHPR_LIBRARY_PATH);
+                        }
+                        parent::loadClass($class, $dirs);
+                    }
+                }
             }
+        } catch (Zend_Exception $error) {
+            Phprojekt::getInstance()->getLog()->debug($error->getMessage());
         }
 
-        if (!class_exists($class, false)) {
-            if (null === $dirs) {
-                $dirs = self::$_directories;
-            }
-            parent::loadClass($class, $dirs);
-        }
+        return $class;
     }
 
     /**
@@ -114,8 +140,7 @@ class Phprojekt_Loader extends Zend_Loader
     public static function autoload($class)
     {
         try {
-            self::loadClass($class, self::$_directories);
-            return $class;
+            return self::loadClass($class);
         } catch (Exception $error) {
             $error->getMessage();
             return false;
@@ -152,7 +177,7 @@ class Phprojekt_Loader extends Zend_Loader
      *
      * @param string $module Name of the module.
      * @param string $item   Name of the class to be loaded.
-     * @param string $ident  Ident, might be 'Models', 'Controllers' or 'Views'.
+     * @param string $ident  Ident, might be 'Models', 'Controllers', 'Views' or 'Phprojekt'.
      *
      * @throws Zend_Exception If class not found.
      *
@@ -160,13 +185,108 @@ class Phprojekt_Loader extends Zend_Loader
      */
     protected static function _getClass($module, $item, $ident)
     {
-        $nIdentifier = sprintf("%s_%s_%s", $module, $ident, $item);
-        $cIdentifier = sprintf("%s_%s_Customized_%s", $module, $ident, $item);
+        switch ($ident) {
+            case self::MODEL:
+            case self::HELPER:
+            default:
+                $nIdentifier = sprintf("%s_%s_%s", $module, $ident, $item);
+                $cIdentifier = sprintf("%s_Customized_%s_%s", $module, $ident, $item);
+                $path        = PHPR_CORE_PATH;
+                $directories = array(PHPR_CORE_PATH);
+                break;
+            case self::CONTROLLER:
+                if ($module != 'Default') {
+                    $nIdentifier = sprintf("%s_%s", $module, $item);
+                    $cIdentifier = sprintf("%s_Customized_%s", $module, $item);
+                } else {
+                    $nIdentifier = sprintf("%s", $item);
+                    $cIdentifier = sprintf("Customized_%s", $item);
+                }
+                $pathIdentifier = sprintf("%s", $item);
+                $directories    = Zend_Controller_Front::getInstance()->getControllerDirectory();
+                $nPath          = $directories[$module];
+                $cPath          = str_replace('application' . DIRECTORY_SEPARATOR . $module, 'application'
+                    . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR . 'Customized', $nPath);
+                $directories = array(PHPR_CORE_PATH);
+                break;
+            case self::LIBRARY:
+                // Don't try to load any customized file
+                $nIdentifier = sprintf("%s_%s_%s", $ident, $module, $item);
+                $cIdentifier = sprintf("%s_%s_%s", $ident, $module, $item);
+                $path        = PHPR_LIBRARY_PATH;
+                $directories = array(PHPR_LIBRARY_PATH);
+                break;
+        }
 
-        if (class_exists($cIdentifier, false)) {
+        // Try the custom class
+        if (class_exists($cIdentifier, false) || interface_exists($cIdentifier, false)) {
             return $cIdentifier;
+        } else  {
+            // Try to load the custom file
+            if ($ident == self::CONTROLLER) {
+                $cLoadFile = $cPath . DIRECTORY_SEPARATOR . self::classToFilename($pathIdentifier);
+            } else {
+                $cLoadFile = $path . DIRECTORY_SEPARATOR . self::classToFilename($cIdentifier);
+            }
+            if (is_readable($cLoadFile)) {
+                // Load the original class first
+                if ($ident == self::CONTROLLER) {
+                    $nLoadFile = $nPath . DIRECTORY_SEPARATOR . self::classToFilename($pathIdentifier);
+                } else {
+                    $nLoadFile = $path . DIRECTORY_SEPARATOR . self::classToFilename($nIdentifier);
+                }
+                self::_loadClass($nIdentifier, $nLoadFile, $directories);
+                // Load the custom class
+                self::loadFile($cLoadFile, $directories, true);
+
+                // Try again load the custom class
+                if (class_exists($cIdentifier, false) || interface_exists($cIdentifier, false)) {
+                    return $cIdentifier;
+                } else {
+                    return $nIdentifier;
+                }
+            } else {
+                // Load the original class
+                if ($ident == self::CONTROLLER) {
+                    $nLoadFile = $nPath . DIRECTORY_SEPARATOR . self::classToFilename($pathIdentifier);
+                } else {
+                    $nLoadFile = $path . DIRECTORY_SEPARATOR . self::classToFilename($nIdentifier);
+                }
+
+                return self::_loadClass($nIdentifier, $nLoadFile, $directories);
+            }
+        }
+    }
+
+    /**
+     * Try to load an original file.
+     *
+     * @param string $identifier  Name of the class.
+     * @param string $loadFile    Path to the file.
+     * @param array  $directories Array with directories where looking for the file.
+     *
+     * @throws Zend_Exception If class not found.
+     *
+     * @return string Identifier class name.
+     */
+    private static function _loadClass($identifier, $loadFile, $directories)
+    {
+        // Try the class
+        if (class_exists($identifier, false) || interface_exists($identifier, false)) {
+            return $identifier;
         } else {
-            return $nIdentifier;
+            // Try to load the file
+            if (is_readable($loadFile)) {
+                self::loadFile($loadFile, $directories, true);
+            } else {
+                throw new Zend_Exception('Cannot load class "' . $identifier . '" from file "' . $loadFile . "'");
+            }
+
+            if (class_exists($identifier, false) || interface_exists($identifier, false)) {
+                return $identifier;
+            } else {
+                throw new Zend_Exception('Invalid class ("' . $identifier . '")');
+            }
         }
     }
 
@@ -191,7 +311,7 @@ class Phprojekt_Loader extends Zend_Loader
     }
 
     /**
-     * Load the class of a model and return an instance of the class.
+     * Load the class of a view and return the name of the class.
      *
      * Always use the returned name to instantiate a class, a customized
      * class name might be loaded and returned by this method
@@ -211,10 +331,76 @@ class Phprojekt_Loader extends Zend_Loader
     }
 
     /**
-     * Load the class of a model and return an new instance of the class.
+     * Load the class of a controller and return the name of the class.
+     *
+     * Always use the returned name to instantiate a class, a customized
+     * class name might be loaded and returned by this method
+     *
+     * @param string $controller Name of the class to be loaded.
+     *
+     * @see _getClass
+     *
+     * @throws Zend_Exception If class not found.
+     *
+     * @return string Identifier class name.
+     */
+    public static function getControllerClassname($controller)
+    {
+        $name = explode("_", $controller);
+        if (count($name) == 1) {
+            $module = 'Default';
+            $item   = $name[0];
+        } else {
+            $module = $name[0];
+            $item   = $name[1];
+        }
+
+        return self::_getClass($module, $item, self::CONTROLLER);
+    }
+
+    /**
+     * Load the class of a helper and return the name of the class.
      *
      * Always use the returned name to instantiate a class, a customized
      * class name might be loaded and returned by this method.
+     *
+     * @param string $module Name of the module.
+     * @param string $model  Name of the class to be loaded.
+     *
+     * @see _getClass
+     *
+     * @throws Zend_Exception If class not found.
+     *
+     * @return string Identifier class name.
+     */
+    public static function getHelperClassname($module, $model)
+    {
+        return self::_getClass($module, $model, self::HELPER);
+    }
+
+    /**
+     * Load the library class and return the name of the class.
+     *
+     * Always use the returned name to instantiate a class.
+     *
+     * @param string $module Name of the module.
+     * @param string $class  Class to be loaded.
+     *
+     * @see _getClass
+     *
+     * @throws Zend_Exception If class not found.
+     *
+     * @return string Identifier class name.
+     */
+    public static function getLibraryClassname($module, $class)
+    {
+        return self::_getClass($module, $class, self::LIBRARY);
+    }
+
+    /**
+     * Load the class of a model and return an new instance of the class.
+     *
+     * A customized class name might be loaded and returned by this method.
      *
      * This method can take more than the two arguments.
      * Every other argument is passed to the constructor.
@@ -273,7 +459,7 @@ class Phprojekt_Loader extends Zend_Loader
         $args = array_slice(func_get_args(), 2);
 
         if (empty($args) && Phprojekt::getInstance()->getConfig()->useCacheForClasses) {
-            $registryName = 'getLibraryClass_'.$name;
+            $registryName = 'getLibraryClass_' . $name;
             if (!Zend_Registry::isRegistered($registryName)) {
                 $object = self::_newInstance($name, $args);
                 Zend_Registry::set($registryName, $object);
@@ -347,49 +533,6 @@ class Phprojekt_Loader extends Zend_Loader
     }
 
     /**
-     * Try to include a file by the class name.
-     *
-     * @param string  $class          The name of the class.
-     * @param boolean $isLibraryClass True if the class is in the library dir.
-     *
-     * @return boolean
-     */
-    public static function tryToLoadClass($class, $isLibraryClass = false)
-    {
-        $names  = explode('_', $class);
-
-        if (!$isLibraryClass) {
-            $file = PHPR_CORE_PATH;
-        } else {
-            $file = PHPR_LIBRARY_PATH;
-        }
-        foreach ($names as $name) {
-            $file .= DIRECTORY_SEPARATOR . $name;
-        }
-        $file .= '.php';
-
-        $assert = false;
-        if (file_exists($file)) {
-            self::_includeFile($file, true);
-            $assert = true;
-        }
-
-        return $assert;
-    }
-
-    /**
-     * Try to include a library file by the class name.
-     *
-     * @param string $class The name of the class.
-     *
-     * @return boolean
-     */
-    public static function tryToLoadLibClass($class)
-    {
-        return self::tryToLoadClass($class, true);
-    }
-
-    /**
      * Add the module path for load customs templates.
      *
      * @param Zend_View|null $view View class.
@@ -404,5 +547,17 @@ class Phprojekt_Loader extends Zend_Loader
         }
         $view->addScriptPath(PHPR_CORE_PATH . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR
             . self::VIEW . DIRECTORY_SEPARATOR . 'dojo' . DIRECTORY_SEPARATOR);
+    }
+
+    /**
+     * Convert a class name to a filename
+     *
+     * @param string $class Name of the class.
+     *
+     * @return string Path of the file.
+     */
+    public static function classToFilename($class)
+    {
+        return str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
     }
 }

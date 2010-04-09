@@ -65,7 +65,8 @@ class Phprojekt_LoaderTest extends PHPUnit_Framework_TestCase
      */
     public function testGetViewClassname()
     {
-        $this->assertEquals('Project_Views_Project', Phprojekt_Loader::getViewClassname('Project', 'Project'));
+        $this->setExpectedException('Zend_Exception');
+        Phprojekt_Loader::getViewClassname('Project', 'Project');
     }
 
     /**
@@ -84,15 +85,5 @@ class Phprojekt_LoaderTest extends PHPUnit_Framework_TestCase
     {
         $object = Phprojekt_Loader::getModel('Todo', 'Todo');
         $this->assertEquals('Todo', Phprojekt_Loader::getModuleFromObject($object));
-    }
-
-    /**
-     * Test tryToLoadClass
-     */
-    public function testTryToLoadClass()
-    {
-        $this->assertTrue(Phprojekt_Loader::tryToLoadClass('Core_Models_User_Setting'));
-
-        $this->assertFalse(Phprojekt_Loader::tryToLoadClass('Timecard_Models_None'));
     }
 }
