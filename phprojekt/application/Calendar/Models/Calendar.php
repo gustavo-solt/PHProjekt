@@ -99,7 +99,7 @@ class Calendar_Models_Calendar extends Phprojekt_Item_Abstract
     {
         parent::__construct($db);
 
-        $this->_dbManager = new Calendar_Models_CalendarInformation($this, $db);
+        $this->_dbManager = Phprojekt_Loader::getModel('Calendar', 'CalendarInformation', $this, $db);
     }
 
     /**

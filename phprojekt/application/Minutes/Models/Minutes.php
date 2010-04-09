@@ -57,7 +57,7 @@ class Minutes_Models_Minutes extends Phprojekt_Item_Abstract
     {
         parent::__construct($db);
 
-        $this->_dbManager = new Minutes_Models_MinutesInformation($this, $db);
+        $this->_dbManager = Phprojekt_Loader::getModel('Minutes', 'MinutesInformation', $this, $db);
     }
 
     /**
