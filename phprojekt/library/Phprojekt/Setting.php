@@ -95,14 +95,14 @@ class Phprojekt_Setting extends Phprojekt_ActiveRecord_Abstract
                                'label' => Phprojekt::getInstance()->translate('Notification'));
         }
 
-        // Module settings
+        // Module Settings
         foreach (scandir(PHPR_CORE_PATH) as $dir) {
-            $path = PHPR_CORE_PATH . DIRECTORY_SEPARATOR . $dir;
             if ($dir == '.' || $dir == '..' || in_array($dir, self::$_excludePaths)) {
                 continue;
             }
-            $file = join(DIRECTORY_SEPARATOR, array($path, Phprojekt_Loader::MODEL, 'Setting.php'));
-            if (is_dir($path) && is_readable($file)) {
+
+            $file = join(DIRECTORY_SEPARATOR, array(PHPR_CORE_PATH, $dir, Phprojekt_Loader::MODEL, 'Setting.php'));
+            if (is_readable($file)) {
                 $results[] = array('name'  => $dir,
                                    'label' => Phprojekt::getInstance()->translate($dir, null, $dir));
             }

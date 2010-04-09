@@ -103,7 +103,7 @@ class Core_IndexController extends IndexController
                 $db         = Phprojekt::getInstance()->getDb();
                 $object     = new $moduleName($db);
             } catch (Zend_Exception $error) {
-                Phprojekt::getInstance()->getLog->debug($error->getMessage());
+                Phprojekt::getInstance()->getLog()->debug($error->getMessage());
                 $object = Phprojekt_Loader::getModel('Default', 'Default');
             }
         }
