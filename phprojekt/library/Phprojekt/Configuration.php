@@ -76,8 +76,9 @@ class Phprojekt_Configuration extends Phprojekt_ActiveRecord_Abstract
         $results = array();
 
         // System settings
-        $model = Phprojekt_Loader::getModel('Core', 'General_Configuration');
-        if ($model) {
+        $file = join(DIRECTORY_SEPARATOR,
+            array(PHPR_CORE_PATH, 'Core', Phprojekt_Loader::MODEL, 'General', 'Configuration.php'));
+        if (is_readable($file)) {
             $results[] = array('name'  => 'General',
                                'label' => Phprojekt::getInstance()->translate('General'));
         }
@@ -88,12 +89,10 @@ class Phprojekt_Configuration extends Phprojekt_ActiveRecord_Abstract
             if ($dir == '.' || $dir == '..' || in_array($dir, self::$_excludePaths)) {
                 continue;
             }
-            if (is_dir($path)) {
-                $configClass = Phprojekt_Loader::getModelClassname($dir, 'Configuration');
-                if (Phprojekt_Loader::tryToLoadClass($configClass)) {
-                    $results[] = array('name'  => $dir,
-                                       'label' => Phprojekt::getInstance()->translate($dir, null, $dir));
-                }
+            $file = join(DIRECTORY_SEPARATOR, array($path, Phprojekt_Loader::MODEL, 'Configuration.php'));
+            if (is_dir($path) && is_readable($file)) {
+                $results[] = array('name'  => $dir,
+                                   'label' => Phprojekt::getInstance()->translate($dir, null, $dir));
             }
         }
 

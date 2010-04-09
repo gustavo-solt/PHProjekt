@@ -79,15 +79,18 @@ class Phprojekt_Setting extends Phprojekt_ActiveRecord_Abstract
     public function getModules()
     {
         $results = array();
+
         // System settings
-        $model = Phprojekt_Loader::getModel('Core', 'User_Setting');
-        if ($model) {
+        $file = join(DIRECTORY_SEPARATOR,
+            array(PHPR_CORE_PATH, 'Core', Phprojekt_Loader::MODEL, 'User', 'Setting.php'));
+        if (is_readable($file)) {
             $results[] = array('name'  => 'User',
                                'label' => Phprojekt::getInstance()->translate('User'));
         }
 
-        $modelNotification = Phprojekt_Loader::getModel('Core', 'Notification_Setting');
-        if ($modelNotification) {
+        $file = join(DIRECTORY_SEPARATOR,
+            array(PHPR_CORE_PATH, 'Core', Phprojekt_Loader::MODEL, 'Notification', 'Setting.php'));
+        if (is_readable($file)) {
             $results[] = array('name'  => 'Notification',
                                'label' => Phprojekt::getInstance()->translate('Notification'));
         }
@@ -98,14 +101,13 @@ class Phprojekt_Setting extends Phprojekt_ActiveRecord_Abstract
             if ($dir == '.' || $dir == '..' || in_array($dir, self::$_excludePaths)) {
                 continue;
             }
-            if (is_dir($path)) {
-                $settingClass = Phprojekt_Loader::getModelClassname($dir, 'Setting');
-                if (Phprojekt_Loader::tryToLoadClass($settingClass)) {
-                    $results[] = array('name'  => $dir,
-                                       'label' => Phprojekt::getInstance()->translate($dir, null, $dir));
-                }
+            $file = join(DIRECTORY_SEPARATOR, array($path, Phprojekt_Loader::MODEL, 'Setting.php'));
+            if (is_dir($path) && is_readable($file)) {
+                $results[] = array('name'  => $dir,
+                                   'label' => Phprojekt::getInstance()->translate($dir, null, $dir));
             }
         }
+
         return $results;
     }
 
