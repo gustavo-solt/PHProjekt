@@ -393,10 +393,8 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
     protected function _hasManyAndBelongsToMany($key)
     {
         if (!array_key_exists($key, $this->_data)) {
-            $className = $this->_getClassNameForRelationship($key,
-            $this->hasManyAndBelongsToMany);
-
-            $instance = new $className(array('db' => $this->getAdapter()));
+            $className = $this->_getClassNameForRelationship($key, $this->hasManyAndBelongsToMany);
+            $instance  = new $className(array('db' => $this->getAdapter()));
 
             $instance->_relations['hasManyAndBelongsToMany'] = array('id'        => $this->id,
                                                                      'classname' => get_class($this),
@@ -490,7 +488,7 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
     protected function _fetchWithOutJoin($where = null, $order = null, $count = null, $offset = null)
     {
         if (array_key_exists('hasManyAndBelongsToMany', $this->_relations)
-        && is_array($this->_relations['hasManyAndBelongsToMany'])) {
+            && is_array($this->_relations['hasManyAndBelongsToMany'])) {
             return $this->_fetchHasManyAndBelongsToMany($where);
         } else {
             // Collect all the fields for prevent select *
@@ -504,6 +502,7 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
             if ($count !== null || $offset !== null) {
                 $select->limit($count, $offset);
             }
+
             return parent::fetchAll($select);
         }
     }
@@ -523,8 +522,7 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
 
         if (!array_key_exists($key, $this->_data)) {
             $className = $this->_getClassNameForRelationship($key, $this->belongsTo);
-
-            $instance = new $className(array('db' => $this->getAdapter()));
+            $instance  = new $className(array('db' => $this->getAdapter()));
 
             $foreignKeyName = $this->_translateKeyFormat($className);
 
@@ -563,10 +561,8 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
             // We also do a guess on the real class name. Either there is a
             // 'classname' key in the hasMany array or we use the provided key
             // itself.
-            $className = $this->_getClassNameForRelationship($key,
-            $this->hasMany);
-
-            $instance = new $className(array('db' => $this->getAdapter()));
+            $className = $this->_getClassNameForRelationship($key, $this->hasMany);
+            $instance  = new $className(array('db' => $this->getAdapter()));
 
             // $instance->_relations['simple'] = );
             $instance->_relations['hasMany'] = array('id'        => $this->id,
@@ -706,12 +702,15 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
         }
 
         $definition = $array[$key];
-
         if (array_key_exists('classname', $definition)) {
             $className = $array[$key]['classname'];
+            $pattern1  = str_replace('_', '', Phprojekt_Loader::CLASS_PATTERN);
+            $pattern2  = Phprojekt_Loader::CLASS_PATTERN;
+            if (preg_match("@^(" . $pattern1 . ")_Models_(" . $pattern2 . ")@", $className, $match)) {
+                $className = Phprojekt_Loader::getModelClassname($match[1], $match[2]);
+            }
         } elseif (array_key_exists('model', $definition) && array_key_exists('module', $definition)) {
-            $className = Phprojekt_Loader::getModelClassName($definition['module'],
-            $definition['model']);
+            $className = Phprojekt_Loader::getModelClassName($definition['module'], $definition['model']);
         } else {
             $className = $key;
         }
@@ -819,6 +818,7 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
     {
         $instance             = clone $this;
         $instance->_relations = $this->_relations;
+
         return $instance;
     }
 
@@ -888,8 +888,7 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
         if (array_key_exists('id', $this->_data)) {
             if (array_key_exists('hasMany', $this->_relations) || count($this->hasMany) > 0) {
                 foreach (array_keys($this->hasMany) as $key) {
-                    $className = $this->_getClassNameForRelationship($key,
-                    $this->hasMany);
+                    $className  = $this->_getClassNameForRelationship($key, $this->hasMany);
                     $im         = new $className($this->getAdapter());
                     $tableName  = $im->getTableName();
                     $columnName = $this->_translateKeyFormat(get_class($this));
@@ -899,13 +898,12 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
             }
 
             if (array_key_exists('hasManyAndBelongsToMany', $this->_relations)
-            || count($this->hasManyAndBelongsToMany) > 0) {
+                || count($this->hasManyAndBelongsToMany) > 0) {
                 // We just delete the data from the relations and do
                 // not do an lookup for a cascade delete if there is no
                 // relation anymore
                 foreach (array_keys($this->hasManyAndBelongsToMany) as $key) {
-                    $className = $this->_getClassNameForRelationship($key,
-                    $this->hasManyAndBelongsToMany);
+                    $className = $this->_getClassNameForRelationship($key, $this->hasManyAndBelongsToMany);
                     $keyName   = $this->_translateKeyFormat(get_class($this));
                     $im        = new $className($this->getAdapter());
                     $tableName = $this->_translateIntoRelationTableName($this, $im);
@@ -1078,16 +1076,16 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
     protected function _fetchWithJoin($where = null, $order = null, $count = null, $offset = null, $select = null,
         $join = null)
     {
-        // selection tool
+        // Selection tool
         $selectObj = $this->_db->select();
 
-        // the FROM clause
+        // The FROM clause
         $selectObj->from($this->_name, $this->_cols, $this->_schema);
 
-        // the WHERE clause
+        // The WHERE clause
         $where = (array) $where;
         foreach ($where as $key => $val) {
-            // is $key an int?
+            // Is $key an int?
             if (is_int($key)) {
                 // $val is the full condition
                 $selectObj->where($this->_quoteTableAndFieldName($val));
@@ -1098,7 +1096,7 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
             }
         }
 
-        // the ORDER clause
+        // The ORDER clause
         if (!is_array($order)) {
             $order = array($order);
         }
@@ -1106,7 +1104,7 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
             $selectObj->order($val);
         }
 
-        // the LIMIT clause
+        // The LIMIT clause
         $selectObj->limit($count, $offset);
 
         $sqlStr    = $selectObj->__toString();
@@ -1149,7 +1147,7 @@ abstract class Phprojekt_ActiveRecord_Abstract extends Zend_Db_Table_Abstract
             $sqlStr .= ' ' . $join;
         }
 
-        // return the results
+        // Return the results
         $stmt      = $this->_db->query($sqlStr);
         $dataArray = $stmt->fetchAll(Zend_Db::FETCH_ASSOC);
 
