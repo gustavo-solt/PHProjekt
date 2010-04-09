@@ -95,12 +95,29 @@ class JsController extends IndexController
                 } else {
                     $scripts = array();
                 }
-                $this->_modules[]         = $file;
+
+                $useCustom = false;
+                if (is_dir(PHPR_CORE_PATH . '/' . $file . '/Customized/Views/dojo/scripts/')) {
+                    $useCustom = true;
+                }
+
+                if ($useCustom) {
+                    $this->_modules[] = $file . '.Customized';
+                } else {
+                    $this->_modules[] = $file;
+                }
                 $this->_subModules[$file] = array();
                 if ($file != 'Core') {
-                    echo 'dojo.registerModulePath' . '("phpr.' . $file . '", "../../../application/' . $file
-                        . '/Views/dojo/scripts");';
                     echo $this->_getModuleScripts($scripts, $file);
+                    if ($useCustom) {
+                        echo 'dojo.registerModulePath' . '("phpr.' . $file . '", "../../../application/' . $file
+                            . '/Customized/Views/dojo/scripts");';
+                        $scripts = scandir(PHPR_CORE_PATH . '/' . $file . '/Customized/Views/dojo/scripts/');
+                        echo $this->_getModuleScripts($scripts, $file . '/Customized');
+                    } else {
+                        echo 'dojo.registerModulePath' . '("phpr.' . $file . '", "../../../application/' . $file
+                            . '/Views/dojo/scripts");';
+                    }
                     if (is_dir(PHPR_CORE_PATH . '/' . $file . '/SubModules/')) {
                         $subFiles = scandir(PHPR_CORE_PATH . '/' . $file . '/SubModules/');
                         foreach ($subFiles as $subFile) {
@@ -199,9 +216,17 @@ class JsController extends IndexController
             } else {
                 $subModules = '';
             }
-            echo '
-                this.' . $module . ' = new phpr.' . $module . '.Main([' . $subModules . ']);
-            ';
+
+            if (strstr($module, 'Customized')) {
+                echo '
+                    this.' . str_replace('.Customized', '', $module) . ' = new phpr.' . $module . '.Main(['
+                    . $subModules . ']);
+                ';
+            } else {
+                echo '
+                    this.' . $module . ' = new phpr.' . $module . '.Main([' . $subModules . ']);
+                ';
+            }
         }
 
         // The load method of the currentModule is called
@@ -269,7 +294,11 @@ class JsController extends IndexController
                 $output .= file_get_contents(PHPR_CORE_PATH . '/' . $module . '/Views/dojo/scripts/' . $script);
             } else if ('template' == $script) {
                 if (strstr($module, '/')) {
-                    $templateModule = substr(strrchr($module, '/'), 1);
+                    if (strstr($module, 'Customized')) {
+                        $templateModule = str_replace('/Customized', '', $module);
+                    } else {
+                        $templateModule = substr(strrchr($module, '/'), 1);
+                    }
                 } else {
                     $templateModule = $module;
                 }
