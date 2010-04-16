@@ -302,7 +302,13 @@ class Phprojekt
     {
         $translate = Phprojekt::getInstance()->getTranslate($locale);
         if (null === $moduleName) {
-            $moduleName = Zend_Controller_Front::getInstance()->getRequest()->getModuleName();
+            // Try to get the current module
+            $request = Zend_Controller_Front::getInstance()->getRequest();
+            if (null !== $request) {
+                $moduleName = $request->getModuleName();
+            } else {
+                $moduleName = 'Default';
+            }
         }
 
         // Fix for request to the core
@@ -337,7 +343,14 @@ class Phprojekt
     public function getTooltip($field)
     {
         $translate  = Phprojekt::getInstance()->getTranslate();
-        $moduleName = Zend_Controller_Front::getInstance()->getRequest()->getModuleName();
+
+        // Try to get the current module
+        $request = Zend_Controller_Front::getInstance()->getRequest();
+        if (null !== $request) {
+            $moduleName = $request->getModuleName();
+        } else {
+            $moduleName = 'Default';
+        }
 
         $hints = $translate->translate('Tooltip', $moduleName);
         if (!is_array($hints)) {
