@@ -340,7 +340,7 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
 
         if ($md5Name == '-') {
             // New file
-            $md5Name = md5(uniqid(rand(), 1));
+            $md5Name = md5(mt_srand());
             $model   = new Filemanager_Models_Filemanager();
             $params  = array(
                 'files'            => $md5Name . '|' . $fileName,
