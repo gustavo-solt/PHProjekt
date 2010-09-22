@@ -38,4 +38,4 @@ Phprojekt::getInstance();
 ini_set("error_reporting", "");
 
 $server = new Phprojekt_Filesystem();
-$server->serveRequest(Phprojekt::getInstance()->getConfig()->uploadpath);
+$server->serveRequest(Phprojekt::getInstance()->getConfig()->uploadPath);
