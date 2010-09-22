@@ -286,7 +286,7 @@ abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract i
                 $files      = explode('||', $filesField);
                 foreach ($files as $file) {
                     $md5Name          = substr($file, 0, strpos($file, '|'));
-                    $fileAbsolutePath = Phprojekt::getInstance()->getConfig()->uploadpath . $md5Name;
+                    $fileAbsolutePath = Phprojekt::getInstance()->getConfig()->uploadPath . $md5Name;
                     if (!empty($md5Name) && file_exists($fileAbsolutePath)) {
                         unlink($fileAbsolutePath);
                     }
@@ -325,7 +325,7 @@ abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract i
         // Only fetch records with read access
         $join .= sprintf(' INNER JOIN item_rights ON (item_rights.item_id = %s
             AND item_rights.module_id = %d AND item_rights.user_id = %d) ',
-            $this->getAdapter()->quoteIdentifier($this->getTableName().'.id'),
+            $this->getAdapter()->quoteIdentifier($this->getTableName() . '.id'),
             Phprojekt_Module::getId($this->getModelName()), Phprojekt_Auth::getUserId());
 
         // Set where
@@ -394,7 +394,7 @@ abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract i
         $moduleId = Phprojekt_Module::getId($this->getModelName());
         $saveType = Phprojekt_Module::getSaveType($moduleId);
         switch ($saveType) {
-            case 0:
+            case Phprojekt_Module::TYPE_NORMAL:
                 $roleRights      = new Phprojekt_RoleRights($this->projectId, $moduleId, $this->id);
                 $roleRightRead   = $roleRights->hasRight('read');
                 $roleRightWrite  = $roleRights->hasRight('write');
@@ -442,9 +442,9 @@ abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract i
                     }
                 }
                 break;
-            case 1:
+            case Phprojekt_Module::TYPE_GLOBAL:
                 break;
-            case 2:
+            case Phprojekt_Module::TYPE_MIX:
                 // Implement saveType 2
                 break;
         }

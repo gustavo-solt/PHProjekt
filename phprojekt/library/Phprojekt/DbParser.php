@@ -127,49 +127,55 @@ class Phprojekt_DbParser
         }
 
         // Load the Code file and process it
-        $json = file_get_contents($coreDirectory . '/Core/Sql/Db.json');
-        $data = Zend_Json::decode($json);
-        $this->_parseData($data, 'Core');
+        $json         = file_get_contents($coreDirectory . '/Core/Sql/Db.json');
+        $dataToParser = Zend_Json::decode($json);
         if (is_dir($coreDirectory . '/Core/SubModules/')) {
             $files = scandir($coreDirectory . '/Core/SubModules/');
             foreach ($files as $file) {
-                if ($file != '.'  && $file != '..' && $file != '.svn') {
+                if ($file != '.'  && $file != '..') {
                     $subFiles = scandir($coreDirectory . '/Core/SubModules/' . $file);
                     foreach ($subFiles as $subFile) {
-                        if ($subFile != '.'  && $subFile != '..' && $subFile != '.svn') {
+                        if ($subFile != '.'  && $subFile != '..') {
                             $subPath = $coreDirectory . '/Core/SubModules/' . $file . '/' . $subFile . '/Sql/Db.json';
                             if (file_exists($subPath)) {
-                                $json = file_get_contents($subPath);
-                                $data = Zend_Json::decode($json);
-                                $this->_parseData($data, $subFile);
+                                $json         = file_get_contents($subPath);
+                                $data         = Zend_Json::decode($json);
+                                $dataToParser = array_merge_recursive($dataToParser, $data);
                             }
                         }
                     }
                 }
             }
         }
+        if (!empty($dataToParser)) {
+            $this->_parseData($dataToParser, 'Core');
+        }
 
         // Per module, load the file and process it
         $files = scandir($coreDirectory);
         foreach ($files as $file) {
-            if ($file != '.'  && $file != '..' && $file != '.svn' && $file != 'Core') {
+            if ($file != '.'  && $file != '..' && $file != 'Core') {
+                $dataToParser = array();
                 if (file_exists($coreDirectory . '/' . $file . '/Sql/Db.json')) {
-                    $json = file_get_contents($coreDirectory . '/' . $file . '/Sql/Db.json');
-                    $data = Zend_Json::decode($json);
-                    $this->_parseData($data, $file);
+                    $json         = file_get_contents($coreDirectory . '/' . $file . '/Sql/Db.json');
+                    $data         = Zend_Json::decode($json);
+                    $dataToParser = $data;
                 }
                 if (is_dir($coreDirectory . '/' . $file . '/SubModules/')) {
                     $subFiles = scandir($coreDirectory . '/' . $file . '/SubModules/');
                     foreach ($subFiles as $subFile) {
-                        if ($subFile != '.'  && $subFile != '..' && $subFile != '.svn') {
+                        if ($subFile != '.'  && $subFile != '..') {
                             $subPath = $coreDirectory . '/' . $file . '/SubModules/' . $subFile . '/Sql/Db.json';
                             if (file_exists($subPath)) {
-                                $json = file_get_contents($subPath);
-                                $data = Zend_Json::decode($json);
-                                $this->_parseData($data, $subFile);
+                                $json         = file_get_contents($subPath);
+                                $data         = Zend_Json::decode($json);
+                                $dataToParser = array_merge_recursive($dataToParser, $data);
                             }
                         }
                     }
+                }
+                if (!empty($dataToParser)) {
+                    $this->_parseData($dataToParser, $file);
                 }
             }
         }
@@ -218,22 +224,27 @@ class Phprojekt_DbParser
         $data          = $this->_getVersionsForProcess($module, $this->_sortData($data));
         $moduleVersion = $this->_getModuleVersion($module);
         foreach ($data as $version => $content) {
-            $this->_messages[$module] = array('version' => $version);
+            if (!isset($this->_messages[$module])) {
+                $this->_messages[$module] = array();
+            }
+            $this->_messages[$module]['version'] = $version;
             // Only process the initialData if the module version is lower than the data version
             if (Phprojekt::compareVersion($moduleVersion, $version) < 0) {
-                $this->_messages[$module]['process'] = array();
+                if (!isset($this->_messages[$module]['process'])) {
+                    $this->_messages[$module]['process'] = array();
+                }
                 if (isset($content['structure'])) {
-                    $this->_messages[$module]['process'][] = 'Structure';
+                    $this->_messages[$module]['process']['structure'] = true;
                     $this->_processStructure($content['structure']);
                 }
 
                 if (isset($content['initialData'])) {
-                    $this->_messages[$module]['process'][] = 'Inital data';
+                    $this->_messages[$module]['process']['initalData'] = true;
                     $this->_processData($this->_convertSpecialValues($content['initialData'], 0));
                 }
 
                 if (isset($content['extraData']) && $this->_useExtraData) {
-                    $this->_messages[$module]['process'][] = 'Extra data';
+                    $this->_messages[$module]['process']['extraData'] = true;
                     $this->_processData($this->_convertSpecialValues($content['extraData'], 0));
                 }
                 $this->_messages[$module]['finish'] = 'Done';

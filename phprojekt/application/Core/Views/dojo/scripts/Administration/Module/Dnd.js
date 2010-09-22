@@ -393,52 +393,52 @@ phpr.editModuleDesignerField = function(nodeId) {
         innerTabs: fieldsTable,
         formId:    formId
     });
-    dijit.byId('moduleDesignerEditorTable').attr('content', html);
+    dijit.byId('moduleDesignerEditorTable').set('content', html);
 
     var formId = 'formForm' + '_' + nodeId;
     var html   = render.render(["phpr.Default.template.form", "tabs.html"], null, {
         innerTabs: fieldsForm,
         formId:    formId
     });
-    dijit.byId('moduleDesignerEditorForm').attr('content', html);
+    dijit.byId('moduleDesignerEditorForm').set('content', html);
 
     var formId = 'formList' + '_' + nodeId;
     var html   = render.render(["phpr.Default.template.form", "tabs.html"], null, {
         innerTabs: fieldsList,
         formId:    formId
     });
-    dijit.byId('moduleDesignerEditorList').attr('content', html);
+    dijit.byId('moduleDesignerEditorList').set('content', html);
 
     var formId = 'formGeneral' + '_' + nodeId;
     var html   = render.render(["phpr.Default.template.form", "tabs.html"], null, {
         innerTabs: fieldsGeneral,
         formId:    formId
     });
-    dijit.byId('moduleDesignerEditorGeneral').attr('content', html);
+    dijit.byId('moduleDesignerEditorGeneral').set('content', html);
 
     // Change the Range
     dojo.connect(dijit.byId("selectType"), "onChange", function(){
-        switch (dijit.byId("selectType").attr('value')) {
+        switch (dijit.byId("selectType").get('value')) {
             case 'custom':
             default:
-                dijit.byId("formRange").attr('value', 'id1 # value1 | id2 # value2');
-                dijit.byId("tableType").attr('value', 'int');
-                dijit.byId("tableLength").attr('value', 11);
+                dijit.byId("formRange").set('value', 'id1 # value1 | id2 # value2');
+                dijit.byId("tableType").set('value', 'int');
+                dijit.byId("tableLength").set('value', 11);
                 break;
             case 'project':
-                dijit.byId("formRange").attr('value', 'Project # id # title');
-                dijit.byId("tableType").attr('value', 'int');
-                dijit.byId("tableLength").attr('value', 11);
+                dijit.byId("formRange").set('value', 'Project # id # title');
+                dijit.byId("tableType").set('value', 'int');
+                dijit.byId("tableLength").set('value', 11);
                 break;
             case 'user':
-                dijit.byId("formRange").attr('value', 'User # id # lastname');
-                dijit.byId("tableType").attr('value', 'int');
-                dijit.byId("tableLength").attr('value', 11);
+                dijit.byId("formRange").set('value', 'User # id # lastname');
+                dijit.byId("tableType").set('value', 'int');
+                dijit.byId("tableLength").set('value', 11);
                 break;
             case 'contact':
-                dijit.byId("formRange").attr('value', 'Contact # id # name');
-                dijit.byId("tableType").attr('value', 'int');
-                dijit.byId("tableLength").attr('value', 11);
+                dijit.byId("formRange").set('value', 'Contact # id # name');
+                dijit.byId("tableType").set('value', 'int');
+                dijit.byId("tableLength").set('value', 11);
                 break;
         }
     });
@@ -481,10 +481,10 @@ phpr.saveModuleDesignerField = function(nodeId, formType) {
     //    Mix the form data and make a new field with the data
     var params = new Array();
 
-    params = dojo.mixin(params, dijit.byId('formTable' + '_' + nodeId).attr('value'));
-    params = dojo.mixin(params, dijit.byId('formForm' + '_' + nodeId).attr('value'));
-    params = dojo.mixin(params, dijit.byId('formList' + '_' + nodeId).attr('value'));
-    params = dojo.mixin(params, dijit.byId('formGeneral' + '_' + nodeId).attr('value'));
+    params = dojo.mixin(params, dijit.byId('formTable' + '_' + nodeId).get('value'));
+    params = dojo.mixin(params, dijit.byId('formForm' + '_' + nodeId).get('value'));
+    params = dojo.mixin(params, dijit.byId('formList' + '_' + nodeId).get('value'));
+    params = dojo.mixin(params, dijit.byId('formGeneral' + '_' + nodeId).get('value'));
 
     phpr.switchOkButton('save');
 
@@ -532,13 +532,13 @@ phpr.makeModuleDesignerField = function(formType, target, params) {
         params = new Array();
     }
 
-    var formLabel    = '';
-    var selectType   = params['selectType'] || 'custom';
-    var tableType    = params['tableType'] || 'varchar';
+    var formLabel  = '';
+    var selectType = params['selectType'] || 'custom';
+    var tableType  = params['tableType'] || 'varchar';
     if (tableType == 'int') {
-        var tableLength  = params['tableLength'] || 11;
+        var tableLength = params['tableLength'] || 11;
     } else {
-        var tableLength  = params['tableLength'] || 255;
+        var tableLength = params['tableLength'] || 255;
     }
     var tableField   = params['tableField'] || '';
     var formRange    = params['formRange'] || '';
@@ -563,6 +563,9 @@ phpr.makeModuleDesignerField = function(formType, target, params) {
                 break;
             } else if (values[0] && values[1] && values[2]) {
                 selectType = values[0].replace(/(^\s*)|(\s*$)/g, "").toLowerCase();
+                if (!phpr.inArray(selectType, new Array('project', 'user', 'contact'))) {
+                    selectType = 'custom';
+                }
                 break;
             }
         }
@@ -621,14 +624,26 @@ phpr.makeModuleDesignerField = function(formType, target, params) {
                     formRange = 'id1 # value1 | id2 # value2';
                 }
                 var formRangeOptions = new Array();
-                var options = formRange.split("|");
-                for (var i in options) {
-                    var values = options[i].split("#");
+                var options          = formRange.split("|");
+                if (options.length > 1) {
+                    for (var i in options) {
+                        var values = options[i].split("#");
                         if (values[0] && values[1]) {
                             formRangeOptions.push({
                                 'id':   values[0],
                                 'name': phpr.nls.get(values[1], dijit.byId('name').value)
-                        });
+                            });
+                        }
+                    }
+                } else {
+                    var values = options[0].split("#");
+                    if (values[1] && values[2]) {
+                        for (var k = 1; k < 3 ; k++) {
+                            formRangeOptions.push({
+                                'id':   values[1],
+                                'name': values[2] + k
+                            });
+                        }
                     }
                 }
                 for (i in formRangeOptions) {

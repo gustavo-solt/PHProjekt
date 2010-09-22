@@ -1,5 +1,5 @@
 <div class="prepend-0">
-<h2>Step 4 - Install the tables</h2>
+<h2>Step 5 - Install the tables</h2>
 Now we are ready to install all the tables.<br />
 <br />
 <?php
@@ -17,7 +17,7 @@ style="width: auto;">
             url:       '<?php echo $this->webPath; ?>' + 'setup.php/index/jsonMigrationForm',
             onSuccess: dojo.hitch(this, function(data) {
                 dijit.byId('formContent').attr('content', data.template);
-                changeStep(3, 4);
+                changeStep(5, 6);
             })
         });">
             Continue with the migration

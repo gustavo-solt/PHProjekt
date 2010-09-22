@@ -170,7 +170,7 @@ class Cleaner_Sanitizer
             return gmdate($format, $value);
         } else {
             // Remove GMT declaration if exists
-            $value = preg_replace('/ GMT([-+0-9])+ \((\D)*\)/', '', $value);
+            $value = preg_replace('/ GMT ?\(?[+-0-9](\d)*\)?(.*)?/', '', $value);
             $time  = strtotime($value);
             if ($time === false || $time === -1) {
                 return null;
@@ -417,7 +417,7 @@ class Cleaner_Sanitizer
     public function sanitizeFilter($value)
     {
         // Allow letters, numbers, '-', ':' and '_'
-        $result = preg_replace('/[^\w\s\-\:]/', '', $value);
+        $result = preg_replace('/[^\w\s\-\:\p{L}+]/iu', '', $value);
 
         if ($result == '') {
             return null;

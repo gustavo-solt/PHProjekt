@@ -35,44 +35,57 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         designerData = phpr.DataStore.getData({url: this._moduleDesignerUrl});
 
         // Button for open the dialog
-        if (designerData && (typeof designerData === 'object')) {
+        if (designerData && (typeof designerData['definition'] === 'object')) {
             this.formdata[1] += this.fieldTemplate.buttonActionRender(phpr.nls.get('Form'), 'designerButton',
                 phpr.nls.get('Open Editor'), '', 'dojo.publish(\'Module.openDialog\');',
                 phpr.nls.get('Open a dialog where you can drag and drop many fields for create the form as you want.'));
         }
 
         // Hidden field for the MD data
-        if (!designerData.length) {
-            designerData    = new Object();
-            designerData[0] = new Object();
+        if (designerData && (!designerData['definition'] || !designerData['definition'].length)) {
+            designerData                  = new Object();
+            designerData['definition']    = new Object();
+            designerData['definition'][0] = new Object();
 
-            designerData[0]['id']            = 0;
-            designerData[0]['tableName']     = '';
-            designerData[0]['formPosition']  = 1;
-            designerData[0]['formTab']       = 1;
-            designerData[0]['formColumns']   = 1;
-            designerData[0]['formRegexp']    = null;
-            designerData[0]['listAlign']     = 'center';
-            designerData[0]['listUseFilter'] = 1;
-            designerData[0]['altPosition']   = 0;
-            designerData[0]['isInteger']     = 0;
-            designerData[0]['isUnique']      = 0;
-            designerData[0]['tableField']    = 'project_id';
-            designerData[0]['selectType']    = 'project';
-            designerData[0]['tableType']     = 'int';
-            designerData[0]['tableLength']   = 11;
-            designerData[0]['formLabel']     = 'Project';
-            designerData[0]['formType']      = 'selectValues';
-            designerData[0]['formRange']     = 'Project # id # title';
-            designerData[0]['defaultValue']  = null;
-            designerData[0]['listPosition']  = 0;
-            designerData[0]['status']        = 1;
-            designerData[0]['isRequired']    = 1;
+            designerData['definition'][0]['id']            = 0;
+            designerData['definition'][0]['tableName']     = '';
+            designerData['definition'][0]['formPosition']  = 1;
+            designerData['definition'][0]['formTab']       = 1;
+            designerData['definition'][0]['formColumns']   = 1;
+            designerData['definition'][0]['formRegexp']    = null;
+            designerData['definition'][0]['listAlign']     = 'center';
+            designerData['definition'][0]['listUseFilter'] = 1;
+            designerData['definition'][0]['altPosition']   = 0;
+            designerData['definition'][0]['isInteger']     = 0;
+            designerData['definition'][0]['isUnique']      = 0;
+            designerData['definition'][0]['tableField']    = 'project_id';
+            designerData['definition'][0]['selectType']    = 'project';
+            designerData['definition'][0]['tableType']     = 'int';
+            designerData['definition'][0]['tableLength']   = 11;
+            designerData['definition'][0]['formLabel']     = 'Project';
+            designerData['definition'][0]['formType']      = 'selectValues';
+            designerData['definition'][0]['formRange']     = 'Project # id # title';
+            designerData['definition'][0]['defaultValue']  = null;
+            designerData['definition'][0]['listPosition']  = 0;
+            designerData['definition'][0]['status']        = 1;
+            designerData['definition'][0]['isRequired']    = 1;
         }
-        var jsonDesignerData = dojo.toJson(designerData);
+        var jsonDesignerData = dojo.toJson(designerData['definition']);
 
         this.formdata[1] += this.fieldTemplate.hiddenFieldRender('Designer Data', 'designerData', jsonDesignerData,
             true, false);
+    },
+
+    setPermissions:function(data) {
+        this.inherited(arguments);
+
+        // Show delete ?
+        designerData = phpr.DataStore.getData({url: this._moduleDesignerUrl});
+        if (designerData && designerData['isUserModule']) {
+            this._deletePermissions = true;
+        } else {
+            this._deletePermissions = false;
+        }
     },
 
     postRenderForm:function() {
@@ -108,7 +121,7 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
             tabs:        tabs
         });
         phpr.makeModuleDesignerSource();
-        phpr.makeModuleDesignerTarget(dijit.byId('designerData').attr('value'), this.tabStore.getList());
+        phpr.makeModuleDesignerTarget(dijit.byId('designerData').get('value'), this.tabStore.getList());
 
         // Select the first tab, since the tabs in the dialog don't work on dojo 1.4
         dijit.byId('moduleDesignerEditor').startup();
@@ -140,10 +153,10 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
                 i++;
                 data[i] = new Object();
 
-                if (dijit.byId('name').attr('value') != '') {
-                    data[i]['tableName'] = dijit.byId('name').attr('value');
+                if (dijit.byId('name').get('value') != '') {
+                    data[i]['tableName'] = dijit.byId('name').get('value');
                 } else {
-                    data[i]['tableName'] = self.convertLabelIntoTableName(dijit.byId('label').attr('value'));
+                    data[i]['tableName'] = self.convertLabelIntoTableName(dijit.byId('label').get('value'));
                 }
 
                 formPosition++;
@@ -201,7 +214,7 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         }
 
         var json = dojo.toJson(data);
-        dijit.byId('designerData').attr('value', json);
+        dijit.byId('designerData').set('value', json);
     },
 
     updateDesignerData:function(event) {
@@ -211,20 +224,20 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         //    Update the field "name" with the value of the name or label
         //    Change the value into all the data array
         var self = this;
-        var data = dojo.fromJson(dijit.byId('designerData').attr('value'));
+        var data = dojo.fromJson(dijit.byId('designerData').get('value'));
 
         if (self.id > 0) {
-            var tableName = self.convertLabelIntoTableName(dijit.byId('name').attr('value'));
+            var tableName = self.convertLabelIntoTableName(dijit.byId('name').get('value'));
         } else {
-            var tableName = self.convertLabelIntoTableName(dijit.byId('label').attr('value'));
-            dijit.byId('name').attr('value', tableName);
+            var tableName = self.convertLabelIntoTableName(dijit.byId('label').get('value'));
+            dijit.byId('name').set('value', tableName);
         }
 
         for (var i in data) {
             data[i]['tableName'] = self.convertLabelIntoTableName(tableName);
         }
         data = dojo.toJson(data);
-        dijit.byId('designerData').attr('value', data);
+        dijit.byId('designerData').set('value', data);
 
         if (event) {
             dojo.stopEvent(event);

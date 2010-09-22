@@ -38,6 +38,11 @@
 class Core_ModuleController extends Core_IndexController
 {
     /**
+     * String to use on error when try to delete a system module.
+     */
+    const CAN_NOT_DELETE_SYSTEM_MODULE = "You can not delete system modules";
+
+    /**
      * Saves a module.
      *
      * If the request parameter "id" is null or 0, the function will add a new module,
@@ -163,23 +168,34 @@ class Core_ModuleController extends Core_IndexController
 
         $model = $this->getModelObject()->find($id);
 
-        if ($model instanceof Phprojekt_Model_Interface) {
-            $databaseModel   = Phprojekt_Loader::getModel($model->name, $model->name);
+        if ($model instanceof Phprojekt_ActiveRecord_Abstract) {
+            if (is_dir(PHPR_CORE_PATH . $model->name)) {
+                throw new Phprojekt_PublishedException(self::CAN_NOT_DELETE_SYSTEM_MODULE);
+            }
+
+            $databaseModel = Phprojekt_Loader::getModel($model->name, $model->name);
             if ($databaseModel instanceof Phprojekt_Item_Abstract) {
                 $databaseManager = new Phprojekt_DatabaseManager($databaseModel);
 
-                $return = (Default_Helpers_Delete::delete($model) || $databaseManager->deleteModule());
+                if (Default_Helpers_Delete::delete($model)) {
+                    $return = $databaseManager->deleteModule();
+                } else {
+                    $return = false;
+                }
             } else {
                 $return = Default_Helpers_Delete::delete($model);
             }
 
             if ($return === false) {
                 $message = Phprojekt::getInstance()->translate('The module can not be deleted');
+                $type    = 'error';
             } else {
+                Phprojekt::removeControllersFolders();
                 $message = Phprojekt::getInstance()->translate('The module was deleted correctly');
+                $type    = 'success';
             }
 
-            $return = array('type'    => 'success',
+            $return = array('type'    => $type,
                             'message' => $message,
                             'code'    => 0,
                             'id'      => $id);

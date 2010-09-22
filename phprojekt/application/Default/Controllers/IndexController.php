@@ -589,7 +589,7 @@ class IndexController extends Zend_Controller_Action
 
         $model = $this->getModelObject()->find($id);
 
-        if ($model instanceof Phprojekt_Model_Interface) {
+        if ($model instanceof Phprojekt_ActiveRecord_Abstract) {
             $tmp = Default_Helpers_Delete::delete($model);
             if ($tmp === false) {
                 $message    = Phprojekt::getInstance()->translate(self::DELETE_FALSE_TEXT);
@@ -640,10 +640,12 @@ class IndexController extends Zend_Controller_Action
             $model    = $this->getModelObject();
             $idsArray = explode(",", $ids);
 
-            foreach ($idsArray as $id) {
-                $model->find((int) $id);
-                Default_Helpers_Delete::delete($model);
-                $showId[] = $id;
+            if ($model instanceof Phprojekt_ActiveRecord_Abstract) {
+                foreach ($idsArray as $id) {
+                    $model->find((int) $id);
+                    Default_Helpers_Delete::delete($model);
+                    $showId[] = $id;
+                }
             }
 
             $return = array('type'    => 'success',
@@ -734,7 +736,7 @@ class IndexController extends Zend_Controller_Action
     }
 
     /**
-     * Returns the front configurations from the configuration.ini (front.xxx),
+     * Returns the front configurations from the configuration.php (front.xxx),
      * and some others Core Settings.
      *
      * The return is an array like ('name' => varName, 'value' => varValue')

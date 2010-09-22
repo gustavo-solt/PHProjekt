@@ -38,6 +38,13 @@
 class Setup_Models_Setup
 {
     /**
+     * Default value for the last part of the private folder path.
+     *
+     * @see getProposedPrivateFolderPath
+     */
+    const PFOLDER_NAME = 'phprojekt_private';
+
+    /**
      * Array with erros.
      *
      * @var array
@@ -70,50 +77,36 @@ class Setup_Models_Setup
      */
     private function _checkServer()
     {
-        $missingRequirements = array();
-
-        // The following extensions are either needed by components of the Zend Framework that are used
-        // or by P6 components itself.
-        $extensionsNeeded = array('mbstring', 'iconv', 'ctype', 'gd', 'pcre', 'pdo', 'Reflection', 'session', 'SPL',
-            'zlib');
-
-        // These settings need to be properly configured by the admin
-        $settingsNeeded = array('magic_quotes_gpc' => 0, 'magic_quotes_runtime' => 0, 'magic_quotes_sybase' => 0);
-
-        // These settings should be properly configured by the admin
-        $settingsRecommended = array('register_globals' => 0, 'safe_mode' => 0);
+        // Check the server
+        $checkServer = Phprojekt::checkExtensionsAndSettings();
 
         // Check the PHP version
-        $requiredPhpVersion = "5.2.4";
-        if (version_compare(phpversion(), $requiredPhpVersion, '<')) {
-            // This is a requirement of the Zend Framework
-            $missingRequirements[] = "PHP Version $requiredPhpVersion or newer";
+        if (!$checkServer['requirements']['php']['checked']) {
+            $missingRequirements[] = "You need the PHP Version " . $checkServer['requirements']['php']['required']
+                . " or newer. Follow this link for help: <a href=\"". $checkServer['requirements']['php']['help'] ."\""
+                . " target=\"_new\">HELP</a>";
         }
 
-        foreach ($extensionsNeeded as $extension) {
-            if (!extension_loaded($extension)) {
-                $missingRequirements[] = "The $extension extension must be enabled.";
+        // Check required extension
+        foreach ($checkServer['requirements']['extension'] as $name => $values) {
+            if (!$values['checked']) {
+                $missingRequirements[] = "The '" . $name . "' extension must be enabled. Follow this link for help: "
+                    . "<a href=\"". $values['help'] ."\" target=\"_new\">HELP</a>";
             }
         }
 
-        // Check pdo library
-        $mysql  = extension_loaded('pdo_mysql');
-        $sqlite = extension_loaded('pdo_sqlite2');
-        $pgsql  = extension_loaded('pdo_pgsql');
-
-        if (!$mysql && !$sqlite && !$pgsql) {
-            $missingRequirements[] = "You need one of these PDO extensions: pdo_mysql, pdo_pgsql or pdo_sqlite";
-        }
-
-        foreach ($settingsNeeded as $conf => $value) {
-            if (ini_get($conf) != $value) {
-                $missingRequirements[] = "The php.ini setting of \"$conf\" has to be \"$value\".";
+        // Check required settings
+        foreach ($checkServer['requirements']['settings'] as $name => $values) {
+            if (!$values['checked']) {
+                $missingRequirements[] = "The php.ini setting of '" . $name . "' has to be '"
+                    . $values['required'] . "'. Follow this link for help: <a href=\"". $values['help'] . "\""
+                    . " target=\"_new\">HELP</a>";
             }
         }
 
-        // Checking if configuration.ini exists
+        // Checking if configuration.php exists
         $baseDir = str_replace('htdocs/setup.php', '', $_SERVER['SCRIPT_FILENAME']);
-        if (file_exists($baseDir . "configuration.ini")) {
+        if (file_exists($baseDir . "configuration.php")) {
             throw new Exception("Configuration file found. Please, delete it before run setup again.");
         }
 
@@ -123,16 +116,35 @@ class Setup_Models_Setup
         }
 
         if (strncmp($_SERVER['SCRIPT_NAME'], '/setup.php', 10) != 0) {
-            $message = "PHProjekt 6 must be installed in a DocumentRoot directory.\n"
-                . "Please set the DocumentRoot to phprojekt/htdocs or generate an extra virtual host "
-                . "for the DocumentRoot phprojekt/htdocs";
-            throw new Exception($message);
+            $this->_message[] = "It is recommend install PHProjekt 6 using a virtual host.<br />"
+                . "You should try to generate an extra virtual host (or a sub-domain) to phprojekt/htdocs.";
+
+            // Works the .htaccess?
+            $response = new Zend_Controller_Request_Http();
+            $webpath  = $response->getHttpHost();
+            $str      = '';
+            $sock     = fsockopen($webpath, $response->getServer('SERVER_PORT'));
+            $request  = "GET " . str_replace('htdocs/setup.php', '', $response->getRequestUri()) . '/application/'
+                . " HTTP/1.1\r\n" .  "Host: " . $webpath . "\r\nConnection: close\r\n\r\n";
+            fwrite($sock, $request);
+            while ($buff = fread($sock, 1024)) {
+                $str .= $buff;
+            }
+            $response = Zend_Http_Response::fromString($str);
+            if ($response->getStatus() != '403') {
+                $this->_message[] = "Please note that your webserver needs to support .htaccess files "
+                    . "to deny access to the configuration files.<br />"
+                    . "Running PHProjekt 6 without using the provided .htaccess files to deny access to "
+                    . "certain files and folders, might not be secure and is not recommended.";
+            }
+            fclose($sock);
         }
 
-        foreach ($settingsRecommended as $conf => $value) {
-            if (ini_get($conf) != $value) {
-                $this->_message[] = "It is recommend to have \"$conf\" set to \"$value\", but it is not required "
-                    . "to run PHProjekt.";
+        foreach ($checkServer['recommendations']['settings'] as $name => $values) {
+            if (!$values['checked']) {
+                $this->_message[] = "It is recommend to have '" . $name . "' set to '" . $values['required']
+                    . "', but it is not required to run PHProjekt. Follow this link for help: <a href=\""
+                    . $values['help'] . "\" target=\"_new\">HELP</a>";
             }
         }
     }
@@ -146,18 +158,16 @@ class Setup_Models_Setup
      */
     public function validateDatabase($params)
     {
-        $valid = true;
+        $valid = false;
 
         if (!isset($params['dbHost']) || empty($params['dbHost'])) {
             $this->_error[] = 'The database server address can not be empty';
-            $valid = false;
         } else if (!isset($params['dbUser']) || empty($params['dbUser'])) {
             $this->_error[] = 'The database user can not be empty';
-            $valid = false;
         } else if (!isset($params['dbName']) || empty($params['dbName'])) {
             $this->_error[] = 'The database name can not be empty';
-            $valid = false;
         } else {
+            ob_start();
             try {
                 $dbParams = array(
                     'host'     => $params['dbHost'],
@@ -166,15 +176,13 @@ class Setup_Models_Setup
                     'dbname'   => $params['dbName']
                 );
                 $db = Zend_Db::factory($params['serverType'], $dbParams);
-                $db->query("DROP DATABASE `" . $params['dbName'] . "`");
-                $db->query("CREATE DATABASE `" . $params['dbName'] . "`"
-                    ." DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
-                $db = Zend_Db::factory($params['serverType'], $dbParams);
+                $db->getConnection();
+                $valid = true;
             } catch (Exception $error) {
                 $this->_error[] = 'Cannot connect to server at ' . $params['dbHost']
                     . ' using ' . $params['dbUser'] . ' user ' . '(' . $error->getMessage() . ')';
-                $valid = false;
             }
+            ob_end_clean();
         }
 
         return $valid;
@@ -189,8 +197,7 @@ class Setup_Models_Setup
      */
     public function saveDatabase($params)
     {
-        $databaseNamespace       = new Zend_Session_Namespace('databaseData');
-        $databaseNamespace->data = $params;
+        $this->_saveSession('databaseData', $params);
     }
 
     /**
@@ -240,24 +247,66 @@ class Setup_Models_Setup
      */
     public function saveUsers($params)
     {
-        $usersNamespace       = new Zend_Session_Namespace('usersData');
-        $usersNamespace->data = $params;
+        $this->_saveSession('usersData', $params);
     }
 
     /**
-     * Validate the params for the server.
+     * Validate the private folder.
      *
      * @param array $params Array with the POST values.
      *
      * @return boolean True for valid.
      */
-    public function validateServer($params)
+    public function validatePrivateFolder($params)
     {
-        $valid = true;
+        $valid = 1;
+        $privateDir = self::slashify($params['privateDir']);
+
+        // Check private folder path
+        if (!isset($privateDir) || empty($privateDir)) {
+            $this->_error[] = 'The path cannot be empty';
+            $valid = 0;
+        }
+
+        // Check private directory
+        $privateBaseDir = dirname($privateDir) . DIRECTORY_SEPARATOR;
+        if ($valid && !$this->_checkWriteAccess($privateBaseDir, basename($privateDir))) {
+            $valid = 0;
+        }
+
+        if (!$params['confirmationCheck']) {
+            $privateDirCheck = str_replace("\\", "/", realpath($privateDir));
+            $documentRoot    = str_replace("\\", "/", $_SERVER['DOCUMENT_ROOT']);
+            if (substr($privateDirCheck, 0, strlen($documentRoot)) == $documentRoot) {
+                $this->_error[] = 'Use a folder inside your document root can be dangerous, do you really want to use '
+                    . 'this folder?';
+                $valid = 2;
+            }
+        }
+
+        if ($valid == 1) {
+            $folderNamespace       = new Zend_Session_Namespace('privateFolder');
+            $folderNamespace->path = $privateDir;
+        }
+
+        return $valid;
+    }
+
+    /**
+     * Try to create the private folder and sub-folders.
+     *
+     * @param array $params Array with the POST values.
+     *
+     * @return boolean True for valid.
+     */
+    public function writeFolders($params)
+    {
+        $valid      = true;
+        $privateDir = self::slashify($params['privateDir']);
 
         // Check write access
         $baseDir    = str_replace('htdocs/setup.php', '', $_SERVER['SCRIPT_FILENAME']);
-        $configFile = $baseDir . "configuration.ini";
+        $configFile = $baseDir . "configuration.php";
 
         if (!file_exists($configFile)) {
             if (!is_writable($baseDir)) {
@@ -274,81 +323,51 @@ class Setup_Models_Setup
             }
         }
 
-        // Check log files
-        $logsDir = $baseDir . "logs";
+        // Write the .htaccess file
+        $htaccess = @fopen($privateDir . '.htaccess', 'w+', false);
+        if (false === $htaccess) {
+            $this->_error[] = 'The .htaccess file cannot be created';
+            $valid = false;
+        } else {
+            fwrite($htaccess, "# deny all access\ndeny from all\n");
+            fclose($htaccess);
+        }
 
-        if (!is_dir($logsDir)) {
-            if (!is_writable($baseDir)) {
-                $this->_error[] = 'Error creating the logs folder: Do not have write access.';
+        // Check log files
+        if (!$this->_checkWriteAccess($privateDir, 'logs')) {
+            $valid = false;
+        } else {
+            if (!@fopen($privateDir . 'logs' . DIRECTORY_SEPARATOR . 'debug.log', 'a', false)) {
+                $this->_error[] = 'The debug log cannot be created';
                 $valid = false;
-            } else {
-                if (!mkdir($logsDir)) {
-                    $this->_error[] = 'Please create the dir ' . $logsDir . ' to save the logs';
-                    $valid = false;
-                }
-                if (!@fopen($logsDir . DIRECTORY_SEPARATOR . 'debug.log', 'a', false)) {
-                    $this->_error[] = 'The debug log cannot be created';
-                    $valid = false;
-                }
-                if (!@fopen($logsDir . DIRECTORY_SEPARATOR . 'err.log', 'a', false)) {
-                    $this->_error[] = 'The err log can not be created';
-                    $valid = false;
-                }
             }
-        } else if (!is_writable($logsDir)) {
-            $this->_error[] = 'Please set permission to allow writing logs in ' . $logsDir;
+            if (!@fopen($privateDir . 'logs' . DIRECTORY_SEPARATOR . 'err.log', 'a', false)) {
+                $this->_error[] = 'The err log can not be created';
+                $valid = false;
+            }
+        }
+
+        // Check application dir
+        if (!$this->_checkWriteAccess($privateDir, 'application')) {
             $valid = false;
         }
 
         // Check upload dir
-        $uploadDir = $baseDir . "upload";
-
-        if (!is_dir($uploadDir)) {
-            if (!is_writable($baseDir)) {
-                $this->_error[] = 'Error creating the upload folder: Do not have write access.';
-                $valid = false;
-            } else if (!mkdir($uploadDir)) {
-                $this->_error[] = 'Please create the dir ' . $uploadDir . ' to upload files';
-                $valid = false;
-            }
-        } else if (!is_writable($uploadDir)) {
-            $this->_error[] = 'Please set permission to allow writing uploaded files in ' . $uploadDir;
+        if (!$this->_checkWriteAccess($privateDir, 'upload')) {
             $valid = false;
         }
 
         // Check tmp dir
-        $cacheDir = $baseDir . "tmp";
-
-        if (!is_dir($cacheDir)) {
-            if (!is_writable($baseDir)) {
-                $this->_error[] = 'Error creating the tmp folder: Do not have write access.';
-                $valid = false;
-            } else if (!mkdir($cacheDir)) {
-                $this->_error[] = 'Please create the dir ' . $cacheDir . ' to use the cache';
-                $valid = false;
-            }
-        } else if (!is_writable($cacheDir)) {
-            $this->_error[] = 'Please set permission to allow use the cache in ' . $cacheDir;
+        if (!$this->_checkWriteAccess($privateDir, 'tmp')) {
             $valid = false;
         }
 
         // Check zendCache dir
-        $cacheDir = $baseDir . "tmp" . DIRECTORY_SEPARATOR . "zendCache";
-
-        if (!is_dir($cacheDir)) {
-            if (!is_writable($baseDir . "tmp")) {
-                $this->_error[] = 'Error creating the "tmp"' . DIRECTORY_SEPARATOR . '"zendCache" folder'
-                    . ': Do not have write access.';
-                $valid = false;
-            } else if (!mkdir($cacheDir)) {
-                $this->_error[] = 'Please create the dir ' . $cacheDir . ' to use the cache';
-                $valid = false;
-            }
-        } else if (!is_writable($cacheDir)) {
-            $this->_error[] = 'Please set permission to allow use the cache in ' . $cacheDir;
+        if (!$this->_checkWriteAccess($privateDir . 'tmp' . DIRECTORY_SEPARATOR, 'zendCache')) {
             $valid = false;
         } else {
             // Remove old data if exists
+            $cacheDir = $privateDir . 'tmp' . DIRECTORY_SEPARATOR . 'zendCache';
             if ($directory = opendir($cacheDir)) {
                 while (($file = readdir($directory)) !== false) {
                     if ($file == '.' || $file == '..') {
@@ -359,7 +378,105 @@ class Setup_Models_Setup
             }
         }
 
+        // Check old installations
+
+        // Upload dir
+        $this->_moveAndRemoveDirectory($privateDir, $baseDir, "upload");
+
+        // Logs dir
+        $this->_moveAndRemoveDirectory($privateDir, $baseDir, "logs");
+
+        // Temporals dir
+        $this->_moveAndRemoveDirectory($privateDir, $baseDir, "tmp", false);
+
+        // Set access
+        if (PHP_OS == 'WIN32' || PHP_OS == 'WINNT') {
+            $this->_error[] = '"' . $privateDir . '" should have the next rights: 0700 for folders, 0600 for files';
+        } else {
+            // Private folder
+            if (!$this->chmodRecursive($privateDir, 0700, 0600)) {
+                $this->_error[] = '"' . $privateDir . '" should have the next rights: 0700 for folders, 0600 for files';
+            }
+        }
+
+        // Configuration.ini and ini-dist files
+        if (file_exists($baseDir . "configuration.ini")) {
+            unlink($baseDir . "configuration.ini");
+        }
+        if (file_exists($baseDir . "configuration.ini-dist")) {
+            unlink($baseDir . "configuration.ini-dist");
+        }
+
         return $valid;
+    }
+
+    /**
+     * Check if the folder exists and have write access.
+     *
+     * If not, try to create it.
+     *
+     * @param string $baseDir Path to the folder.
+     * @param string $folder  Folder name.
+     *
+     * @return boolean True if the folder is writable.
+     */
+    private function _checkWriteAccess($baseDir, $folder)
+    {
+        $valid = false;
+        $path  = $baseDir . $folder;
+
+        if (!is_dir($path)) {
+            if (!is_writable($baseDir)) {
+                $this->_error[] = 'Error creating the "' . $folder . '" folder: Do not have write access.';
+            } else if (!mkdir($path)) {
+                $this->_error[] = 'Please create the dir ' . $path . '.';
+            } else {
+                $valid = true;
+            }
+        } else if (!is_writable($path)) {
+            $this->_error[] = 'Please set write permission to ' . $path . '.';
+        } else {
+            $valid = true;
+        }
+
+        return $valid;
+    }
+
+    /**
+     * Delete or move files from old installations.
+     *
+     * @param string  $privateDir Path to the private folder (New path).
+     * @param string  $baseDir    Path to the document root (Old path).
+     * @param string  $name       Name of the folder.
+     * @param boolean $move       Move the file or not.
+     *
+     * @return void
+     */
+    private function _moveAndRemoveDirectory($privateDir, $baseDir, $name, $move = true)
+    {
+        $path = $baseDir . $name;
+        if (is_dir($path)) {
+            // Remove all
+            if ($directory = opendir($path)) {
+                while (($file = readdir($directory)) !== false) {
+                    if ($file == '.' || $file == '..') {
+                        continue;
+                    }
+                    $subPath = $path . DIRECTORY_SEPARATOR . $file;
+                    if (is_dir($subPath)) {
+                        $this->_moveAndRemoveDirectory($privateDir, $path . DIRECTORY_SEPARATOR, $file, $move);
+                    } else {
+                        if ($move) {
+                            copy($path . DIRECTORY_SEPARATOR . $file,
+                                $privateDir . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR . $file);
+                        }
+                        unlink($path . DIRECTORY_SEPARATOR . $file);
+                    }
+                }
+                closedir($directory);
+            }
+            rmdir($path);
+         }
     }
 
     /**
@@ -455,8 +572,19 @@ class Setup_Models_Setup
             $databaseNamespace->data['dbHost']);
 
         $baseDir    = str_replace('htdocs/setup.php', '', $_SERVER['SCRIPT_FILENAME']);
-        $configFile = $baseDir . "configuration.ini";
+        $configFile = $baseDir . "configuration.php";
         file_put_contents($configFile, $content);
+
+        // Set access
+        $baseDir = str_replace('htdocs/setup.php', '', $_SERVER['SCRIPT_FILENAME']);
+        if (PHP_OS == 'WIN32' || PHP_OS == 'WINNT') {
+            $this->_error[] = '"' . $baseDir . '" should have the next rights: 0750 for folders, 0640 for files';
+        } else {
+            // Root
+            if (!$this->chmodRecursive($baseDir, 0750, 0640)) {
+                $this->_error[] = '"' . $baseDir . '" should have the next rights: 0750 for folders, 0640 for files';
+            }
+        }
 
         // Delete a session if exists
         $_SESSION = array();
@@ -508,5 +636,80 @@ class Setup_Models_Setup
                     'dbname'   => $databaseNamespace->data['dbName']);
 
         return Zend_Db::factory($databaseNamespace->data['serverType'], $dbParams);
+    }
+
+    /**
+     * Save a value into the session
+     *
+     * @param string $name  Namespace for the session.
+     * @param mix    $value Mix value to save.
+     *
+     * @return void
+     */
+    private function _saveSession($name, $value)
+    {
+        $namespace       = new Zend_Session_Namespace($name);
+        $namespace->data = $value;
+    }
+
+    /**
+     * Proposes a path for the private folder.
+     *
+     * We propose that the path for the private folder where we store
+     * private data is outside of the document root that we use.
+     * In most cases this is a secure location.
+     * Nevertheless we cannot force the user to use it.
+     *
+     * @param string $folderName Name of the last path of the folder path.
+     *
+     * @return string The proposed folder path.
+     */
+    public static function getProposedPrivateFolderPath($folderName = self::PFOLDER_NAME)
+    {
+        return dirname($_SERVER['DOCUMENT_ROOT']) . DIRECTORY_SEPARATOR . $folderName . DIRECTORY_SEPARATOR;
+    }
+
+    /**
+     * Make sure path ends in a slash.
+     *
+     * @param string $path Directory path.
+     *
+     * @return string Directory path wiht trailing slash.
+     */
+    public static function slashify($path)
+    {
+        if ($path[strlen($path) - 1] != '/' && $path[strlen($path) - 1] != "\\") {
+            $path = $path . '/';
+        }
+
+        return $path;
+    }
+
+    /**
+     * Make a recursive chmod.
+     *
+     * @param string $path     Path for the file/directory.
+     * @param string $dirMode  Directory mode for apply.
+     * @param string $fileMode File mode for apply.
+     *
+     * @return boolean True on success.
+     */
+    private function chmodRecursive($path, $dirMode, $fileMode)
+    {
+        if (!is_dir($path)) {
+            return @chmod($path, (int) $fileMode);
+        }
+
+        $dir = opendir($path);
+        while (($file = readdir($dir)) !== false) {
+            if ($file != '.' && $file != '..') {
+                $fullPath = $path . '/' . $file;
+                $this->chmodRecursive($fullPath, $dirMode, $fileMode);
+
+            }
+        }
+        closedir($dir);
+
+        return @chmod($path, (int) $dirMode);
     }
 }

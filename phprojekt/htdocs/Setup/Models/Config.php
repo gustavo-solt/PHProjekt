@@ -69,6 +69,13 @@ class Setup_Models_Config
     private $_baseDir = null;
 
     /**
+     * Private folder path.
+     *
+     * @var string
+     */
+    private $_privateDir = null;
+
+    /**
      * Constructor.
      *
      * @return void
@@ -77,6 +84,7 @@ class Setup_Models_Config
     {
         $this->_setOs();
         $this->_setBaseDir();
+        $this->_setPrivateDir();
     }
 
     /**
@@ -140,13 +148,30 @@ class Setup_Models_Config
     }
 
     /**
+     * Set the private dir.
+     *
+     * @return void
+     */
+    private function _setPrivateDir()
+    {
+        $folderNamespace = new Zend_Session_Namespace('privateFolder');
+        if (isset($folderNamespace->path)) {
+            $this->_privateDir = $folderNamespace->path;
+        } else {
+            $this->_privateDir = $this->_baseDir;
+        }
+    }
+
+    /**
      * Return the introduction text.
      *
      * @return string Output for save in the file.
      */
     private function _getIntroduction()
     {
-        $content  = '; The semicolons \';\' are used preceding a comment line, or a line which has data' . $this->_eol;
+        $content  = '; <?php die(); /* Do not remove this line */ ?>' . $this->_eol;
+        $content .= $this->_eol;
+        $content .= '; The semicolons \';\' are used preceding a comment line, or a line which has data' . $this->_eol;
         $content .= '; that is not being used.' . $this->_eol;
         $content .= $this->_eol;
         $content .= '; This file is divided into sections,' . $this->_eol;
@@ -155,7 +180,7 @@ class Setup_Models_Config
         $content .= '; index.php, inside folder \'htdocs\' in the line that has:' . $this->_eol;
         $content .= '; define(\'PHPR_CONFIG_SECTION\', \'production\');' . $this->_eol;
         $content .= $this->_eol;
-        $content .= '; You could leave that line as it is, and in configuration.ini just modify the' . $this->_eol;
+        $content .= '; You could leave that line as it is, and in configuration.php just modify the' . $this->_eol;
         $content .= '; parameters inside [production] section. You can also add your own sections.' . $this->_eol;
 
         return $content;
@@ -197,17 +222,16 @@ class Setup_Models_Config
         $content .= ';;;;;;;;;' . $this->_eol;
         $content .= $this->_eol;
 
-        $content .= '; Where the site and the main file (index.php) are located (htdocs folder).' . $this->_eol;
-        $content .= '; The webpath is the exact URL where the site is.' . $this->_eol;
-        $content .= '; With VirtualHost' . $this->_eol;
-        $content .= '; webpath = "http://phprojekt6/"' . $this->_eol;
-        $content .= '; Without VirtualHost' . $this->_eol;
-        $content .= '; webpath = "http://localhost/phprojekt/htdocs/"' . $this->_eol;
-        $webPath = "http://" . $_SERVER['HTTP_HOST'] . str_replace('setup.php', '', $_SERVER['SCRIPT_NAME']);
-        $content .= 'webpath = "' . $webPath . '"' . $this->_eol;
-        $content .= $this->_eol;
         $content .= '; Path where will be placed files uploaded by the user.' . $this->_eol;
-        $content .= 'uploadpath = "' . $this->_baseDir . 'upload/"' . $this->_eol;
+        $content .= 'uploadPath = "' . $this->_privateDir . 'upload/"' . $this->_eol;
+
+        $content .= $this->_eol;
+        $content .= '; Path where will be placed temporaly files.' . $this->_eol;
+        $content .= 'tmpPath = "' . $this->_privateDir . 'tmp/"' . $this->_eol;
+
+        $content .= $this->_eol;
+        $content .= '; Path where will be placed modules created by the admin.' . $this->_eol;
+        $content .= 'applicationPath = "' . $this->_privateDir . 'application/"' . $this->_eol;
 
         return $content;
     }
@@ -264,7 +288,7 @@ class Setup_Models_Config
 
         $content .= '; Here will be logged things explicitly declared.' . $this->_eol;
         $content .= '; E.G.: (PHP) Phprojekt::getInstance()->getLog()->debug("String to be logged");' . $this->_eol;
-        $content .= 'log.debug.filename = "' . $this->_baseDir . 'logs/debug.log"' . $this->_eol;
+        $content .= 'log.debug.filename = "' . $this->_privateDir . 'logs/debug.log"' . $this->_eol;
         $content .= $this->_eol;
 
         $content .= $this->_eol;
@@ -272,7 +296,7 @@ class Setup_Models_Config
         $content .= '; E.G.: (PHP) Phprojekt::getInstance()->getLog()->err("String to be logged");' . $this->_eol;
         $content .= '; Note for developers: there are many different type of logs defined that can be' . $this->_eol;
         $content .= '; added here, see the complete list in phprojekt/library/Phprojekt/Log.php' . $this->_eol;
-        $content .= 'log.err.filename = "' . $this->_baseDir . 'logs/err.log"' . $this->_eol;
+        $content .= 'log.err.filename = "' . $this->_privateDir . 'logs/err.log"' . $this->_eol;
 
         return $content;
     }
@@ -310,7 +334,7 @@ class Setup_Models_Config
         $content .= '; Max size in bytes that is allowed to be uploaded per file.' . $this->_eol;
         $content .= '; 1 kb = 1024    bytes.' . $this->_eol;
         $content .= '; 1 Mb = 1048576 bytes.' . $this->_eol;
-        $content .= 'maxUploadSize = 512000' . $this->_eol;
+        $content .= 'maxUploadSize = ' . Phprojekt::DEFAULT_MAX_UPLOAD_SIZE . $this->_eol;
 
         return $content;
     }

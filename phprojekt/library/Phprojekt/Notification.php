@@ -191,11 +191,13 @@ class Phprojekt_Notification
                 $adapter = new $adapterName($params);
                 $adapter->setCustomFrom($from);
                 $adapter->setTo($recipients);
-                if ($showSubject) {
-                    $adapter->setCustomSubject($subject);
+                if (count($adapter->getRecipients()) > 0) {
+                    if ($showSubject) {
+                        $adapter->setCustomSubject($subject);
+                    }
+                    $adapter->setCustomBody($bodyParams, $bodyFields, $changes, $lang);
+                    $adapter->sendNotification();
                 }
-                $adapter->setCustomBody($bodyParams, $bodyFields, $changes, $lang);
-                $adapter->sendNotification();
             }
         }
     }
@@ -277,9 +279,8 @@ class Phprojekt_Notification
         $bodyParams['moduleTable'] = $this->_model->getModelName();
 
         // Url
-        $url      = Phprojekt::getInstance()->getConfig()->webpath . "index.php#" . $this->_model->getModelName();
-        $saveType = Phprojekt_Module::getSaveType(Phprojekt_Module::getId($this->_model->getModelName()));
-        if ($saveType == 0) {
+        $url = Phprojekt::getInstance()->getConfig()->webpath . "index.php#" . $this->_model->getModelName();
+        if (Phprojekt_Module::saveTypeIsNormal(Phprojekt_Module::getId($this->_model->getModelName()))) {
             $url .= "," . $this->_model->projectId;
         }
         $url              .= ",id," . $this->_model->id;

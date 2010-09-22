@@ -40,13 +40,13 @@ final class Default_Helpers_Delete
     /**
      * Delete a tree and all the sub-itemes.
      *
-     * @param Phprojekt_Model_Interface $model Model to delete.
+     * @param Phprojekt_ActiveRecord_Abstract $model Model to delete.
      *
      * @throws Exception If validation fails.
      *
      * @return boolean True for a sucessful delete.
      */
-    protected static function _deleteTree(Phprojekt_Model_Interface $model)
+    protected static function _deleteTree(Phprojekt_ActiveRecord_Abstract $model)
     {
         $id = $model->id;
         // Checks
@@ -94,27 +94,37 @@ final class Default_Helpers_Delete
             }
 
             // Delete the project itself
-            return $model->delete();
+            return (null === $model->delete());
         }
     }
 
     /**
      * Help to delete a model.
      *
-     * @param Phprojekt_Model_Interface $model The model to delete.
+     * @param Phprojekt_ActiveRecord_Abstract $model The model to delete.
      *
      * @throws Exception If validation fails.
      *
      * @return boolean True for a sucessful delete.
      */
-    protected static function _deleteModel(Phprojekt_Model_Interface $model)
+    protected static function _deleteModel(Phprojekt_ActiveRecord_Abstract $model)
     {
         // Checks
         $moduleName = Phprojekt_Loader::getModuleFromObject($model);
         if (!self::_checkItemRights($model, $moduleName)) {
             throw new Phprojekt_PublishedException('You do not have access to do this action');
         } else {
-            return $model->delete();
+            $return = $model->delete();
+            if ((isset($return->id) && null === $return->id) || null === $return) {
+                 // ActiveRecord delete the model.
+                return true;
+            } else if (is_bool($return)) {
+                // An extention returns true or false.
+                return $return;
+            } else {
+                // Any other value, is wrong.
+                return false;
+            }
         }
     }
 
@@ -134,7 +144,7 @@ final class Default_Helpers_Delete
             throw new Phprojekt_PublishedException('The model argument is expected');
         }
 
-        if ($model instanceof Phprojekt_Model_Interface) {
+        if ($model instanceof Phprojekt_ActiveRecord_Abstract) {
             if (Phprojekt::getInstance()->getConfig()->frontendMessages) {
                 if (method_exists($model, 'getNotification')) {
                     $notificationModel = $model->getNotification();
@@ -156,8 +166,8 @@ final class Default_Helpers_Delete
     /**
      * Check if the user has delete access to the item if is not a global module.
      *
-     * @param Phprojekt_Model_Interface $model      The model to save.
-     * @param string                    $moduleName The current module.
+     * @param Phprojekt_ActiveRecord_Abstract $model      The model to save.
+     * @param string                          $moduleName The current module.
      *
      * @return boolean True for a valid right.
      */
@@ -167,7 +177,7 @@ final class Default_Helpers_Delete
 
         if ($moduleName == 'Core') {
             return Phprojekt_Auth::isAdminUser();
-        } else if (Phprojekt_Module::getSaveType(Phprojekt_Module::getId($moduleName)) == 0) {
+        } else if (Phprojekt_Module::saveTypeIsNormal(Phprojekt_Module::getId($moduleName))) {
             $itemRights = $model->getRights();
 
             if (isset($itemRights['currentUser'])) {

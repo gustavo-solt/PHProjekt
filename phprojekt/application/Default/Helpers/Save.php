@@ -100,10 +100,10 @@ final class Default_Helpers_Save
                 $node->setParentNode($parentNode);
             }
 
-            // Save access, modules and roles only if the user have "access" right
+            // Save access, modules and roles only if the user have "admin" right
             $itemRights = Phprojekt_Loader::getLibraryClass('Phprojekt_Item_Rights');
             $check      = $itemRights->getRights(1, $node->getActiveRecord()->id);
-            if ($check['currentUser']['access']) {
+            if ($check['currentUser']['admin']) {
                 $rights = Default_Helpers_Right::getItemRights($params, 1, $newItem);
 
                 if (count($rights) > 0) {
@@ -189,16 +189,18 @@ final class Default_Helpers_Save
             throw new Phprojekt_PublishedException('You do not have access to do this action');
         } else {
             // Set the projectId to 1 for global modules
-            if (isset($model->projectId) && Phprojekt_Module::getSaveType($moduleId) == 1) {
+            // @TODO Remove the Timecard limitation
+            if (isset($model->projectId) && Phprojekt_Module::saveTypeIsGlobal($moduleId)
+                && Phprojekt_Module::getModuleName($moduleId) != 'Timecard') {
                 $model->projectId = 1;
             }
 
             $model->save();
 
-            // Save access only if the user have "access" right
+            // Save access only if the user have "admin" right
             $itemRights = Phprojekt_Loader::getLibraryClass('Phprojekt_Item_Rights');
             $check      = $itemRights->getRights($moduleId, $model->id);
-            if ($check['currentUser']['access']) {
+            if ($check['currentUser']['admin']) {
                 if ($moduleName == 'Core') {
                     $rights = Default_Helpers_Right::getModuleRights($params);
                 } else {
@@ -294,10 +296,10 @@ final class Default_Helpers_Save
     {
         $boolean = false;
         if ($projectId > 0) {
-            if ($projectId == 1 && Phprojekt_Module::getSaveType($moduleId) > 0) {
+            if ($projectId == 1 && !Phprojekt_Module::saveTypeIsNormal($moduleId)) {
                 $boolean = true;
             } else {
-                if (Phprojekt_Module::getSaveType($moduleId) > 0) {
+                if (!Phprojekt_Module::saveTypeIsNormal($moduleId)) {
                     $boolean = true;
                 } else {
                     $relation = Phprojekt_Loader::getModel('Project', 'ProjectModulePermissions');
@@ -329,7 +331,7 @@ final class Default_Helpers_Save
 
         if ($moduleName == 'Core') {
             return Phprojekt_Auth::isAdminUser();
-        } else if (Phprojekt_Module::getSaveType(Phprojekt_Module::getId($moduleName)) == 0) {
+        } else if (Phprojekt_Module::saveTypeIsNormal(Phprojekt_Module::getId($moduleName))) {
             $itemRights = $model->getRights();
 
             if (isset($itemRights['currentUser'])) {

@@ -62,7 +62,7 @@ class FrontInit extends PHPUnit_Framework_TestCase
 
         $cache = Phprojekt::getInstance()->getCache();
         if (!($translate = $cache->load('Phprojekt_getTranslate_en'))) {
-            $translate = new Phprojekt_Language('en');
+            $translate = new Phprojekt_Language(array('locale' => 'en'));
             $cache->save($translate, 'Phprojekt_getTranslate_en', array('Language'));
         }
         Zend_Registry::set('translate', $translate);
@@ -84,6 +84,8 @@ class FrontInit extends PHPUnit_Framework_TestCase
         $this->front->setDefaultModule('Default');
 
         $moduleDirectories = array();
+
+        // System modules
         foreach (scandir(PHPR_CORE_PATH) as $module) {
             $dir = PHPR_CORE_PATH . DIRECTORY_SEPARATOR . $module;
 
@@ -98,7 +100,6 @@ class FrontInit extends PHPUnit_Framework_TestCase
                 Zend_Controller_Action_HelperBroker::addPath($helperPath);
             }
 
-
             $dir = PHPR_CORE_PATH . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR . 'SubModules';
             if (is_dir($dir)) {
                 if ($module != 'Core') {
@@ -107,14 +108,32 @@ class FrontInit extends PHPUnit_Framework_TestCase
                     $coreModules = scandir($dir);
                     foreach ($coreModules as $coreModule) {
                         $coreDir = $dir . DIRECTORY_SEPARATOR . $coreModule;
-                        if ($coreModule != '.'  &&
-                            $coreModule != '..' &&
-                            $coreModule != '.svn' &&
-                            is_dir($coreDir)) {
+                        if ($coreModule != '.'  && $coreModule != '..' && is_dir($coreDir)) {
                             $moduleDirectories[] = $coreDir;
                         }
                     }
                 }
+            }
+        }
+
+        // User modules
+        foreach (scandir(PHPR_USER_CORE_PATH) as $module) {
+            $dir = PHPR_USER_CORE_PATH . $module;
+
+            if (is_dir(!$dir)) {
+                continue;
+            }
+
+            $helperPath = $dir . DIRECTORY_SEPARATOR . 'Helpers';
+
+            if (is_dir($helperPath)) {
+                $view->addHelperPath($helperPath, $module . '_' . 'Helpers');
+                Zend_Controller_Action_HelperBroker::addPath($helperPath);
+            }
+
+            $dir = PHPR_USER_CORE_PATH . $module . DIRECTORY_SEPARATOR . 'SubModules';
+            if (is_dir($dir)) {
+                $moduleDirectories[] = $dir;
             }
         }
 
@@ -123,6 +142,7 @@ class FrontInit extends PHPUnit_Framework_TestCase
 
         $this->front->setModuleControllerDirectoryName('Controllers');
         $this->front->addModuleDirectory(PHPR_CORE_PATH);
+        $this->front->addModuleDirectory(PHPR_USER_CORE_PATH);
 
         foreach ($moduleDirectories as $moduleDirectory) {
             $this->front->addModuleDirectory($moduleDirectory);

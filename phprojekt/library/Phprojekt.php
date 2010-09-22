@@ -50,12 +50,12 @@ class Phprojekt
     /**
      * The third part of the version number.
      */
-    const VERSION_RELEASE = 2;
+    const VERSION_RELEASE = 5;
 
     /**
      * The extra part of the version number.
      */
-    const VERSION_EXTRA = 'Dev';
+    const VERSION_EXTRA = 'dev';
 
     /**
      * Name of the Registry for current project.
@@ -65,7 +65,12 @@ class Phprojekt
     /**
      * Copyright.
      */
-    const COPYRIGHT = 'PHProjekt 6.0 - Copyright (c) 2010 Mayflower GmbH';
+    const COPYRIGHT = 'PHProjekt 6.0.5-dev - Copyright (c) 2010 Mayflower GmbH';
+
+    /**
+     * Default Max size in bytes that is allowed to be uploaded per file.
+     */
+    const DEFAULT_MAX_UPLOAD_SIZE = 512000;
 
     /**
      * Singleton instance.
@@ -140,13 +145,13 @@ class Phprojekt
         if (preg_match("@^([0-9])\.([0-9])\.([0-9]+)(-[a-zA-Z0-9]+)?$@i", $version1, $matches)) {
             $v1elements = array_slice($matches, 1);
         } else {
-            throw InvalidArgumentException();
+            throw new InvalidArgumentException();
         }
 
         if (preg_match("@^([0-9])\.([0-9])\.([0-9]+)(-[a-zA-Z0-9]+)?$@i", $version2, $matches)) {
             $v2elements = array_slice($matches, 1);
         } else {
-            throw InvalidArgumentException();
+            throw new InvalidArgumentException();
         }
 
         for ($i = 0; $i < 3; $i++) {
@@ -260,7 +265,7 @@ class Phprojekt
         }
 
         if (!($translate = $this->_cache->load('Phprojekt_getTranslate_' . $locale))) {
-            $translate = new Phprojekt_Language($locale);
+            $translate = new Phprojekt_Language(array('locale' => $locale));
             $this->_cache->save($translate, 'Phprojekt_getTranslate_' . $locale, array('Language'));
         }
 
@@ -396,13 +401,11 @@ class Phprojekt
         define('PHPR_CORE_PATH', PHPR_ROOT_PATH . DIRECTORY_SEPARATOR . 'application');
         define('PHPR_LIBRARY_PATH', PHPR_ROOT_PATH . DIRECTORY_SEPARATOR . 'library');
         if (!defined('PHPR_CONFIG_FILE')) {
-            define('PHPR_CONFIG_FILE', PHPR_ROOT_PATH . DIRECTORY_SEPARATOR . 'configuration.ini');
+            define('PHPR_CONFIG_FILE', PHPR_ROOT_PATH . DIRECTORY_SEPARATOR . 'configuration.php');
         }
-        define('PHPR_TEMP_PATH', PHPR_ROOT_PATH . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR);
 
         set_include_path('.' . PATH_SEPARATOR
             . PHPR_LIBRARY_PATH . PATH_SEPARATOR
-            . PHPR_CORE_PATH . PATH_SEPARATOR
             . get_include_path());
 
         require_once 'Zend/Loader/Autoloader.php';
@@ -415,17 +418,28 @@ class Phprojekt
         try {
             $this->_config = new Zend_Config_Ini(PHPR_CONFIG_FILE, PHPR_CONFIG_SECTION, true);
         } catch (Zend_Config_Exception $error) {
-            $webPath = "http://" . $_SERVER['HTTP_HOST'] . str_replace('index.php', '', $_SERVER['SCRIPT_NAME']);
+            $response = new Zend_Controller_Request_Http();
+            $webPath  = $response->getScheme() . '://' . $response->getHttpHost() . $response->getBasePath() . '/';
             header("Location: " . $webPath . "setup.php");
-            die('You need the file configuration.ini to continue. Have you tried the <a href="' . $webPath
-                . 'setup.php">setup</a> routine?');
+            die('You need the file configuration.php to continue. Have you tried the <a href="' . $webPath
+                . 'setup.php">setup</a> routine?'."\n".'<br />Original error: ' . $error->getMessage());
         }
 
-        if (substr($this->_config->webpath, -1) != '/') {
-            $this->_config->webpath.= '/';
+        // Set webpath, tmpPath and applicationPath
+        if (empty($this->_config->webpath)) {
+            $response               = new Zend_Controller_Request_Http();
+            $this->_config->webpath = $response->getScheme() . '://' . $response->getHttpHost()
+                . $response->getBasePath() . '/';
         }
-
         define('PHPR_ROOT_WEB_PATH', $this->_config->webpath . 'index.php/');
+        define('PHPR_TEMP_PATH', $this->_config->tmpPath);
+        define('PHPR_USER_CORE_PATH', $this->_config->applicationPath);
+
+        set_include_path('.' . PATH_SEPARATOR
+            . PHPR_LIBRARY_PATH . PATH_SEPARATOR
+            . PHPR_CORE_PATH . PATH_SEPARATOR
+            . PHPR_USER_CORE_PATH . PATH_SEPARATOR
+            . get_include_path());
 
         // Set the timezone to UTC
         date_default_timezone_set('UTC');
@@ -456,44 +470,31 @@ class Phprojekt
         // Check Logs
         $this->getLog();
 
-        $missingRequirements = array();
-
-        // The following extensions are either needed by components of the Zend Framework that are used
-        // or by P6 components itself.
-        $extensionsNeeded = array('mbstring', 'iconv', 'ctype', 'gd', 'pcre', 'pdo', 'Reflection', 'session', 'SPL',
-            'zlib');
-
-        // These settings need to be properly configured by the admin
-        $settingsNeeded = array('magic_quotes_gpc' => 0, 'magic_quotes_runtime' => 0, 'magic_quotes_sybase' => 0);
+        // Check the server
+        $checkServer = Phprojekt::checkExtensionsAndSettings();
 
         // Check the PHP version
-        $requiredPhpVersion = "5.2.4";
-        if (version_compare(phpversion(), $requiredPhpVersion, '<')) {
-            // This is a requirement of the Zend Framework
-            $missingRequirements[] = "- PHP Version '" . $requiredPhpVersion . "' or newer";
+        if (!$checkServer['requirements']['php']['checked']) {
+            $missingRequirements[] = "- You need the PHP Version '" . $checkServer['requirements']['php']['required']
+                . "' or newer";
         }
 
-        foreach ($extensionsNeeded as $extension) {
-            if (!extension_loaded($extension)) {
-                $missingRequirements[] = "- The '" . $extension . "' extension must be enabled.";
+        // Check required extension
+        foreach ($checkServer['requirements']['extension'] as $name => $values) {
+            if (!$values['checked']) {
+                $missingRequirements[] = "- The '" . $name . "' extension must be enabled.";
             }
         }
 
-        // Check pdo library
-        $mysql  = extension_loaded('pdo_mysql');
-        $sqlite = extension_loaded('pdo_sqlite2');
-        $pgsql  = extension_loaded('pdo_pgsql');
-
-        if (!$mysql && !$sqlite && !$pgsql) {
-            $missingRequirements[] = "- You need one of these PDO extensions: pdo_mysql, pdo_pgsql or pdo_sqlite";
-        }
-
-        foreach ($settingsNeeded as $conf => $value) {
-            if (ini_get($conf) != $value) {
-                $missingRequirements[] = "- The php.ini setting of '" . $conf ."' has to be '" . $value . "'.";
+        // Check required settings
+        foreach ($checkServer['requirements']['settings'] as $name => $values) {
+            if (!$values['checked']) {
+                $missingRequirements[] = "- The php.ini setting of '" . $name ."' has to be '"
+                    . $values['required'] . "'.";
             }
         }
 
+        // Show message
         if (!empty($missingRequirements)) {
             $message = "Your PHP does not meet the requirements needed for P6.<br />"
                 . implode("<br />", $missingRequirements);
@@ -508,7 +509,7 @@ class Phprojekt
         $viewRenderer->setViewScriptPathSpec(':action.:suffix');
         Zend_Controller_Action_HelperBroker::addHelper($viewRenderer);
         foreach ($helperPaths as $helperPath) {
-            Zend_Controller_Action_HelperBroker::addPath($helperPath['path']);
+            Zend_Controller_Action_HelperBroker::addPath($helperPath['directory']);
         }
 
         $plugin = new Zend_Controller_Plugin_ErrorHandler();
@@ -522,6 +523,7 @@ class Phprojekt
         $front->setDefaultModule('Default');
         $front->setModuleControllerDirectoryName('Controllers');
         $front->addModuleDirectory(PHPR_CORE_PATH);
+        $front->addModuleDirectory(PHPR_USER_CORE_PATH);
 
         // Add SubModules directories with controlles
         $moduleDirectories = $this->_getControllersFolders($helperPaths);
@@ -549,8 +551,8 @@ class Phprojekt
             $view = new Zend_View();
             $view->addScriptPath(PHPR_CORE_PATH . '/Default/Views/dojo/');
             foreach ($helperPaths as $helperPath) {
-                if (is_dir($helperPath['path'])) {
-                    $view->addHelperPath($helperPath['path'], $helperPath['module'] . '_' . 'Helpers');
+                if (is_dir($helperPath['directory'])) {
+                    $view->addHelperPath($helperPath['directory'], $helperPath['module'] . '_' . 'Helpers');
                 }
             }
             $viewNamespace->view = $view;
@@ -566,22 +568,37 @@ class Phprojekt
     /**
      * Cache the folders with helpers files.
      *
-     * @return array Array with 'module' and 'path'.
+     * @return array Array with 'module', 'path' and 'directory'.
      */
     private function _getHelperPaths()
     {
         $helperPathNamespace = new Zend_Session_Namespace('Phprojekt-_getHelperPaths');
         if (!isset($helperPathNamespace->helperPaths)) {
             $helperPaths = array();
+            // System modules
             foreach (scandir(PHPR_CORE_PATH) as $module) {
                 $dir = PHPR_CORE_PATH . DIRECTORY_SEPARATOR . $module;
-                if ($module == '.'  || $module == '..' || $module == '.svn' || !is_dir($dir)) {
+                if ($module == '.'  || $module == '..' || !is_dir($dir)) {
                     continue;
                 }
 
-                $helperPaths[] = array('module' => $module,
-                                       'path'   => $dir . DIRECTORY_SEPARATOR . 'Helpers');
+                $helperPaths[] = array('module'    => $module,
+                                       'path'      => PHPR_CORE_PATH . DIRECTORY_SEPARATOR,
+                                       'directory' => $dir . DIRECTORY_SEPARATOR . 'Helpers');
             }
+
+            // User modules
+            foreach (scandir(PHPR_USER_CORE_PATH) as $module) {
+                $dir = PHPR_USER_CORE_PATH . $module;
+                if ($module == '.'  || $module == '..' || !is_dir($dir)) {
+                    continue;
+                }
+
+                $helperPaths[] = array('module'    => $module,
+                                       'path'      => PHPR_USER_CORE_PATH,
+                                       'directory' => $dir . DIRECTORY_SEPARATOR . 'Helpers');
+            }
+
             $helperPathNamespace->helperPaths = $helperPaths;
         } else {
             $helperPaths = $helperPathNamespace->helperPaths;
@@ -604,8 +621,7 @@ class Phprojekt
         if (!isset($controllerPathNamespace->controllerPaths)) {
             $controllerPaths = array();
             foreach ($helperPaths as $helperPath) {
-                $dir = PHPR_CORE_PATH . DIRECTORY_SEPARATOR . $helperPath['module'] . DIRECTORY_SEPARATOR
-                    . 'SubModules';
+                $dir = $helperPath['path'] . $helperPath['module'] . DIRECTORY_SEPARATOR . 'SubModules';
                 if (is_dir($dir)) {
                     if ($helperPath['module'] != 'Core') {
                         $controllerPaths[] = $dir;
@@ -613,10 +629,7 @@ class Phprojekt
                         $coreModules = scandir($dir);
                         foreach ($coreModules as $coreModule) {
                             $coreDir = $dir . DIRECTORY_SEPARATOR . $coreModule;
-                            if ($coreModule != '.'  &&
-                                $coreModule != '..' &&
-                                $coreModule != '.svn' &&
-                                is_dir($coreDir)) {
+                            if ($coreModule != '.'  && $coreModule != '..' && is_dir($coreDir)) {
                                 $controllerPaths[] = $coreDir;
                             }
                         }
@@ -629,6 +642,18 @@ class Phprojekt
         }
 
         return $controllerPaths;
+    }
+
+    /**
+     * Remove cache of SubModules folders with controllers files.
+     *
+     * @return void.
+     */
+    public static function removeControllersFolders()
+    {
+        // Remove SubModules entries
+        $controllerPathNamespace = new Zend_Session_Namespace('Phprojekt-_getControllersFolders');
+        $controllerPathNamespace->unsetAll();
     }
 
     /**
@@ -758,5 +783,136 @@ class Phprojekt
         $csrfNamespace->token = $token;
 
         return $token;
+    }
+
+    /**
+     * Return an array with requirements and recommendations of extensions and settings.
+     *
+     * The array is like:
+     * array(
+     *       'requirements' =>
+     *           array(
+     *               'extension' => array(
+     *                  'NAME' => array('required' => true, 'checked' => true | false, 'help' => link)
+     *               ),
+     *               'settings' => array(
+     *                  'NAME' => array('required' => VALUE, 'checked' => true | false, 'help' => link)
+     *               ),
+     *               'php' => array('required' => VALUE, 'checked' => true | false, 'help' => link)
+     *           ),
+     *       'recommendations' =>
+     *           array(
+     *               'settings' => array(
+     *                  'NAME' => array('required' => VALUE, 'checked' => true | false, 'help' => link)
+     *               )
+     *           )
+     * )
+     *
+     * @return array Array as describe above
+     */
+    public static function checkExtensionsAndSettings()
+    {
+        // PHP version
+        $requiredPhpVersion = "5.2.4";
+
+        // The following extensions are either needed by components of the Zend Framework that are used
+        // or by P6 components itself.
+        $extensionsNeeded = array(
+            'mbstring'   => 'http://us.php.net/manual/en/mbstring.installation.php',
+            'iconv'      => 'http://us.php.net/manual/en/iconv.installation.php',
+            'ctype'      => 'http://us.php.net/manual/en/ctype.installation.php',
+            'gd'         => 'http://us.php.net/manual/en/image.installation.php',
+            'pcre'       => 'http://us.php.net/manual/en/pcre.installation.php',
+            'pdo'        => 'http://us.php.net/manual/en/pdo.installation.php',
+            'Reflection' => 'http://us.php.net/manual/en/reflection.installation.php',
+            'session'    => 'http://us.php.net/manual/en/session.installation.php',
+            'SPL'        => 'http://us.php.net/manual/en/spl.installation.php',
+            'zlib'       => 'http://us.php.net/manual/en/zlib.installation.php');
+
+        // These settings need to be properly configured by the admin
+        $settingsNeeded = array(
+            'magic_quotes_gpc' =>
+                array('value' => 0,
+                      'help'  => 'http://us.php.net/manual/en/info.configuration.php#ini.magic-quotes-gpc'),
+            'magic_quotes_runtime' =>
+                array('value' => 0,
+                      'help'  => 'http://us.php.net/manual/en/info.configuration.php#ini.magic-quotes-runtime'),
+            'magic_quotes_sybase' =>
+                array('value' => 0,
+                      'help'  => 'http://us.php.net/manual/en/sybase.configuration.php#ini.magic-quotes-sybase'));
+
+        // These settings should be properly configured by the admin
+        $settingsRecommended = array(
+            'register_globals' =>
+                array('value' => 0,
+                      'help'  => 'http://us.php.net/manual/en/ini.core.php#ini.register-globals'),
+            'safe_mode' =>
+                array('value' => 0,
+                      'help'  => 'http://us.php.net/manual/en/features.safe-mode.php'));
+
+        $requirements              = array();
+        $recommendations           = array();
+        $requirements['extension'] = array();
+        $requirements['settings']  = array();
+
+        // Check the PHP version
+        $requirements['php']['required'] = $requiredPhpVersion;
+        if (version_compare(phpversion(), $requiredPhpVersion, '<')) {
+            // This is a requirement of the Zend Framework
+            $requirements['php']['checked'] = false;
+        } else {
+            $requirements['php']['checked'] = true;
+        }
+        $requirements['php']['help'] = 'http://us.php.net/';
+
+        // Check the extensions needed
+        foreach ($extensionsNeeded as $extension => $link) {
+            $requirements['extension'][$extension]['required'] = true;
+            if (!extension_loaded($extension)) {
+                $requirements['extension'][$extension]['checked'] = false;
+            } else {
+                $requirements['extension'][$extension]['checked'] = true;
+            }
+            $requirements['extension'][$extension]['help'] = $link;
+        }
+
+        // Check pdo library
+        $mysql  = extension_loaded('pdo_mysql');
+        $sqlite = extension_loaded('pdo_sqlite2');
+        $pgsql  = extension_loaded('pdo_pgsql');
+
+        $requirements['extension']['pdo_mysql | pdo_sqlite2 | pdo_pgsql']['required'] = true;
+        if (!$mysql && !$sqlite && !$pgsql) {
+            $requirements['extension']['pdo_mysql | pdo_sqlite2 | pdo_pgsql']['checked'] = false;
+        } else {
+            $requirements['extension']['pdo_mysql | pdo_sqlite2 | pdo_pgsql']['checked'] = true;
+        }
+        $requirements['extension']['pdo_mysql | pdo_sqlite2 | pdo_pgsql']['help'] =
+            'http://us.php.net/manual/en/pdo.installation.php';
+
+        // Check the settings needed
+        foreach ($settingsNeeded as $conf => $values) {
+            $requirements['settings'][$conf]['required'] = $values['value'];
+            if (ini_get($conf) != $values['value']) {
+                $requirements['settings'][$conf]['checked'] = false;
+            } else {
+                $requirements['settings'][$conf]['checked'] = true;
+            }
+            $requirements['settings'][$conf]['help'] = $values['help'];
+        }
+
+        // Check the settings recommended
+        foreach ($settingsRecommended as $conf => $values) {
+            $recommendations['settings'][$conf]['required'] = $values['value'];
+            if (ini_get($conf) != $values['value']) {
+                $recommendations['settings'][$conf]['checked'] = false;
+            } else {
+                $recommendations['settings'][$conf]['checked'] = true;
+            }
+            $recommendations['settings'][$conf]['help'] = $values['help'];
+        }
+
+        return array('requirements'    => $requirements,
+                     'recommendations' => $recommendations);
     }
 }
