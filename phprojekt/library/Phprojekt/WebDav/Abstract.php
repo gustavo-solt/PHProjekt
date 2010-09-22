@@ -89,6 +89,20 @@ class Phprojekt_WebDav_Abstract
     private $_propEncoding = 'utf-8';
 
     /**
+     * Array with the request options.
+     *
+     * @var array
+     */
+    public $options = array();
+
+    /**
+     * Array for file properties.
+     *
+     * @var array
+     */
+    public $files = array();
+
+    /**
      * Constructor.
      */
     public function __construct()
@@ -251,15 +265,13 @@ class Phprojekt_WebDav_Abstract
      */
     public function httpPropfind()
     {
-        $options         = array();
-        $files           = array();
-        $options['path'] = $this->path;
+        $this->options['path'] = $this->path;
 
         // Search depth from header (default is infinity)
         if (isset($this->_SERVER['HTTP_DEPTH'])) {
-            $options['depth'] = $this->_SERVER['HTTP_DEPTH'];
+            $this->options['depth'] = $this->_SERVER['HTTP_DEPTH'];
         } else {
-            $options['depth'] = 'infinity';
+            $this->options['depth'] = 'infinity';
         }
 
         // Analyze request payload
@@ -268,11 +280,11 @@ class Phprojekt_WebDav_Abstract
             $this->httpStatus('400 Error');
             return;
         }
-        $options['props'] = $propinfo->props;
+        $this->options['props'] = $propinfo->props;
 
         // Call user handler
-        if (!$this->propfind($options, $files)) {
-            $files = array('files' => array());
+        if (!$this->propfind()) {
+            $this->files = array('files' => array());
             if (method_exists($this, 'checkLock')) {
                 // Is locked?
                 $lock = $this->checkLock($this->path);
@@ -280,17 +292,17 @@ class Phprojekt_WebDav_Abstract
                 if (is_array($lock) && count($lock)) {
                     $created          = isset($lock['created'])  ? $lock['created']  : time();
                     $modified         = isset($lock['modified']) ? $lock['modified'] : time();
-                    $files['files'][] = array('path'  => $this->slashify($this->path),
-                                              'props' => array($this->mkprop('displayname',      $this->path),
-                                                               $this->mkprop('creationdate',     $created),
-                                                               $this->mkprop('getlastmodified',  $modified),
-                                                               $this->mkprop('resourcetype',     ''),
-                                                               $this->mkprop('getcontenttype',   ''),
-                                                               $this->mkprop('getcontentlength', 0)));
+                    $this->files['files'][] = array('path'  => $this->slashify($this->path),
+                                                    'props' => array($this->mkprop('displayname',      $this->path),
+                                                                     $this->mkprop('creationdate',     $created),
+                                                                     $this->mkprop('getlastmodified',  $modified),
+                                                                     $this->mkprop('resourcetype',     ''),
+                                                                     $this->mkprop('getcontenttype',   ''),
+                                                                     $this->mkprop('getcontentlength', 0)));
                 }
             }
 
-            if (empty($files['files'])) {
+            if (empty($this->files['files'])) {
                 $this->httpStatus('404 Not Found');
                 return;
             }
@@ -303,7 +315,7 @@ class Phprojekt_WebDav_Abstract
         $nsDefs = 'xmlns:ns0="urn:uuid:c2f41010-65b3-11d1-a29f-00aa00c14882/"';
 
         // Now we loop over all returned file entries
-        foreach ($files['files'] as $filekey => $file) {
+        foreach ($this->files['files'] as $filekey => $file) {
             // Nothing to do if no properties were returend for a file
             if (!isset($file['props']) || !is_array($file['props'])) {
                 continue;
@@ -314,19 +326,19 @@ class Phprojekt_WebDav_Abstract
                 // As a convenience feature we do not require that user handlers
                 // restrict returned properties to the requested ones
                 // here we strip all unrequested entries out of the response
-                switch($options['props']) {
+                switch($this->options['props']) {
                     case 'all':
                         // Nothing to remove
                         break;
                     case 'names':
                         // Only the names of all existing properties were requested
                         // so we remove all values
-                        unset($files['files'][$filekey]['props'][$key]['val']);
+                        unset($this->files['files'][$filekey]['props'][$key]['val']);
                         break;
                     default:
                         $found = false;
                         // Search property name in requested properties
-                        foreach ((array)$options['props'] as $reqprop) {
+                        foreach ((array)$this->options['props'] as $reqprop) {
                             if ($reqprop['name'] == $prop['name'] && @$reqprop['xmlns'] == $prop['ns']) {
                                 $found = true;
                                 break;
@@ -335,7 +347,7 @@ class Phprojekt_WebDav_Abstract
 
                         // Unset property and continue with next one if not found/requested
                         if (!$found) {
-                            $files['files'][$filekey]['props'][$key] = '';
+                            $this->files['files'][$filekey]['props'][$key] = '';
                             continue(2);
                         }
                         break;
@@ -364,8 +376,8 @@ class Phprojekt_WebDav_Abstract
 
             // We also need to add empty entries for properties that were requested
             // but for which no values where returned by the user handler
-            if (is_array($options['props'])) {
-                foreach ($options['props'] as $reqprop) {
+            if (is_array($this->options['props'])) {
+                foreach ($this->options['props'] as $reqprop) {
                     if ($reqprop['name'] == '') {
                         // Skip empty entries
                         continue;
@@ -384,11 +396,11 @@ class Phprojekt_WebDav_Abstract
                     if (!$found) {
                         if ($reqprop['xmlns'] === 'DAV:' && $reqprop['name'] === 'lockdiscovery') {
                             // lockdiscovery is handled by the base class
-                            $files['files'][$filekey]['props'][] = $this->mkprop('DAV:', 'lockdiscovery',
-                                $this->lockdiscovery($files['files'][$filekey]['path']));
+                            $this->files['files'][$filekey]['props'][] = $this->mkprop('DAV:', 'lockdiscovery',
+                                $this->lockdiscovery($this->files['files'][$filekey]['path']));
                         } else {
                             // Add empty value for this property
-                            $files['files'][$filekey]['noprops'][] = $this->mkprop($reqprop['xmlns'],
+                            $this->files['files'][$filekey]['noprops'][] = $this->mkprop($reqprop['xmlns'],
                                 $reqprop['name'], '');
 
                             // Register property namespace if not known yet
@@ -411,7 +423,7 @@ class Phprojekt_WebDav_Abstract
         echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
         echo "<D:multistatus xmlns:D=\"DAV:\">\n";
 
-        foreach ($files['files'] as $file) {
+        foreach ($this->files['files'] as $file) {
             // Ignore empty or incomplete entries
             if (!is_array($file) || empty($file) || !isset($file['path'])) {
                 continue;
@@ -535,32 +547,31 @@ class Phprojekt_WebDav_Abstract
     public function httpGet()
     {
         // TODO check for invalid stream
-        $options         = array();
-        $options['path'] = $this->path;
+        $this->options['path'] = $this->path;
 
-        $this->_getRanges($options);
+        $this->_getRanges();
 
-        if (true === ($status = $this->get($options))) {
+        if (true === ($status = $this->get())) {
             if (!headers_sent()) {
                 $status = '200 OK';
-                if (!isset($options['mimetype'])) {
-                    $options['mimetype'] = 'application/octet-stream';
+                if (!isset($this->options['mimetype'])) {
+                    $this->options['mimetype'] = 'application/octet-stream';
                 }
-                header('Content-type: ' . $options['mimetype']);
+                header('Content-type: ' . $this->options['mimetype']);
 
-                if (isset($options['mtime'])) {
-                    header('Last-modified: ' . gmdate("D, d M Y H:i:s ", $options['mtime']) . 'GMT');
+                if (isset($this->options['mtime'])) {
+                    header('Last-modified: ' . gmdate("D, d M Y H:i:s ", $this->options['mtime']) . 'GMT');
                 }
 
-                if (isset($options['stream'])) {
+                if (isset($this->options['stream'])) {
                     // GET handler returned a stream
-                    if (!empty($options['ranges']) && (0 === fseek($options['stream'], 0, SEEK_SET))) {
+                    if (!empty($this->options['ranges']) && (0 === fseek($this->options['stream'], 0, SEEK_SET))) {
                         // Partial request and stream is seekable
-                        if (count($options['ranges']) === 1) {
-                            $range = $options['ranges'][0];
+                        if (count($this->options['ranges']) === 1) {
+                            $range = $this->options['ranges'][0];
                             if (isset($range['start'])) {
-                                fseek($options['stream'], $range['start'], SEEK_SET);
-                                if (feof($options['stream'])) {
+                                fseek($this->options['stream'], $range['start'], SEEK_SET);
+                                if (feof($this->options['stream'])) {
                                     $this->httpStatus('416 Requested range not satisfiable');
                                     return;
                                 }
@@ -570,45 +581,45 @@ class Phprojekt_WebDav_Abstract
                                     $this->httpStatus('206 partial');
                                     header('Content-length: ' . $size);
                                     header('Content-range: ' . $range['start'] . '-' . $range['end'] . '/'
-                                        . (isset($options['size']) ? $options['size'] : '*'));
-                                    while ($size && !feof($options['stream'])) {
-                                        $buffer = fread($options['stream'], 4096);
+                                        . (isset($this->options['size']) ? $this->options['size'] : '*'));
+                                    while ($size && !feof($this->options['stream'])) {
+                                        $buffer = fread($this->options['stream'], 4096);
                                         $size  -= strlen($buffer);
                                         echo $buffer;
                                     }
                                 } else {
                                     $this->httpStatus('206 partial');
-                                    if (isset($options['size'])) {
-                                        header('Content-length: ' . ($options['size'] - $range['start']));
+                                    if (isset($this->options['size'])) {
+                                        header('Content-length: ' . ($this->options['size'] - $range['start']));
                                         header('Content-range: ' . $range['start'] . '-' . $range['end'] . '/'
-                                            . (isset($options['size']) ? $options['size'] : '*'));
+                                            . (isset($this->options['size']) ? $this->options['size'] : '*'));
                                     }
-                                    fpassthru($options['stream']);
+                                    fpassthru($this->options['stream']);
                                 }
                             } else {
                                 header('Content-length: ' . $range['last']);
-                                fseek($options['stream'], -$range['last'], SEEK_END);
-                                fpassthru($options['stream']);
+                                fseek($this->options['stream'], -$range['last'], SEEK_END);
+                                fpassthru($this->options['stream']);
                             }
                         } else {
                             // Init multipart
                             $this->_multipartByterangeHeader();
-                            foreach ($options['ranges'] as $range) {
+                            foreach ($this->options['ranges'] as $range) {
                                 // TODO what if size unknown? 500?
                                 if (isset($range['start'])) {
                                     $from = $range['start'];
-                                    $to   = !empty($range['end']) ? $range['end'] : $options['size'] - 1;
+                                    $to   = !empty($range['end']) ? $range['end'] : $this->options['size'] - 1;
                                 } else {
-                                    $from = $options['size'] - $range['last'] - 1;
-                                    $to   = $options['size'] - 1;
+                                    $from = $this->options['size'] - $range['last'] - 1;
+                                    $to   = $this->options['size'] - 1;
                                 }
-                                $total = isset($options['size']) ? $options['size'] : '*';
+                                $total = isset($this->options['size']) ? $this->options['size'] : '*';
                                 $size  = $to - $from + 1;
-                                $this->_multipartByterangeHeader($options['mimetype'], $from, $to, $total);
+                                $this->_multipartByterangeHeader($this->options['mimetype'], $from, $to, $total);
 
-                                fseek($options['stream'], $from, SEEK_SET);
-                                while ($size && !feof($options['stream'])) {
-                                    $buffer = fread($options['stream'], 4096);
+                                fseek($this->options['stream'], $from, SEEK_SET);
+                                while ($size && !feof($this->options['stream'])) {
+                                    $buffer = fread($this->options['stream'], 4096);
                                     $size  -= strlen($buffer);
                                     echo $buffer;
                                 }
@@ -618,19 +629,19 @@ class Phprojekt_WebDav_Abstract
                         }
                     } else {
                         // Normal request or stream isn't seekable, return full content
-                        if (isset($options['size'])) {
-                            header('Content-length: ' . $options['size']);
+                        if (isset($this->options['size'])) {
+                            header('Content-length: ' . $this->options['size']);
                         }
-                        fpassthru($options['stream']);
+                        fpassthru($this->options['stream']);
                         // No more headers
                         return;
                     }
-                } elseif (isset($options['data'])) {
-                    if (is_array($options['data'])) {
+                } elseif (isset($this->options['data'])) {
+                    if (is_array($this->options['data'])) {
                         // Reply to partial request
                     } else {
-                        header('Content-length: ' . strlen($options['data']));
-                        echo $options['data'];
+                        header('Content-length: ' . strlen($this->options['data']));
+                        echo $this->options['data'];
                     }
                 }
             }
@@ -653,32 +664,31 @@ class Phprojekt_WebDav_Abstract
      */
     public function httpHead()
     {
-        $status          = false;
-        $options         = array();
-        $options['path'] = $this->path;
+        $status                = false;
+        $this->options['path'] = $this->path;
 
         if (method_exists($this, 'head')) {
-            $status = $this->head($options);
+            $status = $this->head();
         } else if (method_exists($this, 'get')) {
             ob_start();
-            $status = $this->get($options);
-            if (!isset($options['size'])) {
-                $options['size'] = ob_get_length();
+            $status = $this->get();
+            if (!isset($this->options['size'])) {
+                $this->options['size'] = ob_get_length();
             }
             ob_end_clean();
         }
 
-        if (!isset($options['mimetype'])) {
-            $options['mimetype'] = 'application/octet-stream';
+        if (!isset($this->options['mimetype'])) {
+            $this->options['mimetype'] = 'application/octet-stream';
         }
-        header('Content-type: ' . $options['mimetype']);
+        header('Content-type: ' . $this->options['mimetype']);
 
-        if (isset($options['mtime'])) {
-            header('Last-modified: ' . gmdate("D, d M Y H:i:s ", $options['mtime']) . 'GMT');
+        if (isset($this->options['mtime'])) {
+            header('Last-modified: ' . gmdate("D, d M Y H:i:s ", $this->options['mtime']) . 'GMT');
         }
 
-        if (isset($options['size'])) {
-            header('Content-length: ' . $options['size']);
+        if (isset($this->options['size'])) {
+            header('Content-length: ' . $this->options['size']);
         }
 
         if ($status === true)  {
@@ -700,9 +710,8 @@ class Phprojekt_WebDav_Abstract
     public function httpPut()
     {
         if ($this->_checkLockStatus($this->path)) {
-            $options                  = array();
-            $options['path']          = $this->path;
-            $options['contentLength'] = $this->_SERVER['CONTENT_LENGTH'];
+            $this->options['path']          = $this->path;
+            $this->options['contentLength'] = $this->_SERVER['CONTENT_LENGTH'];
 
             // Get the Content-type
             if (isset($this->_SERVER['CONTENT_TYPE'])) {
@@ -712,10 +721,10 @@ class Phprojekt_WebDav_Abstract
                     echo 'The service does not support mulipart PUT requests';
                     return;
                 }
-                $options['contentType'] = $this->_SERVER['CONTENT_TYPE'];
+                $this->options['contentType'] = $this->_SERVER['CONTENT_TYPE'];
             } else {
                 // Default content type if none given
-                $options['contentType'] = 'application/octet-stream';
+                $this->options['contentType'] = 'application/octet-stream';
             }
 
             // RFC 2616 2.6 says: "The recipient of the entity MUST NOT
@@ -737,7 +746,7 @@ class Phprojekt_WebDav_Abstract
                     case 'HTTP_CONTENT_LANGUAGE':
                         // We assume it is not critical if this one is ignored
                         // in the actual PUT implementation ...
-                        $options['contentLanguage'] = $val;
+                        $this->options['contentLanguage'] = $val;
                         break;
                     // RFC 2616 14.14
                     case 'HTTP_CONTENT_LOCATION':
@@ -781,26 +790,26 @@ class Phprojekt_WebDav_Abstract
                 }
             }
 
-            $options['stream'] = fopen("php://input", 'r');
-            $stat              = $this->put($options);
+            $this->options['stream'] = fopen("php://input", 'r');
+            $stat                    = $this->put();
             if ($stat === false) {
                 $stat = '403 Forbidden';
             } else if (is_resource($stat) && get_resource_type($stat) == 'stream') {
                 $stream = $stat;
-                $stat   = $options['new'] ? '201 Created' : '204 No Content';
-                if (!empty($options['ranges'])) {
+                $stat   = $this->options['new'] ? '201 Created' : '204 No Content';
+                if (!empty($this->options['ranges'])) {
                     // TODO multipart support is missing (see also above)
                     if (0 == fseek($stream, $range[0]['start'], SEEK_SET)) {
                         $length = $range[0]['end'] - $range[0]['start'] + 1;
-                        if (!fwrite($stream, fread($options['stream'], $length))) {
+                        if (!fwrite($stream, fread($this->options['stream'], $length))) {
                             $stat = '403 Forbidden';
                         }
                     } else {
                         $stat = '403 Forbidden';
                     }
                 } else {
-                    while (!feof($options['stream'])) {
-                        if (false === fwrite($stream, fread($options['stream'], 4096))) {
+                    while (!feof($this->options['stream'])) {
+                        if (false === fwrite($stream, fread($this->options['stream'], 4096))) {
                             $stat = '403 Forbidden';
                             break;
                         }
@@ -822,8 +831,7 @@ class Phprojekt_WebDav_Abstract
     public function httpProppatch()
     {
         if ($this->_checkLockStatus($this->path)) {
-            $options         = array();
-            $options['path'] = $this->path;
+            $this->options['path'] = $this->path;
 
             $propinfo = new Phprojekt_WebDav_Parse_Proppatch("php://input");
 
@@ -832,9 +840,9 @@ class Phprojekt_WebDav_Abstract
                 return;
             }
 
-            $options['props'] = $propinfo->props;
+            $this->options['props'] = $propinfo->props;
 
-            $responsedescr = $this->proppatch($options);
+            $responsedescr = $this->proppatch();
 
             $this->httpStatus('207 Multi-Status');
             header('Content-Type: text/xml; charset="utf-8"');
@@ -846,7 +854,7 @@ class Phprojekt_WebDav_Abstract
             echo "  <D:href>" . $this->urlencode($this->_mergePathes($this->_SERVER['SCRIPT_NAME'], $this->path))
                 . "</D:href>\n";
 
-            foreach ($options['props'] as $prop) {
+            foreach ($this->options['props'] as $prop) {
                 echo "   <D:propstat>\n";
                 echo "    <D:prop><" . $prop['name'] . " xmlns=\"" . $prop['ns'] . "\"/></D:prop>\n";
                 echo "    <D:status>HTTP/1.1 " . $prop['status'] . "</D:status>\n";
@@ -873,10 +881,9 @@ class Phprojekt_WebDav_Abstract
      */
     public function httpMkcol()
     {
-        $options         = array();
-        $options['path'] = $this->path;
+        $this->options['path'] = $this->path;
 
-        $stat = $this->mkcol($options);
+        $stat = $this->mkcol();
 
         $this->httpStatus($stat);
     }
@@ -899,10 +906,9 @@ class Phprojekt_WebDav_Abstract
         // Check lock status
         if ($this->_checkLockStatus($this->path)) {
             // Ok, proceed
-            $options         = array();
-            $options['path'] = $this->path;
+            $this->options['path'] = $this->path;
 
-            $stat = $this->delete($options);
+            $stat = $this->delete();
 
             $this->httpStatus($stat);
         } else {
@@ -945,17 +951,16 @@ class Phprojekt_WebDav_Abstract
      */
     public function httpLock()
     {
-        $options         = array();
-        $options['path'] = $this->path;
+        $this->options['path'] = $this->path;
 
         if (isset($this->_SERVER['HTTP_DEPTH'])) {
-            $options['depth'] = $this->_SERVER['HTTP_DEPTH'];
+            $this->options['depth'] = $this->_SERVER['HTTP_DEPTH'];
         } else {
-            $options['depth'] = 'infinity';
+            $this->options['depth'] = 'infinity';
         }
 
         if (isset($this->_SERVER['HTTP_TIMEOUT'])) {
-            $options['timeout'] = explode(',', $this->_SERVER['HTTP_TIMEOUT']);
+            $this->options['timeout'] = explode(',', $this->_SERVER['HTTP_TIMEOUT']);
         }
 
         if (empty($this->_SERVER['CONTENT_LENGTH']) && !empty($this->_SERVER['HTTP_IF'])) {
@@ -966,15 +971,15 @@ class Phprojekt_WebDav_Abstract
             }
 
             // Refresh lock
-            $options['locktoken'] = substr($this->_SERVER['HTTP_IF'], 2, -2);
-            $options['update']    = $options['locktoken'];
+            $this->options['locktoken'] = substr($this->_SERVER['HTTP_IF'], 2, -2);
+            $this->options['update']    = $this->options['locktoken'];
 
             // Setting defaults for required fields, LOCK() SHOULD overwrite these
-            $options['owner'] = 'unknown';
-            $options['scope'] = 'exclusive';
-            $options['type']  = 'write';
+            $this->options['owner'] = 'unknown';
+            $this->options['scope'] = 'exclusive';
+            $this->options['type']  = 'write';
 
-            $stat = $this->lock($options);
+            $stat = $this->lock();
         } else {
             // Extract lock request information from request XML payload
             $lockinfo = new Phprojekt_WebDav_Parse_Lockinfo("php://input");
@@ -989,12 +994,12 @@ class Phprojekt_WebDav_Abstract
             }
 
             // New lock
-            $options['scope']     = $lockinfo->lockscope;
-            $options['type']      = $lockinfo->locktype;
-            $options['owner']     = $lockinfo->owner;
-            $options['locktoken'] = $this->_newLocktoken();
+            $this->options['scope']     = $lockinfo->lockscope;
+            $this->options['type']      = $lockinfo->locktype;
+            $this->options['owner']     = $lockinfo->owner;
+            $this->options['locktoken'] = $this->_newLocktoken();
 
-            $stat = $this->lock($options);
+            $stat = $this->lock();
         }
 
         if (is_bool($stat)) {
@@ -1006,30 +1011,30 @@ class Phprojekt_WebDav_Abstract
 
         if ($httpStat{0} == 2) {
             // 2xx states are ok
-            if ($options['timeout']) {
+            if ($this->options['timeout']) {
                 // More than a million is considered an absolute timestamp
                 // less is more likely a relative value
-                if ($options['timeout'] > 1000000) {
-                    $timeout = 'Second-' . ($options['timeout'] - time());
+                if ($this->options['timeout'] > 1000000) {
+                    $timeout = 'Second-' . ($this->options['timeout'] - time());
                 } else {
-                    $timeout = 'Second-' . $options['timeout'];
+                    $timeout = 'Second-' . $this->options['timeout'];
                 }
             } else {
                 $timeout = 'Infinite';
             }
 
             header('Content-Type: text/xml; charset="utf-8"');
-            header('Lock-Token: <' . $options['locktoken'] . '>');
+            header('Lock-Token: <' . $this->options['locktoken'] . '>');
             echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
             echo "<D:prop xmlns:D=\"DAV:\">\n";
             echo " <D:lockdiscovery>\n";
             echo "  <D:activelock>\n";
-            echo "   <D:lockscope><D:" . $options['scope'] . "/></D:lockscope>\n";
-            echo "   <D:locktype><D:" . $options['type'] . "/></D:locktype>\n";
-            echo "   <D:depth>" . $options['depth'] . "</D:depth>\n";
-            echo "   <D:owner>" . $options['owner'] . "</D:owner>\n";
+            echo "   <D:lockscope><D:" . $this->options['scope'] . "/></D:lockscope>\n";
+            echo "   <D:locktype><D:" . $this->options['type'] . "/></D:locktype>\n";
+            echo "   <D:depth>" . $this->options['depth'] . "</D:depth>\n";
+            echo "   <D:owner>" . $this->options['owner'] . "</D:owner>\n";
             echo "   <D:timeout>" . $timeout . "</D:timeout>\n";
-            echo "   <D:locktoken><D:href>" . $options['locktoken'] . "</D:href></D:locktoken>\n";
+            echo "   <D:locktoken><D:href>" . $this->options['locktoken'] . "</D:href></D:locktoken>\n";
             echo "  </D:activelock>\n";
             echo " </D:lockdiscovery>\n";
             echo "</D:prop>\n\n";
@@ -1043,20 +1048,19 @@ class Phprojekt_WebDav_Abstract
      */
     public function httpUnlock()
     {
-        $options         = array();
-        $options['path'] = $this->path;
+        $this->options['path'] = $this->path;
 
         if (isset($this->_SERVER['HTTP_DEPTH'])) {
-            $options['depth'] = $this->_SERVER['HTTP_DEPTH'];
+            $this->options['depth'] = $this->_SERVER['HTTP_DEPTH'];
         } else {
-            $options['depth'] = 'infinity';
+            $this->options['depth'] = 'infinity';
         }
 
         // Strip surrounding <>
-        $options['token'] = substr(trim($this->_SERVER['HTTP_LOCK_TOKEN']), 1, -1);
+        $this->options['token'] = substr(trim($this->_SERVER['HTTP_LOCK_TOKEN']), 1, -1);
 
         // Call user method
-        $stat = $this->unlock($options);
+        $stat = $this->unlock();
 
         $this->httpStatus($stat);
     }
@@ -1157,7 +1161,7 @@ class Phprojekt_WebDav_Abstract
      *
      * @param string  $path Resource path to check
      *
-     * @return string lockdiscovery response.
+     * @return string Lockdiscovery response.
      */
     public function lockdiscovery($path)
     {
@@ -1542,22 +1546,20 @@ class Phprojekt_WebDav_Abstract
     /**
      * Parse HTTP Range: header.
      *
-     * @param array $options Array to store result in.
-     *
      * @return void
      */
-    private function _getRanges(&$options)
+    private function _getRanges()
     {
         // Process Range: header if present
         if (isset($this->_SERVER['HTTP_RANGE'])) {
             // We only support standard "bytes" range specifications for now
             if (preg_match('/bytes\s*=\s*(.+)/', $this->_SERVER['HTTP_RANGE'], $matches)) {
-                $options['ranges'] = array();
+                $this->options['ranges'] = array();
                 // Ranges are comma separated
                 foreach (explode(',', $matches[1]) as $range) {
                     // Ranges are either from-to pairs or just end positions
                     list($start, $end) = explode('-', $range);
-                    $options['ranges'][] = ($start === '') ? array('last' => $end)
+                    $this->options['ranges'][] = ($start === '') ? array('last' => $end)
                         : array('start' => $start,
                                 'end'   => $end);
                 }
@@ -1640,13 +1642,12 @@ class Phprojekt_WebDav_Abstract
      */
     private function _copymove($what)
     {
-        $options         = array();
-        $options['path'] = $this->path;
+        $this->options['path'] = $this->path;
 
         if (isset($this->_SERVER['HTTP_DEPTH'])) {
-            $options['depth'] = $this->_SERVER['HTTP_DEPTH'];
+            $this->options['depth'] = $this->_SERVER['HTTP_DEPTH'];
         } else {
-            $options['depth'] = 'infinity';
+            $this->options['depth'] = 'infinity';
         }
 
         extract(parse_url($this->_SERVER['HTTP_DESTINATION']));
@@ -1659,23 +1660,23 @@ class Phprojekt_WebDav_Abstract
 
         if ($httpHost == $httpHeaderHost &&
             !strncmp($this->_SERVER['SCRIPT_NAME'], $path, strlen($this->_SERVER['SCRIPT_NAME']))) {
-            $options['dest'] = substr($path, strlen($this->_SERVER['SCRIPT_NAME']));
-            if (!$this->_checkLockStatus($options['dest'])) {
+            $this->options['dest'] = substr($path, strlen($this->_SERVER['SCRIPT_NAME']));
+            if (!$this->_checkLockStatus($this->options['dest'])) {
                 $this->httpStatus('423 Locked');
                 return;
             }
         } else {
-            $options['destUrl'] = $this->_SERVER['HTTP_DESTINATION'];
+            $this->options['destUrl'] = $this->_SERVER['HTTP_DESTINATION'];
         }
 
         // See RFC 2518 Sections 9.6, 8.8.4 and 8.9.3
         if (isset($this->_SERVER['HTTP_OVERWRITE'])) {
-            $options['overwrite'] = $this->_SERVER['HTTP_OVERWRITE'] == 'T';
+            $this->options['overwrite'] = $this->_SERVER['HTTP_OVERWRITE'] == 'T';
         } else {
-            $options['overwrite'] = true;
+            $this->options['overwrite'] = true;
         }
 
-        $stat = $this->$what($options);
+        $stat = $this->$what();
         $this->httpStatus($stat);
     }
 

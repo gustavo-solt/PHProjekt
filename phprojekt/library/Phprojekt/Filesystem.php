@@ -42,7 +42,7 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
      *
      * Defaults to webserver document root (set by serveRequest)
      *
-     * @var    string
+     * @var string
      */
     private $_base = '';
 
@@ -70,18 +70,15 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
     /**
      * PROPFIND method handler.
      *
-     * @param array $options General parameter passing array.
-     * @param array $files   Return array for file properties.
-     *
      * @return boolean True on success.
      */
-    public function propfind(&$options, &$files)
+    public function propfind()
     {
         // Get absolute fs path to requested resource
-        $fspath = $this->_base . $options['path'];
+        $fspath = $this->_base . $this->options['path'];
 
         // Get the projectId
-        $projectId = (int) $this->getProjectId($options['path']);
+        $projectId = (int) $this->getProjectId($this->options['path']);
         if ($projectId == 0) {
             $projectId = 1;
         }
@@ -123,8 +120,8 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
             return '500 Internal Server Error';
         }
 
-        $folders         = array();
-        $options['path'] = $this->slashify($options['path']);
+        $folders               = array();
+        $this->options['path'] = $this->slashify($this->options['path']);
 
         $copyOfRows = $rows;
         foreach ($rows as $row) {
@@ -138,7 +135,7 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
                     if ($fileName != $row['fileTitle']) {
                         $fileName = $row['fileTitle'] . $this->_fileSeparator . $fileName;
                     }
-                    $files['files'][] = $this->fileinfo($options['path'] . $fileName, $md5Name);
+                    $this->files['files'][] = $this->fileinfo($this->options['path'] . $fileName, $md5Name);
                 }
             }
         }
@@ -155,7 +152,7 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
             $path = $folder['path'] . $folder['id'] . Phprojekt_Tree_Node_Database::NODE_SEPARATOR;
             foreach ($copyOfRows as $row) {
                 if ((substr($row['path'], 0, strlen($path)) == $path) || ($row['project_id'] == $folder['id'])) {
-                    $files['files'][] = $this->dirInfo($options['path'] . $folder['title']);
+                    $this->files['files'][] = $this->dirInfo($this->options['path'] . $folder['title']);
                     break;
                 }
             }
@@ -168,19 +165,17 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
     /**
      * GET method handler.
      *
-     * @param array $options Parameter passing array.
-     *
      * @return boolean True on success.
      */
-    public function get(&$options)
+    public function get()
     {
         // Get the file data
-        $data    = $this->_getDataFromPath($options['path']);
+        $data    = $this->_getDataFromPath($this->options['path']);
         $md5Name = $data['md5'];
 
         // GET by Web ?
         if ($md5Name == '-') {
-            return $this->getDir($options);
+            return $this->getDir($this->options);
         }
 
         // Get absolute fs path to requested resource
@@ -197,19 +192,19 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
         }
 
         // Detect resource type
-        $options['mimetype'] = $this->_mimetype($fspath);
+        $this->options['mimetype'] = $this->_mimetype($fspath);
 
         // Detect modification time
         // see rfc2518, section 13.7
         // some clients seem to treat this as a reverse rule
         // requiering a Last-Modified header if the getlastmodified header was set
-        $options['mtime'] = filemtime($fspath);
+        $this->options['mtime'] = filemtime($fspath);
 
         // Detect resource size
-        $options['size'] = filesize($fspath);
+        $this->options['size'] = filesize($fspath);
 
         // No need to check result here, it is handled by the base class
-        $options['stream'] = fopen($fspath, 'r');
+        $this->options['stream'] = fopen($fspath, 'r');
 
         return true;
     }
@@ -220,19 +215,16 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
      * This is a very simple mod_index lookalike.
      * See RFC 2518, Section 8.4 on GET/HEAD for collections
      *
-     * @param array $options General parameter passing array.
-     *
      * @return void
      */
-    function getDir($options)
+    function getDir()
     {
-        $files = array();
-        $this->propfind($options, $files);
+        $this->propfind();
 
         // Fixed width directory column format
         $format = "%15s  %-19s  %-s\n";
-        echo "<html><head><title>Index of " . utf8_decode(urldecode($options['path'])) . "</title></head>\n";
-        echo "<h1>Index of " . utf8_decode(urldecode($options['path'])) . "</h1>\n";
+        echo "<html><head><title>Index of " . utf8_decode(urldecode($this->options['path'])) . "</title></head>\n";
+        echo "<h1>Index of " . utf8_decode(urldecode($this->options['path'])) . "</h1>\n";
         echo "<pre>";
         printf($format, "Size", "Last modified", "Name");
         echo "<hr>";
@@ -241,10 +233,10 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
         printf($format, '', '', "<a href='" . substr($this->uri, 0, strrpos($this->uri, '/'))
             . "'>Parent Directory</a>");
 
-        uasort($files['files'], array("Phprojekt_Filesystem", "sortFiles"));
+        uasort($this->files['files'], array("Phprojekt_Filesystem", "sortFiles"));
 
         $uri = $this->slashify($this->uri);
-        foreach ($files['files'] as $file) {
+        foreach ($this->files['files'] as $file) {
             foreach ($file['props'] as $prop) {
                 switch ($prop['name']) {
                     case 'getcontentlength':
@@ -325,14 +317,12 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
     /**
      * PUT method handler.
      *
-     * @param array $options Parameter passing array.
-     *
      * @return boolean True on success.
      */
-    public function put(&$options)
+    public function put()
     {
         // Get the file data
-        $data      = $this->_getDataFromPath($options['path']);
+        $data      = $this->_getDataFromPath($this->options['path']);
         $md5Name   = $data['md5'];
         $fileName  = $data['name'];
         $projectId = $data['projectId'];
@@ -371,7 +361,7 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
             return false;
         }
 
-        $options['new'] = !file_exists($fspath);
+        $this->options['new'] = !file_exists($fspath);
 
         $fp = fopen($fspath, 'w');
 
@@ -381,15 +371,13 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
     /**
      * PROPPATCH method handler.
      *
-     * @param array $options Parameter passing array.
-     *
      * @return boolean True on success.
      */
-    public function proppatch(&$options)
+    public function proppatch()
     {
-        foreach ($options['props'] as $key => $prop) {
+        foreach ($this->options['props'] as $key => $prop) {
             if ($prop['ns'] == 'DAV:') {
-                $options['props'][$key]['status'] = '403 Forbidden';
+                $this->options['props'][$key]['status'] = '403 Forbidden';
             }
         }
 
@@ -399,14 +387,12 @@ class Phprojekt_Filesystem extends Phprojekt_WebDav_Abstract
     /**
      * DELETE method handler.
      *
-     * @param array $options Parameter passing array.
-     *
-     * @return boolean True on success.
+     * @return string Delete response.
      */
-    public function delete($options)
+    public function delete()
     {
         // Get the file data
-        $data      = $this->_getDataFromPath($options['path']);
+        $data      = $this->_getDataFromPath($this->options['path']);
         $projectId = $data['projectId'];
         $title     = $data['title'];
         $md5Name   = $data['md5'];
