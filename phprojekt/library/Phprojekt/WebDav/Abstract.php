@@ -842,7 +842,7 @@ class Phprojekt_WebDav_Abstract
 
             $this->options['props'] = $propinfo->props;
 
-            $responsedescr = $this->proppatch();
+            $responseDescription = $this->proppatch();
 
             $this->httpStatus('207 Multi-Status');
             header('Content-Type: text/xml; charset="utf-8"');
@@ -861,9 +861,9 @@ class Phprojekt_WebDav_Abstract
                 echo "   </D:propstat>\n";
             }
 
-            if ($responsedescr) {
+            if ($responseDescription) {
                 echo "  <D:responsedescription>".
-                    $this->_propEncode(htmlspecialchars($responsedescr)).
+                    $this->_propEncode(htmlspecialchars($responseDescription)).
                     "</D:responsedescription>\n";
             }
 
