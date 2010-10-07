@@ -40,6 +40,14 @@
 interface Phprojekt_Model_Interface extends Iterator
 {
     /**
+     * Define the object that implements the model information interface
+     * and that provides detailed information about the fields and their types.
+     *
+     * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
+     */
+    public function setInformation();
+
+    /**
      * Returns an object that implements the model information interface
      * and that provides detailed information about the fields and their types.
      * For database objects implementing Phprojekt_Item this
