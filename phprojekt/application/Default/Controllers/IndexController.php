@@ -232,38 +232,24 @@ class IndexController extends Zend_Controller_Action
     }
 
     /**
-     * Return the model name for construct the class.
-     *
-     * @return string The path to the model in the class format.
-     */
-    public function getModelName()
-    {
-        return $this->getRequest()->getModuleName();
-    }
-
-    /**
-     * Return the module name for construct the class.
-     *
-     * @return string The module name.
-     */
-    public function getModuleName()
-    {
-        return $this->getRequest()->getModuleName();
-    }
-
-    /**
      * Gets the class model of the module or the default one.
      *
      * @return Phprojekt_Model_Interface An instance of Phprojekt_Model_Interface.
      */
     public function getModelObject()
     {
-        $modelName  = $this->getModelName();
-        $moduleName = $this->getModuleName();
-        $object     = Phprojekt_Loader::getModel($modelName, $moduleName);
+        $moduleName  = $this->getRequest()->getModuleName();
+        $directories = $this->getFrontController()->getModuleDirectory($moduleName);
+
+        if (preg_match("/(.*)application[\/\\\](.*)/", $directories, $match)) {
+            $modelName = str_replace(DIRECTORY_SEPARATOR, "_", $match[2]);
+        } else {
+            throw new InvalidArgumentException('The model do not exists');
+        }
+
+        $object = Phprojekt_Loader::getModel($modelName, $moduleName);
         if (null === $object) {
-            /* @todo throw error */
-            $object = Phprojekt_Loader::getModel('Default', 'Default');
+            throw new InvalidArgumentException('The model do not exists');
         }
 
         return $object;
@@ -1103,7 +1089,7 @@ class IndexController extends Zend_Controller_Action
         $sessionName   = 'Phprojekt_CsrfToken';
         $csrfNamespace = new Zend_Session_Namespace($sessionName);
         $config        = Phprojekt::getInstance()->getConfig();
-        $linkBegin     = $config->webpath . 'index.php/' . $this->getModuleName() . '/index/';
+        $linkBegin     = $config->webpath . 'index.php/' . $this->getRequest()->getModuleName() . '/index/';
 
         // Add all the extra parameters that have the original URL
         $linkData      = '';

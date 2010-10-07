@@ -43,16 +43,6 @@ class MinutesItem_IndexController extends IndexController
     const MINUTES_READ_ONLY = 'This minutes is final and cannot be edited.';
 
     /**
-     * Return the model name for construct the class.
-     *
-     * @return string The path to the model in the class format.
-     */
-    public function getModelName()
-    {
-        return 'Minutes_SubModules_MinutesItem';
-    }
-
-    /**
      * Gets the class model of the module and set the parent.
      *
      * @return Phprojekt_Model_Interface An instance of Phprojekt_Model_Interface.
