@@ -53,6 +53,17 @@ class Default_Models_Default implements Phprojekt_Model_Interface
      *
      * @return void
      */
+    public function setInformation()
+    {
+    }
+
+    /**
+     * Information about the fields.
+     *
+     * @see Phprojekt_Item_Abstract
+     *
+     * @return void
+     */
     public function getInformation()
     {
     }
@@ -109,7 +120,7 @@ class Default_Models_Default implements Phprojekt_Model_Interface
      *
      * @return void
      */
-    public function key ()
+    public function key()
     {
     }
 

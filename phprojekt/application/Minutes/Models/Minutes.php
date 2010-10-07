@@ -45,19 +45,14 @@ class Minutes_Models_Minutes extends Phprojekt_Item_Abstract
     public $hasMany = array('items'=> array('module'=>'Minutes_SubModules_MinutesItem',
                                             'model' =>'MinutesItem'));
 
-
     /**
-     * Constructor initializes additional Infomanager.
+     * Define the information manager.
      *
-     * @param array $db Configuration for Zend_Db_Table.
-     *
-     * @return void
+     * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
      */
-    public function __construct($db = null)
+    public function setInformation()
     {
-        parent::__construct($db);
-
-        $this->_dbManager = new Minutes_Models_MinutesInformation($this, $db);
+        return new Minutes_Models_MinutesInformation($this, Phprojekt::getInstance()->getDb());
     }
 
     /**
