@@ -50,7 +50,7 @@ class Phprojekt_TabModelTab_Test extends PHPUnit_Framework_TestCase
         $expected = new Phprojekt_Tab_Information();
         $this->assertEquals($tabModel->getInformation(), $expected);
         $this->assertEquals($tabModel->getRights(), array());
-        $this->assertEquals($tabModel->saveRights(), null);
+        $this->assertEquals($tabModel->saveRights(array()), null);
         $this->assertEquals($tabModel->recordValidate(), false);
         $this->assertEquals($tabModel->getError(),
             array(0 => array('field'   => 'label',

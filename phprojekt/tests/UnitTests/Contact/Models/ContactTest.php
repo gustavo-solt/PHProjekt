@@ -159,7 +159,7 @@ class Contact_Models_Contact_Test extends PHPUnit_Framework_TestCase
     public function testSaveRights()
     {
         $contactModel = clone($this->_model);
-        $contactModel->saveRights(null);
+        $contactModel->saveRights(array());
     }
 
     /**

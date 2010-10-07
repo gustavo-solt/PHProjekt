@@ -167,7 +167,7 @@ class Phprojekt_ModuleModelModule_Test extends PHPUnit_Framework_TestCase
         $module->label    = 'Test';
         $module->active   = 1;
         $module->saveType = 0;
-        $module->saveRights();
+        $module->saveRights(array());
         $this->assertEquals(array(), $module->getRights());
     }
 }
