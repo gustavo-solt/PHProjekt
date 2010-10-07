@@ -35,22 +35,8 @@
  * @version    Release: @package_version@
  * @author     Gustavao Solt <solt@mayflower.de>
  */
-abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract implements Phprojekt_Model_Interface
+abstract class Phprojekt_Item_Abstract extends Phprojekt_Model_Default
 {
-    /**
-     * Represents the database_manager class.
-     *
-     * @var Phprojekt_ActiveRecord_Abstract
-     */
-    protected $_dbManager = null;
-
-    /**
-     * Validate object.
-     *
-     * @var Phprojekt_Model_Validate
-     */
-    protected $_validate = null;
-
     /**
      * History object.
      *
@@ -97,11 +83,9 @@ abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract i
     {
         parent::__construct($db);
 
-        $this->_dbManager = new Phprojekt_DatabaseManager($this, $db);
-        $this->_validate  = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_history   = Phprojekt_Loader::getLibraryClass('Phprojekt_History');
-        $this->_search    = Phprojekt_Loader::getLibraryClass('Phprojekt_Search');
-        $this->_rights    = Phprojekt_Loader::getLibraryClass('Phprojekt_Item_Rights');
+        $this->_history = Phprojekt_Loader::getLibraryClass('Phprojekt_History');
+        $this->_search  = Phprojekt_Loader::getLibraryClass('Phprojekt_Search');
+        $this->_rights  = Phprojekt_Loader::getLibraryClass('Phprojekt_Item_Rights');
     }
 
     /**
@@ -112,20 +96,20 @@ abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract i
     public function __clone()
     {
         parent::__clone();
-        $this->_validate = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
+
         $this->_history  = Phprojekt_Loader::getLibraryClass('Phprojekt_History');
         $this->_search   = Phprojekt_Loader::getLibraryClass('Phprojekt_Search');
         $this->_rights   = Phprojekt_Loader::getLibraryClass('Phprojekt_Item_Rights');
     }
 
     /**
-     * Returns the database manager instance used by this phprojekt item.
+     * Define the information manager.
      *
-     * @return Phprojekt_DatabaseManager An instance of Phprojekt_DatabaseManager.
+     * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
      */
-    public function getInformation()
+    public function setInformation()
     {
-        return $this->_dbManager;
+        return new Phprojekt_DatabaseManager($this, Phprojekt::getInstance()->getDb());
     }
 
     /**
@@ -177,19 +161,6 @@ abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract i
     }
 
     /**
-     * Return if the values are valid or not.
-     *
-     * @return boolean True for valid.
-     */
-    public function recordValidate()
-    {
-        $data   = $this->_data;
-        $fields = $this->_dbManager->getFieldDefinition(Phprojekt_ModelInformation_Default::ORDERING_FORM);
-
-        return $this->_validate->recordValidate($this, $data, $fields);
-    }
-
-    /**
      * Get a value of a var.
      * Is the var is a float, return the locale float.
      *
@@ -209,16 +180,6 @@ abstract class Phprojekt_Item_Abstract extends Phprojekt_ActiveRecord_Abstract i
         }
 
         return $value;
-    }
-
-    /**
-     * Return the error data.
-     *
-     * @return array Array with errors.
-     */
-    public function getError()
-    {
-        return (array) $this->_validate->error->getError();
     }
 
     /**

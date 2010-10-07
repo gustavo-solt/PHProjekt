@@ -35,7 +35,7 @@
  * @version    Release: @package_version@
  * @author     Gustavo Solt <solt@mayflower.de>
  */
-class Phprojekt_User_User extends Phprojekt_ActiveRecord_Abstract implements Phprojekt_Model_Interface
+class Phprojekt_User_User extends Phprojekt_Model_Default
 {
     /**
      * Has many declrations.
@@ -56,50 +56,13 @@ class Phprojekt_User_User extends Phprojekt_ActiveRecord_Abstract implements Php
                                                               'model'     => 'Groups'));
 
     /**
-     * The standard information manager with hardcoded field definitions.
+     * Define the information manager.
      *
-     * @var Phprojekt_ModelInformation_Interface
+     * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
      */
-    protected $_informationManager;
-
-    /**
-     * Validate object.
-     *
-     * @var Phprojekt_Model_Validate
-     */
-    protected $_validate = null;
-
-    /**
-     * Initialize new user.
-     *
-     * If is seted the user id in the session,
-     * the class will get all the values of these user.
-     *
-     * @param array $db Configuration for Zend_Db_Table.
-     *
-     * @return void
-     */
-    public function __construct($db = null)
+    public function setInformation()
     {
-        if (null === $db) {
-            $db = Phprojekt::getInstance()->getDb();
-        }
-        parent::__construct($db);
-
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getLibraryClass('Phprojekt_User_Information');
-    }
-
-    /**
-     * Define the clone function for prevent the same point to same object.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        parent::__clone();
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getLibraryClass('Phprojekt_User_Information');
+        return Phprojekt_Loader::getLibraryClass('Phprojekt_User_Information');
     }
 
     /**
@@ -205,36 +168,13 @@ class Phprojekt_User_User extends Phprojekt_ActiveRecord_Abstract implements Php
     }
 
     /**
-     * Get the information manager.
-     *
-     * @see Phprojekt_Model_Interface::getInformation()
-     *
-     * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
-     */
-    public function getInformation()
-    {
-        return $this->_informationManager;
-    }
-
-    /**
-     * Save the rigths.
-     *
-     * @return void
-     */
-    public function saveRights()
-    {
-    }
-
-    /**
      * Validate the current record.
      *
      * @return boolean True on valid.
      */
     public function recordValidate()
     {
-        $data   = $this->_data;
-        $fields = $this->_informationManager->getFieldDefinition(Phprojekt_ModelInformation_Default::ORDERING_FORM);
-        $result = $this->_validate->recordValidate($this, $data, $fields);
+        $result = parent::recordValidate();
 
         if ($result) {
             // Username repeated?
@@ -251,16 +191,6 @@ class Phprojekt_User_User extends Phprojekt_ActiveRecord_Abstract implements Php
         }
 
         return $result;
-    }
-
-    /**
-     * Returns the error data.
-     *
-     * @return array Array with errors.
-     */
-    public function getError()
-    {
-        return (array) $this->_validate->error->getError();
     }
 
     /**

@@ -35,94 +35,16 @@
  * @version    Release: @package_version@
  * @author     Gustavo Solt <solt@mayflower.de>
  */
-class Phprojekt_Tab_Tab extends Phprojekt_ActiveRecord_Abstract implements Phprojekt_Model_Interface
+class Phprojekt_Tab_Tab extends Phprojekt_Model_Default
 {
     /**
-     * The standard information manager with hardcoded field definitions.
-     *
-     * @var Phprojekt_ModelInformation_Interface
-     */
-    protected $_informationManager;
-
-    /**
-     * Validate object.
-     *
-     * @var Phprojekt_Model_Validate
-     */
-    protected $_validate = null;
-
-    /**
-     * Initialize new tab.
-     *
-     * @param array $db Configuration for Zend_Db_Table.
-     *
-     * @return void
-     */
-    public function __construct($db = null)
-    {
-        if (null === $db) {
-            $db = Phprojekt::getInstance()->getDb();
-        }
-        parent::__construct($db);
-
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getLibraryClass('Phprojekt_Tab_Information');
-    }
-
-    /**
-     * Define the clone function for prevent the same point to same object.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        parent::__clone();
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getLibraryClass('Phprojekt_Tab_Information');
-    }
-
-    /**
-     * Get the information manager.
-     *
-     * @see Phprojekt_Model_Interface::getInformation()
+     * Define the information manager.
      *
      * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
      */
-    public function getInformation()
+    public function setInformation()
     {
-        return $this->_informationManager;
-    }
-
-    /**
-     * Save the rigths.
-     *
-     * @return void
-     */
-    public function saveRights()
-    {
-    }
-
-    /**
-     * Validate the current record.
-     *
-     * @return boolean True for valid.
-     */
-    public function recordValidate()
-    {
-        $data   = $this->_data;
-        $fields = $this->_informationManager->getFieldDefinition(Phprojekt_ModelInformation_Default::ORDERING_FORM);
-
-        return $this->_validate->recordValidate($this, $data, $fields);
-    }
-
-    /**
-     * Return the error data.
-     *
-     * @return array Array with errors.
-     */
-    public function getError()
-    {
-        return (array) $this->_validate->error->getError();
+        return Phprojekt_Loader::getLibraryClass('Phprojekt_Tab_Information');
     }
 
     /**

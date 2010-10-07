@@ -35,72 +35,16 @@
  * @version    Release: @package_version@
  * @author     Gustavo Solt <solt@mayflower.de>
  */
-class Timecard_Models_Timecard extends Phprojekt_ActiveRecord_Abstract implements Phprojekt_Model_Interface
+class Timecard_Models_Timecard extends Phprojekt_Model_Default
 {
     /**
-     * The standard information manager with hardcoded
-     * field definitions
+     * Define the information manager.
      *
-     * @var Phprojekt_ModelInformation_Interface
+     * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
      */
-    protected $_informationManager;
-
-    /**
-     * Validate object
-     *
-     * @var Phprojekt_Model_Validate
-     */
-    protected $_validate = null;
-
-    /**
-     * Constructor initializes additional Infomanager.
-     *
-     * @param array $db Configuration for Zend_Db_Table.
-     *
-     * @return void
-     */
-    public function __construct($db = null)
+    public function setInformation()
     {
-        if (null === $db) {
-            $db = Phprojekt::getInstance()->getDb();
-        }
-        parent::__construct($db);
-
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getModel('Timecard', 'Information');
-    }
-
-    /**
-     * Define the clone function for prevent the same point to same object.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        parent::__clone();
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getModel('Timecard', 'Information');
-    }
-
-    /**
-     * Get the information manager
-     *
-     * @see Phprojekt_Model_Interface::getInformation()
-     *
-     * @return Phprojekt_ModelInformation_Interface
-     */
-    public function getInformation()
-    {
-        return $this->_informationManager;
-    }
-
-    /**
-     * Save the rigths
-     *
-     * @return void
-     */
-    public function saveRights()
-    {
+        return Phprojekt_Loader::getModel('Timecard', 'Information');
     }
 
     /**
@@ -268,16 +212,6 @@ class Timecard_Models_Timecard extends Phprojekt_ActiveRecord_Abstract implement
         }
 
         return $where;
-    }
-
-    /**
-     * Return the error data
-     *
-     * @return array
-     */
-    public function getError()
-    {
-        return (array) $this->_validate->error->getError();
     }
 
     /**

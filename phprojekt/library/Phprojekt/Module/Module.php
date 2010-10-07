@@ -35,62 +35,16 @@
  * @version    Release: @package_version@
  * @author     Gustavo Solt <solt@mayflower.de>
  */
-class Phprojekt_Module_Module extends Phprojekt_ActiveRecord_Abstract implements Phprojekt_Model_Interface
+class Phprojekt_Module_Module extends Phprojekt_Model_Default
 {
     /**
-     * The standard information manager with hardcoded field definitions.
-     *
-     * @var Phprojekt_ModelInformation_Interface
-     */
-    protected $_informationManager;
-
-    /**
-     * Validate object.
-     *
-     * @var Phprojekt_Model_Validate
-     */
-    protected $_validate = null;
-
-    /**
-     * Constructor.
-     *
-     * @param array $db Configuration for Zend_Db_Table.
-     *
-     * @return void
-     */
-    public function __construct($db = null)
-    {
-        if (null === $db) {
-            $db = Phprojekt::getInstance()->getDb();
-        }
-        parent::__construct($db);
-
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getLibraryClass('Phprojekt_Module_Information');
-    }
-
-    /**
-     * Define the clone function for prevent the same point to same object.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        parent::__clone();
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getLibraryClass('Phprojekt_Module_Information');
-    }
-
-    /**
-     * Get the information manager.
-     *
-     * @see Phprojekt_Model_Interface::getInformation()
+     * Define the information manager.
      *
      * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
      */
-    public function getInformation()
+    public function setInformation()
     {
-        return $this->_informationManager;
+        return Phprojekt_Loader::getLibraryClass('Phprojekt_Module_Information');
     }
 
     /**
@@ -218,25 +172,6 @@ class Phprojekt_Module_Module extends Phprojekt_ActiveRecord_Abstract implements
 
         // Delete module entry
         parent::delete();
-    }
-
-    /**
-     * Return the error data.
-     *
-     * @return array Array with errors.
-     */
-    public function getError()
-    {
-        return (array) $this->_validate->error->getError();
-    }
-
-    /**
-     * Save rights.
-     *
-     * @return void
-     */
-    public function saveRights()
-    {
     }
 
     /**

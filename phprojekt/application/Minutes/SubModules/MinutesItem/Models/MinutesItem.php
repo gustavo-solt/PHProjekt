@@ -35,8 +35,7 @@
  * @version    Release: @package_version@
  * @author     Sven Rautenberg <sven.rautenberg@mayflower.de>
  */
-class Minutes_SubModules_MinutesItem_Models_MinutesItem extends Phprojekt_ActiveRecord_Abstract
-    implements Phprojekt_Model_Interface
+class Minutes_SubModules_MinutesItem_Models_MinutesItem extends Phprojekt_Model_Default
 {
     /**
      * The Minutes object this item is related to.
@@ -46,20 +45,6 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItem extends Phprojekt_Active
     protected $_minutes = null;
 
     /**
-     * The standard information manager with hardcoded field definitions.
-     *
-     * @var Phprojekt_ModelInformation_Interface
-     */
-    protected $_informationManager;
-
-    /**
-     * Validate object.
-     *
-     * @var Phprojekt_Model_Validate
-     */
-    protected $_validate = null;
-
-    /**
      * Initial state of the data after find().
      *
      * @var array
@@ -67,45 +52,13 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItem extends Phprojekt_Active
     protected $_history = null;
 
     /**
-     * Initialize new minutes item.
+     * Define the information manager.
      *
-     * @param array $db Configuration for Zend_Db_Table.
-     *
-     * @return void
+     * @return Phprojekt_ModelInformation_Interface An instance of Phprojekt_ModelInformation_Interface.
      */
-    public function __construct($db = null)
+    public function setInformation()
     {
-        if (null === $db) {
-            $db = Phprojekt::getInstance()->getDb();
-        }
-        parent::__construct($db);
-
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getModel('Minutes_SubModules_MinutesItem',
-            'MinutesItemInformation');
-    }
-
-    /**
-     * Define the clone function for prevent the same point to same object.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        parent::__clone();
-        $this->_validate           = Phprojekt_Loader::getLibraryClass('Phprojekt_Model_Validate');
-        $this->_informationManager = Phprojekt_Loader::getModel('Minutes_SubModules_MinutesItem',
-            'MinutesItemInformation');
-    }
-
-    /**
-     * Return the information manager.
-     *
-     * @return Phprojekt_ModelInformation_Interface The Phprojekt_ModelInformation_Interface object.
-     */
-    public function getInformation()
-    {
-        return $this->_informationManager;
+        return Phprojekt_Loader::getModel('Minutes_SubModules_MinutesItem', 'MinutesItemInformation');
     }
 
     /**
@@ -132,19 +85,6 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItem extends Phprojekt_Active
     }
 
     /**
-     * Validate the current record.
-     *
-     * @return boolean True for valid.
-     */
-    public function recordValidate()
-    {
-        $data   = $this->_data;
-        $fields = $this->_informationManager->getFieldDefinition(Phprojekt_ModelInformation_Default::ORDERING_FORM);
-
-        return $this->_validate->recordValidate($this, $data, $fields);
-    }
-
-    /**
      * Get a value of a var.
      * Is the var is a float, return the locale float.
      *
@@ -164,16 +104,6 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItem extends Phprojekt_Active
         }
 
         return $value;
-    }
-
-    /**
-     * Get error message from model.
-     *
-     * @return array Array with errors.
-     */
-    public function getError()
-    {
-        return (array) $this->_validate->error->getError();
     }
 
     /**
@@ -206,18 +136,6 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItem extends Phprojekt_Active
     public function getUsersRights()
     {
         return $this->getParent()->getUsersRights();
-    }
-
-    /**
-     * Extension of saveRights() for don't save rights.
-     *
-     * @param array $rights Array of user IDs with the bitmask access.
-     *
-     * @return void
-     */
-    public function saveRights($rights)
-    {
-        // No code here as the rights are managed by the parent minutes model.
     }
 
     /**
