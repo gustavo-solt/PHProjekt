@@ -137,4 +137,40 @@ abstract class Phprojekt_Model_Default extends Phprojekt_ActiveRecord_Abstract i
     {
         return (array) $this->_validate->error->getError();
     }
+
+    /**
+     * Delete the upload files if there is any.
+     *
+     * @return void
+     */
+    public function delete()
+    {
+        $this->deleteUploadFiles();
+
+        parent::delete();
+    }
+
+    /**
+     * Delete all the files uploaded in the upload fields.
+     *
+     * @return void
+     */
+    public function deleteUploadFiles()
+    {
+        // Is there is any upload file, -> delete the files from the server
+        foreach ($this as $field => $value) {
+            $field = Phprojekt_ActiveRecord_Abstract::convertVarFromSql($field);
+            if ($this->getInformation()->getType($field) == 'upload') {
+                $filesField = $value;
+                $files      = explode('||', $filesField);
+                foreach ($files as $file) {
+                    $md5Name          = substr($file, 0, strpos($file, '|'));
+                    $fileAbsolutePath = Phprojekt::getInstance()->getConfig()->uploadPath . $md5Name;
+                    if (!empty($md5Name) && file_exists($fileAbsolutePath)) {
+                        unlink($fileAbsolutePath);
+                    }
+                }
+            }
+        }
+    }
 }
