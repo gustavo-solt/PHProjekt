@@ -53,33 +53,11 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItemInformation extends Phpro
         );
 
     /**
-     * Stores the translated list of topic types.
-     *
-     * @var array
-     */
-    protected static $_topicTypeList = array();
-
-    /**
      * Stores the list of user names in display format.
      *
      * @var array
      */
     protected static $_userIdList = array();
-
-    /**
-     * Lazy load the topicType translation list.
-     *
-     * @return array $_topicTypeList
-     */
-    protected function _getTopicTypeList()
-    {
-        if (array() === self::$_topicTypeList) {
-            foreach (self::$_topicTypeListTemplate as $key => $value) {
-                self::$_topicTypeList[(int) $key] = $this->getFullRangeValues((int) $key, $value);
-            }
-        }
-        return self::$_topicTypeList;
-    }
 
     /**
      * Returns the translated text of a given topicType id, or NULL if undefined.
@@ -90,28 +68,9 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItemInformation extends Phpro
      */
     public function getTopicType($topicTypeValue)
     {
-        $types = $this->_getTopicTypeList();
-
-        return (isset($types[$topicTypeValue]['name'])? $types[$topicTypeValue]['name'] : null);
-    }
-
-    /**
-     * Lazy load the userId list.
-     *
-     * @return array $_userIdList
-     */
-    protected function _getUserIdList()
-    {
-        if (array() === self::$_userIdList) {
-            /* @var $user Phprojekt_User_User */
-            $user  = Phprojekt_Loader::getLibraryClass('Phprojekt_User_User');
-            $users = $user->getAllowedUsers();
-            foreach ($users as $node) {
-                self::$_userIdList[$node['id']] = $this->getRangeValues($node['id'], $node['name']);
-            }
-        }
-
-        return self::$_userIdList;
+        return (isset(self::$_topicTypeListTemplate[$topicTypeValue])
+            ? self::$_topicTypeListTemplate[$topicTypeValue]
+            : null);
     }
 
     /**
@@ -123,9 +82,16 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItemInformation extends Phpro
      */
     public function getUserName($userId)
     {
-        $users = $this->_getUserIdList();
+        if (array() === self::$_userIdList) {
+            /* @var $user Phprojekt_User_User */
+            $user  = Phprojekt_Loader::getLibraryClass('Phprojekt_User_User');
+            $users = $user->getAllowedUsers();
+            foreach ($users as $node) {
+                self::$_userIdList[$node['id']] = $node['name'];
+            }
+        }
 
-        return (isset($users[$userId]['name'])? $users[$userId]['name'] : null);
+        return (isset(self::$_userIdList[$userId])? self::$_userIdList[$userId] : null);
     }
 
     /**
