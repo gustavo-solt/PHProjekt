@@ -55,7 +55,7 @@ class Timecard_Models_Timecard extends Phprojekt_Model_Default
     public function recordValidate()
     {
         $data   = $this->_data;
-        $fields = $this->_informationManager->getFieldDefinition(Phprojekt_ModelInformation_Default::ORDERING_FORM);
+        $fields = $this->getInformation()->getFieldDefinition(Phprojekt_ModelInformation_Default::ORDERING_FORM);
 
         if (isset($data['startDatetime'])) {
             $startTime = str_replace(":", "", substr($data['startDatetime'], 11));

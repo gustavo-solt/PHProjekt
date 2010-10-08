@@ -124,7 +124,7 @@ class Phprojekt_Module_Module extends Phprojekt_Model_Default
     public function recordValidate()
     {
         $data   = $this->_data;
-        $fields = $this->_informationManager->getFieldDefinition(Phprojekt_ModelInformation_Default::ORDERING_FORM);
+        $fields = $this->getInformation()->getFieldDefinition(Phprojekt_ModelInformation_Default::ORDERING_FORM);
 
         if ($this->_data['id'] == 1 && $this->_data['saveType'] != 0) {
             $this->_validate->error->addError(array(
