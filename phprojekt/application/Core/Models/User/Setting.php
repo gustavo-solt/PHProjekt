@@ -86,22 +86,14 @@ class Core_Models_User_Setting extends Phprojekt_ModelInformation_Default
             'length' => 255));
 
         // language
-        $range = array();
-        foreach ($this->_languageRange as $key => $value) {
-            $range[] = $this->getRangeValues($key, $value);
-        }
         $this->fillField('language', 'Language', 'selectbox', 0, 5, array(
-            'range'    => $range,
+            'range'    => $this->getRangeValues($this->_languageRange),
             'required' => true,
             'default'  => 'en'));
 
         // timeZone
-        $range = array();
-        foreach ($this->_timeZoneRange as $key => $value) {
-            $range[] = $this->getRangeValues($key, $value);
-        }
         $this->fillField('timeZone', 'Time zone', 'selectbox', 0, 6, array(
-            'range'    => $range,
+            'range'    => $this->getRangeValues($this->_timeZoneRange),
             'required' => true,
             'default'  => '000'));
     }

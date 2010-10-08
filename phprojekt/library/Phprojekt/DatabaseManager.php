@@ -272,15 +272,20 @@ class Phprojekt_DatabaseManager extends Phprojekt_ActiveRecord_Abstract implemen
     {
         $converted = array();
         $fields    = $this->_getFields($this->_mapping[$ordering]);
+        $module    = $this->_getModuleName();
 
         // The db manager handles field different than the encoder/output layer expect
         foreach ($fields as $field) {
             switch ($field->formType) {
                 case 'selectValues':
-                    $converted[] = $this->_convertSelect($field);
+                    $entry       = $this->_convertStandard($field);
+                    $converted[] = Phprojekt_ModelInformation_Convert::convertSelect($entry, $field->formRange,
+                        $field->isRequired, $field->formType, $module);
                     break;
                 case 'multipleSelectValues':
-                    $entry         = $this->_convertSelect($field);
+                    $entry = $this->_convertStandard($field);
+                    $entry = Phprojekt_ModelInformation_Convert::convertSelect($entry, $field->formRange,
+                        $field->isRequired, $field->formType, $module);
                     $entry['type'] = 'multipleselectbox';
                     $converted[]   = $entry;
                     break;
@@ -291,7 +296,9 @@ class Phprojekt_DatabaseManager extends Phprojekt_ActiveRecord_Abstract implemen
                         $entry = $this->_convertStandard($field);
                     } else {
                         // Yes
-                        $entry = $this->_convertSelect($field);
+                        $entry = $this->_convertStandard($field);
+                        $entry = Phprojekt_ModelInformation_Convert::convertSelect($entry, $field->formRange,
+                            $field->isRequired, $field->formType, $module);
                     }
                     $entry['type']     = 'display';
                     $entry['readOnly'] = true;
@@ -306,39 +313,6 @@ class Phprojekt_DatabaseManager extends Phprojekt_ActiveRecord_Abstract implemen
                     $converted[] = $this->_convertStandard($field);
                     break;
             }
-        }
-
-        return $converted;
-    }
-
-    /**
-     * Convert to a a selectbox.
-     *
-     * @param Phprojekt_ModelInformation_Interface $field Class with data of the field.
-     *
-     * @return array Array with fields definitions.
-     */
-    protected function _convertSelect(Phprojekt_ModelInformation_Interface $field)
-    {
-        $module             = $this->_getModuleName();
-        $converted          = $this->_convertStandard($field);
-        $converted['range'] = array();
-        $converted['type']  = 'selectbox';
-
-        if (strpos($field->formRange, "|") > 0) {
-            foreach (explode('|', $field->formRange) as $range) {
-                list($key, $value) = explode('#', $range);
-                if (is_numeric($key)) {
-                    $key = (int) $key;
-                }
-                $value = trim($value);
-                $name  = Phprojekt::getInstance()->translate($value, null, $module);
-                $converted['range'][] = array('id'           => $key,
-                                              'name'         => $name,
-                                              'originalName' => $value);
-            }
-        } else {
-            $converted['range'] = $this->getRangeFromModel($field);
         }
 
         return $converted;
@@ -437,54 +411,6 @@ class Phprojekt_DatabaseManager extends Phprojekt_ActiveRecord_Abstract implemen
         }
 
         return $return;
-    }
-
-    /**
-     * Gets the data range for a select using a model.
-     *
-     * @param Phprojekt_ModelInformation_Interface $field Class with data of the field.
-     *
-     * @return array Array with 'id' and 'name'.
-     */
-    public function getRangeFromModel(Phprojekt_ModelInformation_Interface $field)
-    {
-        $options                    = array();
-        list($module, $key, $value) = explode('#', $field->formRange);
-        $module                     = trim($module);
-        $key                        = trim($key);
-        $value                      = trim($value);
-
-        switch ($module) {
-            case 'Project':
-                $activeRecord = Phprojekt_Loader::getModel('Project', 'Project');
-                $tree         = new Phprojekt_Tree_Node_Database($activeRecord, 1);
-                $tree         = $tree->setup();
-                foreach ($tree as $node) {
-                    $options[] = array('id'   => (int) $node->$key,
-                                       'name' => $node->getDepthDisplay($value));
-                }
-                break;
-            case 'User':
-                $activeRecord = Phprojekt_Loader::getLibraryClass('Phprojekt_User_User');
-                $result       = $activeRecord->getAllowedUsers();
-                if (!$field->isRequired && $field->formType == 'selectValues') {
-                    $options[] = array('id'   => 0,
-                                       'name' => '');
-                }
-                $options = array_merge($options, $result);
-                break;
-            default:
-                $activeRecord = Phprojekt_Loader::getModel($module, $module);
-                if (method_exists($activeRecord, 'getRangeFromModel')) {
-                    $options = call_user_func(array($activeRecord, 'getRangeFromModel'), $field);
-                } else {
-                    $result  = $activeRecord->fetchAll();
-                    $options = $this->_setRangeValues($field, $result, $key, $value);
-                }
-                break;
-        }
-
-        return $options;
     }
 
     /**
@@ -921,46 +847,6 @@ class Phprojekt_DatabaseManager extends Phprojekt_ActiveRecord_Abstract implemen
         $tableManager = new Phprojekt_Table(Phprojekt::getInstance()->getDb());
 
         return $tableManager->dropTable($table);
-    }
-
-    /**
-     * Process the Range value and return the options as array.
-     *
-     * @param Object $field  Field information.
-     * @param Object $result Result set of items.
-     * @param string $key    Field key for the select (id by default).
-     * @param string $value  Fields for show in the select.
-     *
-     * @return array Array with 'id' and 'name'.
-     */
-    private function _setRangeValues($field, $result, $key, $value)
-    {
-        $options = array();
-
-        if (!$field->isRequired) {
-            $options[] = array('id'   => 0,
-                               'name' => '');
-        }
-
-        if (preg_match_all("/([a-zA-z_]+)/", $value, $values)) {
-            $values = $values[1];
-        } else {
-            $values = $value;
-        }
-
-        foreach ($result as $item) {
-            $showValue = array();
-            foreach ($values as $value) {
-                if (isset($item->$value)) {
-                    $showValue[] = $item->$value;
-                }
-            }
-            $showValue = implode(", ", $showValue);
-            $options[] = array('id'   => $item->$key,
-                               'name' => $showValue);
-        }
-
-        return $options;
     }
 
     /**

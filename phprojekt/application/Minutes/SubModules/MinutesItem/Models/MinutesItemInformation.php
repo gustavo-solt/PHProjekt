@@ -163,7 +163,7 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItemInformation extends Phpro
 
         // topicType
         $this->fillField('topicType', 'Type', 'selectbox', 6, 3, array(
-            'range'    => array_values($this->_getTopicTypeList()),
+            'range'    => $this->getRangeValues(self::$_topicTypeListTemplate),
             'required' => true,
             'integer'  => true));
 
@@ -175,6 +175,6 @@ class Minutes_SubModules_MinutesItem_Models_MinutesItemInformation extends Phpro
 
         // userId
         $this->fillField('userId', 'Who', 'selectbox', 9, 6, array(
-            'range' => array_values($this->_getUserIdList())));
+            'range' => $this->getUserRange()));
     }
 }

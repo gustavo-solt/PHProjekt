@@ -58,15 +58,13 @@ class Phprojekt_Module_Information extends Phprojekt_ModelInformation_Default
 
         // saveType
         $this->fillField('saveType', 'Type', 'selectbox', 3, 3, array(
-            'range'   => array($this->getFullRangeValues(0, 'Normal'),
-                               $this->getFullRangeValues(1, 'Global')),
+            'range'   => '0#Normal|1#Global',
             'integer' => true,
             'default' => '0'));
 
         // active
         $this->fillField('active', 'Active', 'selectbox', 4, 4, array(
-            'range'   => array($this->getFullRangeValues(0, 'No'),
-                               $this->getFullRangeValues(1, 'Yes')),
+            'range'   => '0#No|1#Yes',
             'integer' => true,
             'default' => '1'));
     }

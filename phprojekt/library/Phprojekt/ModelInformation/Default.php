@@ -85,8 +85,7 @@ class Phprojekt_ModelInformation_Default implements Phprojekt_ModelInformation_I
                                 'listPosition'  => 0,
                                 'formPosition'  => 0,
                                 'fieldset'      => null,
-                                'range'         => array('id'   => '',
-                                                         'name' => ''),
+                                'range'         => null,
                                 'required' => false,
                                 'readOnly' => false,
                                 'tab'      => 1,
@@ -180,6 +179,35 @@ class Phprojekt_ModelInformation_Default implements Phprojekt_ModelInformation_I
         }
 
         foreach ($fields as $key => $field) {
+            switch ($field['type']) {
+                case 'selectValues':
+                case 'selectbox':
+                    $fields[$key] = Phprojekt_ModelInformation_Convert::convertSelect($field, $field['range'],
+                        $field['required'], $field['type']);
+                    break;
+                case 'multipleSelectValues':
+                case 'multipleselectbox':
+                    $fields[$key] = Phprojekt_ModelInformation_Convert::convertSelect($field, $field['range'],
+                        $field['required'], $field['type']);
+                    $fields[$key]['type'] = 'multipleselectbox';
+                    break;
+                case 'display':
+                    // Has it an Id value that should be translated into a descriptive String?
+                    if (null !== $field['range'] && !empty($field['range'])) {
+                        $fields[$key] = Phprojekt_ModelInformation_Convert::convertSelect($field, $field['range'],
+                            $field['required'], $field['type']);
+                    }
+                    $fields[$key]['type']     = 'display';
+                    $fields[$key]['readOnly'] = true;
+                    break;
+                default:
+                    $fields[$key]['range'] = array('id'   => '',
+                                                   'name' => '');
+                    break;
+            }
+        }
+
+        foreach ($fields as $key => $field) {
             if ($field[$sort] == 0) {
                 unset($fields[$key]);
             }
@@ -211,53 +239,45 @@ class Phprojekt_ModelInformation_Default implements Phprojekt_ModelInformation_I
     }
 
     /**
-     * Return the pair in a range format.
+     * Return the API string for the range.
      *
-     * The value is trasnlated and the originalName is returned also.
+     * @param array $values Array with Key => Value.
      *
-     * @param mix $key   Key value.
-     * @param mix $value Value value.
-     *
-     * @return array Array with 'id', 'name' and 'originalName'.
+     * @return string key1|value1 # key2|value2 # ...
      */
-    public function getFullRangeValues($key, $value)
+    public function getRangeValues($values)
     {
-        return array('id'           => $key,
-                     'name'         => Phprojekt::getInstance()->translate($value),
-                     'originalName' => $value);
-    }
-
-
-    /**
-     * Return the pair in a range format.
-     *
-     * @param mix $key   Key value.
-     * @param mix $value Value value.
-     *
-     * @return array Array with 'id' and 'name'.
-     */
-    public function getRangeValues($key, $value)
-    {
-        return array('id'   => $key,
-                     'name' => $value);
-    }
-
-    /**
-     * Return the project list converted to range format.
-     *
-     * @return array Array with 'id' and 'name'.
-     */
-    public function getProjectRange()
-    {
-        $range        = array();
-        $activeRecord = Phprojekt_Loader::getModel('Project', 'Project');
-        $tree         = new Phprojekt_Tree_Node_Database($activeRecord, 1);
-        $tree         = $tree->setup();
-        foreach ($tree as $node) {
-            $range[] = $this->getRangeValues((int) $node->id, $node->getDepthDisplay('title'));
+        $range = '';
+        $first = 1;
+        foreach ($values as $key => $value) {
+            if (!$first) {
+                $range .= '|';
+            }
+            $range .= $key . '#' . $value;
+            $first = 0;
         }
 
         return $range;
+    }
+
+    /**
+     * Return the project string for make a range.
+     *
+     * @return string The correct string for range.
+     */
+    public function getProjectRange()
+    {
+        return 'Project#id#title';
+    }
+
+    /**
+     * Return the user string for make a range.
+     *
+     * @return string The correct string for range.
+     */
+    public function getUserRange()
+    {
+        return 'User#id#name';
     }
 
     /**

@@ -138,13 +138,13 @@ class Contact_Models_Contact extends Phprojekt_Item_Abstract
     /**
      * Return the data range for a select.
      *
-     * @param Phprojekt_ModelInformation_Interface $field The field description.
+     * @param array $field The field description.
      *
      * @return array Array with 'id' and 'name'.
      */
     public function getRangeFromModel($field)
     {
-        if (!$field->isRequired) {
+        if (!$field['required']) {
             $options[] = array('id'   => 0,
                                'name' => '');
         }

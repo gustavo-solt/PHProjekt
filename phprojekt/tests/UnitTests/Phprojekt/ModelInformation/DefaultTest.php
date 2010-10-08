@@ -127,24 +127,13 @@ class Phprojekt_ModelInformation_DefaultTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test testGetFullRangeValues
-     */
-    public function testGetFullRangeValues()
-    {
-        $records = $this->_model->getFullRangeValues('8', 'Title');
-        $this->assertEquals($records, array('id'           => 8,
-                                            'name'         => 'Title',
-                                            'originalName' => 'Title'));
-    }
-
-    /**
      * Test getRangeValues
      */
     public function testGetRangeValues()
     {
-        $records = $this->_model->getRangeValues('8', 'Title');
-        $this->assertEquals($records, array('id'   => 8,
-                                            'name' => 'Title'));
+        $records = $this->_model->getRangeValues(array(8  => 'Title',
+                                                       10 => 'Test'));
+        $this->assertEquals($records, '8#Title|10#Test');
     }
 
     /**
@@ -152,8 +141,14 @@ class Phprojekt_ModelInformation_DefaultTest extends PHPUnit_Framework_TestCase
      */
     public function testGetProjectRange()
     {
-        $records = $this->_model->getProjectRange();
-        $this->assertEquals($records[0]['id'], 1);
-        $this->assertEquals($records[0]['name'], "Invisible Root");
+        $this->assertEquals($this->_model->getProjectRange(), 'Project#id#title');
+    }
+
+    /**
+     * Test getUserRange
+     */
+    public function testGetuserRange()
+    {
+        $this->assertEquals($this->_model->getUserRange(), 'User#id#name');
     }
 }

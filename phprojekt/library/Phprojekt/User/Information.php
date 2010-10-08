@@ -70,37 +70,25 @@ class Phprojekt_User_Information extends Phprojekt_ModelInformation_Default
             'length'   => 255));
 
         // language
-        $range         = array();
-        $languageRange = Phprojekt_LanguageAdapter::getLanguageList();
-        foreach ($languageRange as $key => $value) {
-            $range[] = $this->getRangeValues($key, $value);
-        }
         $this->fillField('language', 'Language', 'selectbox', 0, 6, array(
-            'range'    => $range,
+            'range'    => $this->getRangeValues(Phprojekt_LanguageAdapter::getLanguageList()),
             'required' => true,
             'default'  => 'en'));
 
         // timeZone
-        $range         = array();
-        $timeZoneRange = Phprojekt_Converter_Time::getTimeZones();
-        foreach ($timeZoneRange as $key => $value) {
-            $range[] = $this->getRangeValues($key, $value);
-        }
         $this->fillField('timeZone', 'Time zone', 'selectbox', 0, 7, array(
-            'range'    => $range,
+            'range'    => $this->getRangeValues(Phprojekt_Converter_Time::getTimeZones()),
             'required' => true,
             'default'  => '000'));
 
         // status
         $this->fillField('status', 'Status', 'selectbox', 4, 8, array(
-            'range'    => array($this->getFullRangeValues('A', 'Active'),
-                                $this->getFullRangeValues('I', 'Inactive')),
+            'range'    => 'A#Active|I#Inactive',
             'default'  => 'A'));
 
         // admin
         $this->fillField('admin', 'Admin', 'selectbox', 5, 9, array(
-            'range'    => array($this->getFullRangeValues(0, 'No'),
-                                $this->getFullRangeValues(1, 'Yes')),
+            'range'    => '0#No|1#Yes',
             'integer'  => true,
             'default'  => 0));
     }
