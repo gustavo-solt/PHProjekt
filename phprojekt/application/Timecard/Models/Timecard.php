@@ -392,4 +392,56 @@ class Timecard_Models_Timecard extends Phprojekt_Model_Default
             return false;
         }
     }
+
+    /**
+     * Assign a value to a var using some validations deppend on the type.
+     *
+     * Remove the sanitizer from date and datetime values for do not use the user timezone.
+     *
+     * @param string $varname Name of the var to assign.
+     * @param mixed  $value   Value for assign to the var.
+     *
+     * @return void
+     */
+    public function __set($varname, $value)
+    {
+        $var  = Phprojekt_ActiveRecord_Abstract::convertVarToSql($varname);
+        $info = $this->info();
+
+        if (true == isset($info['metadata'][$var])) {
+            $type = $info['metadata'][$var]['DATA_TYPE'];
+            if ($type != 'time' && $type != 'datetime' && $type != 'timestamp') {
+                $value = Phprojekt_Converter_Value::set($type, $value);
+            }
+        } else {
+            $value = Cleaner::sanitize('string', $value);
+        }
+
+        Phprojekt_ActiveRecord_Abstract::__set($varname, $value);
+    }
+
+    /**
+     * Get a value of a var.
+     *
+     * Remove the sanitizer from date and datetime values for do not use the user timezone.
+     *
+     * @param string $varname Name of the var to assign.
+     *
+     * @return mixed Value of the var.
+     */
+    public function __get($varname)
+    {
+        $info  = $this->info();
+        $value = Phprojekt_ActiveRecord_Abstract::__get($varname);
+        $var   = Phprojekt_ActiveRecord_Abstract::convertVarToSql($varname);
+
+        if (true == isset($info['metadata'][$var])) {
+            $type = $info['metadata'][$var]['DATA_TYPE'];
+            if ($type != 'time' && $type != 'datetime' && $type != 'timestamp') {
+                $value = Phprojekt_Converter_Value::get($type, $value);
+            }
+        }
+
+        return $value;
+    }
 }
