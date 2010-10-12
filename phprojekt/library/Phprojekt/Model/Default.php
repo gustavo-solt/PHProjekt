@@ -173,4 +173,49 @@ abstract class Phprojekt_Model_Default extends Phprojekt_ActiveRecord_Abstract i
             }
         }
     }
+
+    /**
+     * Assign a value to a var using some validations deppend on the type.
+     *
+     * @param string $varname Name of the var to assign.
+     * @param mixed  $value   Value for assign to the var.
+     *
+     * @return void
+     */
+    public function __set($varname, $value)
+    {
+        $var  = Phprojekt_ActiveRecord_Abstract::convertVarToSql($varname);
+        $info = $this->info();
+
+        if (true == isset($info['metadata'][$var])) {
+            $type  = $info['metadata'][$var]['DATA_TYPE'];
+            $value = Phprojekt_Converter_Value::set($type, $value);
+        } else {
+            $value = Cleaner::sanitize('string', $value);
+        }
+
+        parent::__set($varname, $value);
+    }
+
+    /**
+     * Get a value of a var.
+     * Is the var is a float, return the locale float.
+     *
+     * @param string $varname Name of the var to assign.
+     *
+     * @return mixed Value of the var.
+     */
+    public function __get($varname)
+    {
+        $info  = $this->info();
+        $value = parent::__get($varname);
+        $var   = Phprojekt_ActiveRecord_Abstract::convertVarToSql($varname);
+
+        if (true == isset($info['metadata'][$var])) {
+            $type  = $info['metadata'][$var]['DATA_TYPE'];
+            $value = Phprojekt_Converter_Value::get($type, $value);
+        }
+
+        return $value;
+    }
 }
