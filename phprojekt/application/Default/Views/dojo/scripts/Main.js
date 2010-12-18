@@ -302,50 +302,67 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
         var globalModules = phpr.DataStore.getData({url: phpr.globalModuleUrl});
         var isAdmin       = phpr.DataStore.getMetaData({url: phpr.globalModuleUrl});
 
-        phpr.destroySubWidgets("mainNavigation");
-        dojo.byId("mainNavigation").innerHTML = '';
+        // Hide all the buttons
+        dojo.forEach(dijit.findWidgets(dojo.byId('mainNavigation')), function(button) {
+            button.placeAt(dojo.byId('garbage'));
+        });
 
         for (i in globalModules) {
-            phpr.destroyWidget("globalModule_" + globalModules[i].name);
-            var button = new dijit.form.Button({
-                id:        "globalModule_" + globalModules[i].name,
-                label:     globalModules[i].label,
-                showLabel: true,
-                onClick:   dojo.hitch(this, function(e) {
-                    phpr.currentProjectId = phpr.rootProjectId;
-                    var module            = e.target.id.replace('globalModule_', '').replace('_label', '');
-                    this.setUrlHash(module);
-                })
-            });
-            toolbar.addChild(button);
+            var button = dijit.byId("globalModule_" + globalModules[i].name);
+            if (!button) {
+                var button = new dijit.form.Button({
+                    id:        "globalModule_" + globalModules[i].name,
+                    label:     globalModules[i].label,
+                    showLabel: true,
+                    onClick:   dojo.hitch(this, function(e) {
+                        phpr.currentProjectId = phpr.rootProjectId;
+                        var module            = e.target.id.replace('globalModule_', '').replace('_label', '');
+                        this.setUrlHash(module);
+                    })
+                });
+            } else {
+                // Update the label
+                button.set("label", globalModules[i].label);
+            }
+            button.placeAt(toolbar);
         }
 
         // Setting
-        phpr.destroyWidget("globalModule_Setting");
-        var button = new dijit.form.Button({
-            id:        "globalModule_Setting",
-            label:     phpr.nls.get('Setting'),
-            showLabel: true,
-            onClick:   dojo.hitch(this, function() {
-                phpr.currentProjectId = phpr.rootProjectId;
-                this.setUrlHash("Setting", null, ["User"]);
-            })
-        });
-        toolbar.addChild(button);
-
-        if (isAdmin > 0) {
-            // Administration
-            phpr.destroyWidget("globalModule_Administration");
+        var button = dijit.byId('globalModule_Setting');
+        if (!button) {
             var button = new dijit.form.Button({
-                id:        "globalModule_Administration",
-                label:     phpr.nls.get('Administration'),
+                id:        "globalModule_Setting",
+                label:     phpr.nls.get('Setting'),
                 showLabel: true,
                 onClick:   dojo.hitch(this, function() {
                     phpr.currentProjectId = phpr.rootProjectId;
-                    this.setUrlHash("Administration");
+                    this.setUrlHash("Setting", null, ["User"]);
                 })
             });
-            toolbar.addChild(button);
+        } else {
+            // Update the label
+            button.set("label", phpr.nls.get('Setting'));
+        }
+        button.placeAt(toolbar);
+
+        if (isAdmin > 0) {
+            // Administration
+            var button = dijit.byId('globalModule_Administration');
+            if (!button) {
+                var button = new dijit.form.Button({
+                    id:        "globalModule_Administration",
+                    label:     phpr.nls.get('Administration'),
+                    showLabel: true,
+                    onClick:   dojo.hitch(this, function() {
+                        phpr.currentProjectId = phpr.rootProjectId;
+                        this.setUrlHash("Administration");
+                    })
+                });
+            } else {
+                // Update the label
+                button.set("label", phpr.nls.get('Administration'));
+            }
+            button.placeAt(toolbar);
         }
 
         // Help
