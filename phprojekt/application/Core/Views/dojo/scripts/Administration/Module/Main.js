@@ -33,7 +33,7 @@ dojo.declare("phpr.Module.Main", phpr.Core.Main, {
         dojo.subscribe("Module.submitForm", this, "submitForm");
     },
 
-    customSetSubmoduleNavigation:function() {
+    customSetNavigationButtons:function() {
         this.setNewEntry();
     },
 

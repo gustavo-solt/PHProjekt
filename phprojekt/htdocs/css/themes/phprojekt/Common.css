@@ -180,8 +180,7 @@
     width: 98%;
 }
 
-.phprojekt #nav_main a,
-.phprojekt #nav_sub a {
+.phprojekt #nav_main a {
     text-decoration: none;
     padding-left: 7px;
     /* text-transform: uppercase; */
@@ -194,65 +193,58 @@
     border: 1px solid #294064;
 }
 
-.phprojekt #nav_main a span,
-.phprojekt #nav_sub a span {
+.phprojekt #nav_main a span {
     padding-top: 2px;
     padding-bottom: 2px;
     padding-right: 7px;
     margin-top: 0px;
 }
 
-.phprojekt #nav_main a, #nav_main a span,
-.phprojekt #nav_sub a, #nav_sub a span {
+.phprojekt #nav_main a, #nav_main a span {
     display: block;
     float: left
 }
 
 /* Commented backslash hack hides rule from IE5-Mac \*/
 
-.phprojekt #nav_main a, #nav_main a span,
-.phprojekt #nav_sub a, #nav_sub a span {
+.phprojekt #nav_main a, #nav_main a span {
     float: none
 }
 
 /* End IE5-Mac hack */
 
-.phprojekt #nav_main a:hover,
-.phprojekt #nav_sub a:hover {
+.phprojekt #nav_main a:hover {
     background: #fff;
     text-decoration: none;
     padding-left: 7px;
 }
 
-.phprojekt #nav_main a:hover span,
-.phprojekt #nav_sub a:hover span {
+.phprojekt #nav_main a:hover span {
     background: #fff;
     padding-right: 7px;
     color: #999;
 }
 
-.phprojekt #nav_main li,
-.phprojekt #nav_sub li {
+.phprojekt #nav_main li {
     float: left;
     display: block;
     margin: 0;
     padding: 0 4px 0 0;
 }
 
-.phprojekt #nav_main td,
-.phprojekt #nav_sub td {
+.phprojekt #nav_main td {
     margin: 0;
     padding: 0 4px 0 0;
 }
 
 /* Tabs ACTIVE */
-.phprojekt #nav_main .active a span,
-.phprojekt #nav_sub .active a span {
+.phprojekt #nav_main .active a span {
     margin-top: 0px;
+    background: #fff;
+    padding-right: 7px;
 }
 
-.phprojekt #nav_main .active a,
-.phprojekt #nav_sub .active a {
+.phprojekt #nav_main .active a {
     color: #000;
     background: #fff;
     text-decoration: none;
@@ -260,12 +252,14 @@
     border-bottom: 1px solid #FFF;
 }
 
-.phprojekt #nav_main .active a span,
-.phprojekt #nav_sub .active a span {
+.phprojekt #nav_main .empty {
+    border-left: none;
+    border-right: none;
+    border-top: none;
     background: #fff;
-    padding-right: 7px;
+    padding-left: 14px;
+    padding-right: 14px;
 }
-
 
 /* Scroll for Tabs */
 .phprojekt .phprScrollWindow {

@@ -30,7 +30,7 @@ dojo.declare("phpr.Tab.Main", phpr.Core.Main, {
         this.formWidget = phpr.Tab.Form;
     },
 
-    customSetSubmoduleNavigation:function() {
+    customSetNavigationButtons:function() {
         this.setNewEntry();
     },
 

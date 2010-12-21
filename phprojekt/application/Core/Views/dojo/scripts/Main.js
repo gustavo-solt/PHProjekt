@@ -96,7 +96,7 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         }
         this.cleanPage();
         phpr.Tree.fadeOut();
-        this.setSubGlobalModulesNavigation();
+        this.setNavigationButtons();
         this.hideSuggest();
         this.setSearchForm();
         phpr.Tree.loadTree();
@@ -108,7 +108,7 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         }
     },
 
-    setSubGlobalModulesNavigation:function(currentModule) {
+    setNavigationButtons:function(currentModule) {
         // Summary:
         //    Display the sub modules for navigate them
         // Description:
@@ -143,7 +143,19 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
                         "moduleFunction": "setUrlHash",
                         "functionParams": "'" + parentModule + "', null, ['" + tmp[i].name + "']"});
                 }
-                var navigation = '<table id="nav_main"><tr>';
+
+                // Create the table for the module buttons
+                var trNavMain = dojo.byId('tr_nav_main');
+                if (!trNavMain) {
+                    var navigation = '<table id="nav_main"><tr id="tr_nav_main"></tr></table>';
+                    var tmp       = document.createElement('div');
+                    tmp.innerHTML = navigation;
+                    var widget    = new phpr.ScrollPane({}, tmp);
+                    dojo.byId("subModuleNavigation").appendChild(widget.domNode);
+                } else {
+                    var widget = dijit.byId(dojo.byId('subModuleNavigation').children[0].id);
+                }
+
                 for (var i = 0; i < modules.length; i++) {
                     var liclass        = '';
                     var moduleName     = modules[i].name;
@@ -153,18 +165,30 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
                     if (moduleName == phpr.submodule) {
                         liclass = 'class = active';
                     }
-                    navigation += self.render(["phpr.Core.template", "navigation.html"], null, {
-                        moduleName:     parentModule,
-                        moduleLabel:    moduleLabel,
-                        liclass:        liclass,
-                        moduleFunction: moduleFunction,
-                        functionParams: functionParams
-                    });
+
+                    var td = dojo.byId("navigation_" + parentModule + "_" + moduleName);
+                    if (!td) {
+                        var buttonHtml = self.render(["phpr.Default.template", "navigation.html"], null, {
+                            id:             parentModule + "_" + moduleName,
+                            moduleName:     parentModule,
+                            moduleLabel:    moduleLabel,
+                            liclass:        liclass,
+                            moduleFunction: moduleFunction,
+                            functionParams: functionParams});
+                        dojo.place(buttonHtml, dojo.byId('tr_nav_main'));
+                    } else {
+                        dojo.removeClass(td, "active");
+                        if (liclass == 'class = active') {
+                            dojo.addClass(td, "active");
+                        }
+                        dojo.place(td, dojo.byId('tr_nav_main'));
+                    }
                 }
-                navigation += "</tr></table>";
-                dojo.byId("subModuleNavigation").innerHTML = navigation;
-                phpr.initWidgets(dojo.byId("subModuleNavigation"));
-                this.customSetSubmoduleNavigation();
+
+                // Resize for the changes
+                widget.layout();
+
+                this.customSetNavigationButtons();
             })
         })
     },
@@ -223,7 +247,7 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         }
     },
 
-    customSetSubmoduleNavigation:function() {
+    customSetNavigationButtons:function() {
         // Summary:
         //    Function for be rewritten
         // Description:

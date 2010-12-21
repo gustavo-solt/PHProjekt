@@ -974,13 +974,14 @@ dojo.declare("phpr.ScrollPane", [dijit.layout._LayoutWidget, dijit._Templated], 
         // Description:
         //    Set style and make the positions array
         dojo.style(this.wrapper, 'width', this.domNode.style['width']);
+        this._positions = new Array();
 
         var node    = this.containerNode.firstChild.firstChild.firstChild.childNodes;
         var width   = 0;
         var curleft = 0;
         var medium  = Math.floor(this.wrapper["offsetWidth"] / 2);
         var max     = this.getMaxLeft();
-        for (var i in node) {
+        for (var i = 0; i < node.length; i++) {
             var offsetWidth = node[i].offsetWidth || 0;
             // Find left
             width += offsetWidth;

@@ -51,7 +51,7 @@ dojo.declare("phpr.Timecard.Main", phpr.Default.Main, {
         this.form = new this.formWidget(this, this._date);
     },
 
-    setSubGlobalModulesNavigation:function(currentModule) {
+    setNavigationButtons:function(currentModule) {
     },
 
     changeDate:function(date) {

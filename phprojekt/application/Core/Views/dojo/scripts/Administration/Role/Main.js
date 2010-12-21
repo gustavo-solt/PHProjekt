@@ -30,7 +30,7 @@ dojo.declare("phpr.Role.Main", phpr.Core.Main, {
         this.formWidget = phpr.Role.Form;
     },
 
-    customSetSubmoduleNavigation:function() {
+    customSetNavigationButtons:function() {
         this.setNewEntry();
     }
 });
