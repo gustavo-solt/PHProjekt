@@ -1344,3 +1344,67 @@ phpr.confirmDialog = function(callbackOk, message) {
     confirmDialog.containerNode.appendChild(content.domNode);
     confirmDialog.show();
 };
+
+dojo.extend(dijit.layout._Splitter, {
+    // Summary:
+    //    Extend dijit.layout._Splitter for use only one div.
+    // Description:
+    //    The div is attached into the body for don't start a resize.
+    _startDrag: function(e){
+        this.cover = dojo.byId('borderContainerCover');
+        dojo.addClass(this.cover, "dijitSplitterCoverActive");
+
+        // Safeguard in case the stop event was missed.  Shouldn't be necessary if we always get the mouse up.
+        if (this.fake) {
+            dojo.destroy(this.fake);
+        }
+
+        if (!(this._resize = this.live)) {
+            // TODO: disable live for IE6?
+            // create fake splitter to display at old position while we drag
+            (this.fake = this.domNode.cloneNode(true)).removeAttribute("id");
+            dojo.addClass(this.domNode, "dijitSplitterShadow");
+            dojo.place(this.fake, this.domNode, "after");
+        }
+        dojo.addClass(this.domNode, "dijitSplitterActive");
+        dojo.addClass(this.domNode, "dijitSplitter" + (this.horizontal ? "H" : "V") + "Active");
+        if(this.fake){
+            dojo.removeClass(this.fake, "dijitSplitterHover");
+            dojo.removeClass(this.fake, "dijitSplitter" + (this.horizontal ? "H" : "V") + "Hover");
+        }
+
+        // Performance: load data info local vars for onmousevent function closure
+        var factor = this._factor,
+            max = this._computeMaxSize(),
+            min = this.child.minSize || 20,
+            isHorizontal = this.horizontal,
+            axis = isHorizontal ? "pageY" : "pageX",
+            pageStart = e[axis],
+            splitterStyle = this.domNode.style,
+            dim = isHorizontal ? 'h' : 'w',
+            childStart = dojo.marginBox(this.child.domNode)[dim],
+            region = this.region,
+            splitterStart = parseInt(this.domNode.style[region], 10),
+            resize = this._resize,
+            childNode = this.child.domNode,
+            layoutFunc = dojo.hitch(this.container, this.container._layoutChildren),
+            de = dojo.doc;
+
+        this._handlers = (this._handlers || []).concat([
+            dojo.connect(de, "onmousemove", this._drag = function(e, forceResize) {
+                var delta = e[axis] - pageStart,
+                childSize = factor * delta + childStart,
+                boundChildSize = Math.max(Math.min(childSize, max), min);
+
+                if (resize || forceResize) {
+                    layoutFunc(region, boundChildSize);
+                }
+                splitterStyle[region] = factor * delta + splitterStart + (boundChildSize - childSize) + "px";
+            }),
+            dojo.connect(de, "ondragstart", dojo.stopEvent),
+            dojo.connect(dojo.body(), "onselectstart", dojo.stopEvent),
+            dojo.connect(de, "onmouseup", this, "_stopDrag")
+        ]);
+        dojo.stopEvent(e);
+    }
+});
