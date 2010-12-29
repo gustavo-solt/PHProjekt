@@ -107,12 +107,12 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
         this.scrollDisconnect();
         this.resizeDisconnect();
         this.destroyOtherLists('grid');
-        phpr.destroySubWidgets('buttonRow');
-        this.setNewEntry();
         var updateUrl = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSaveMultiple/nodeId/'
             + phpr.currentProjectId;
         this.grid = new this.gridWidget(updateUrl, this, phpr.currentProjectId);
-        this.setSubmoduleNavigation();
+        this.cleanPage();
+        this.setNavigationButtons();
+
         this.setScheduleBar(false, false);
         this._actionPending = false;
         phpr.loading.hide();
@@ -125,12 +125,11 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
         this.resizeDisconnect();
         this.destroyOtherLists('dayListSelf');
         phpr.destroySubWidgets('buttonRow');
-        this.setNewEntry();
         var dateString = phpr.Date.getIsoDate(this._date);
         var updateUrl  = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSaveMultiple/nodeId/'
             + phpr.currentProjectId;
         this.dayListSelf = new this.dayListSelfWidget(updateUrl, phpr.currentProjectId, dateString, null, this);
-        this.setSubmoduleNavigation();
+        this.setNavigationButtons();
         this.setScheduleBar(true, true);
     },
 
@@ -141,13 +140,12 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
         this.resizeDisconnect();
         this.destroyOtherLists('dayListSelect');
         phpr.destroySubWidgets('buttonRow');
-        this.setNewEntry();
         var dateString = phpr.Date.getIsoDate(this._date);
         var updateUrl  = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSaveMultiple/nodeId/'
             + phpr.currentProjectId;
         this.dayListSelect = new this.dayListSelectWidget(updateUrl, phpr.currentProjectId, dateString,
             this._usersSelected, this);
-        this.setSubmoduleNavigation();
+        this.setNavigationButtons();
         this.setScheduleBar(true, true);
     },
 
@@ -158,12 +156,11 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
         this.resizeDisconnect();
         this.destroyOtherLists('weekList');
         phpr.destroySubWidgets('buttonRow');
-        this.setNewEntry();
         var dateString = phpr.Date.getIsoDate(this._date);
         var updateUrl  = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSaveMultiple/nodeId/'
             + phpr.currentProjectId;
         this.weekList = new this.weekListWidget(updateUrl, phpr.currentProjectId, dateString, null, this);
-        this.setSubmoduleNavigation();
+        this.setNavigationButtons();
         this.setScheduleBar(true, false);
     },
 
@@ -174,10 +171,9 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
         this.resizeDisconnect();
         this.destroyOtherLists('monthList');
         phpr.destroySubWidgets('buttonRow');
-        this.setNewEntry();
         var dateString = phpr.Date.getIsoDate(this._date);
         this.monthList = new this.monthListWidget(this, phpr.currentProjectId, dateString);
-        this.setSubmoduleNavigation();
+        this.setNavigationButtons();
         this.setScheduleBar(true, false);
     },
 
@@ -461,44 +457,62 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
         }
     },
 
-    setSubmoduleNavigation:function() {
+    setNavigationButtons:function() {
         // Description:
         //    This function is responsible for displaying the Navigation top bar of the Calendar
         //    Current submodules are: List, Day and Week.
-        var moduleViews = new Array();
-        this.addModuleView(moduleViews, phpr.nls.get('List'), 'listViewClick', this.isListActive(this.grid));
-        this.addModuleView(moduleViews, phpr.nls.get('Day'), 'dayViewClick', this.isListActive('dayList'));
-        this.addModuleView(moduleViews, phpr.nls.get('Week'), 'weekViewClick', this.isListActive(this.weekList));
-        this.addModuleView(moduleViews, phpr.nls.get('Month'), 'monthViewClick', this.isListActive(this.monthList));
+        var modules = new Array();
+        this.addModuleView(modules, 'List', 'listViewClick', this.isListActive(this.grid));
+        this.addModuleView(modules, 'Day', 'dayViewClick', this.isListActive('dayList'));
+        this.addModuleView(modules, 'Week', 'weekViewClick', this.isListActive(this.weekList));
+        this.addModuleView(modules, 'Month', 'monthViewClick', this.isListActive(this.monthList));
 
-        navigation = '<div id="nav_main" class="left" style="width: 300px;">'
-                       + '<table><tr>';
-
-        for (var i = 0; i < moduleViews.length; i++) {
-            var liclass = '';
-            if (moduleViews[i].activeTab) {
+        // Create the buttons for the modules (only if not exists)
+        var activeTab = false;
+        for (var i = 0; i < modules.length; i++) {
+            var liclass        = '';
+            if (modules[i].activeTab) {
                 liclass = 'class = active';
             }
-            navigation += this.render(["phpr.Default.template", "navigation.html"], null, {
-                moduleName :    'Calendar',
-                moduleLabel:    moduleViews[i].label,
-                liclass:        liclass,
-                moduleFunction: moduleViews[i].functionName,
-                functionParams: ""
-            });
+
+            var td = dojo.byId("navigation_" + modules[i].name);
+            if (!td) {
+                var buttonHtml = this.render(["phpr.Default.template", "navigation.html"], null, {
+                    id:             modules[i].name,
+                    moduleName :    'Calendar',
+                    moduleLabel:    modules[i].label,
+                    liclass:        liclass,
+                    moduleFunction: modules[i].functionName,
+                    functionParams: ""});
+                dojo.place(buttonHtml, 'tr_nav_main');
+            } else {
+                dojo.removeClass(td, "active");
+                if (liclass == 'class = active') {
+                    dojo.addClass(td, "active");
+                }
+                dojo.style(td, 'display', (dojo.isIE) ? 'inline' : 'table-cell');
+            }
         }
 
-        navigation += '   </tr></table>'
-                   + '</div>'
-                   + '<div id="nav_sub">'
-                       + '<table><tr>';
+        // Add spaces
+        for (var i = 0; i < 5; i++) {
+            var td = dojo.byId("navigation_empty_" + i);
+            if (!td) {
+                var buttonHtml = this.render(["phpr.Default.template", "navigationEmpty.html"], null, {
+                    id: i
+                });
+                dojo.place(buttonHtml, 'tr_nav_main');
+            } else {
+                dojo.style(td, 'display', (dojo.isIE) ? 'inline' : 'table-cell');
+            }
+        }
 
         var moduleViews = new Array();
         if (!this.isListActive('dayList')) {
-            this.addModuleView(moduleViews, phpr.nls.get('Self'), 'userSelfClick', true);
+            this.addModuleView(moduleViews, 'Self', 'userSelfClick', true);
         } else {
-            this.addModuleView(moduleViews, phpr.nls.get('Self'), 'userSelfClick', !this._usersSelectionMode);
-            this.addModuleView(moduleViews, phpr.nls.get('Selection'), 'userSelectionClick', this._usersSelectionMode);
+            this.addModuleView(moduleViews, 'Self', 'userSelfClick', !this._usersSelectionMode);
+            this.addModuleView(moduleViews, 'Selection', 'userSelectionClick', this._usersSelectionMode);
         }
 
         for (var i = 0; i < moduleViews.length; i++) {
@@ -506,28 +520,39 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
             if (moduleViews[i].activeTab) {
                 liclass = 'class = active';
             }
-            navigation += this.render(["phpr.Default.template", "navigation.html"], null, {
-                moduleName :    'Calendar',
-                moduleLabel:    moduleViews[i].label,
-                liclass:        liclass,
-                moduleFunction: moduleViews[i].functionName,
-                functionParams: ""
-            });
+
+            var td = dojo.byId("navigation_" + moduleViews[i].name);
+            if (!td) {
+                var buttonHtml = this.render(["phpr.Default.template", "navigation.html"], null, {
+                    id:             moduleViews[i].name,
+                    moduleName :    'Calendar',
+                    moduleLabel:    moduleViews[i].label,
+                    liclass:        liclass,
+                    moduleFunction: moduleViews[i].functionName,
+                    functionParams: ""});
+                dojo.place(buttonHtml, 'tr_nav_main');
+            } else {
+                dojo.removeClass(td, "active");
+                if (liclass == 'class = active') {
+                    dojo.addClass(td, "active");
+                }
+                dojo.style(td, 'display', (dojo.isIE) ? 'inline' : 'table-cell');
+            }
         }
 
-        navigation += '   </tr></table>'
-                   + '</div>';
+        // Resize for the changes
+        dijit.byId('subModuleNavigation').layout();
 
-        dojo.byId("subModuleNavigation").innerHTML = navigation;
-        phpr.initWidgets(dojo.byId("subModuleNavigation"));
+        this.customSetNavigationButtons();
     },
 
-    addModuleView:function(moduleViews, label, functionName, activeTab) {
+    addModuleView:function(moduleViews, name, functionName, activeTab) {
         // Summary:
         //    Adds a specific view to the moduleViews array
         var i                          = moduleViews.length;
         moduleViews[i]                 = new Array();
-        moduleViews[i]['label']        = label;
+        moduleViews[i]['name']         = name;
+        moduleViews[i]['label']        = phpr.nls.get(name);
         moduleViews[i]['functionName'] = functionName;
         moduleViews[i]['activeTab']    = activeTab;
     },

@@ -976,7 +976,7 @@ dojo.declare("phpr.ScrollPane", [dijit.layout._LayoutWidget, dijit._Templated], 
         dojo.style(this.wrapper, 'width', this.domNode.style['width']);
         this._positions = new Array();
 
-        var node    = this.containerNode.firstChild.firstChild.firstChild.childNodes;
+        var node    = this.containerNode.firstChild.childNodes;
         var width   = 0;
         var curleft = 0;
         var medium  = Math.floor(this.wrapper["offsetWidth"] / 2);

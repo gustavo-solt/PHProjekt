@@ -303,10 +303,11 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
 
         // Hide all the buttons
         dojo.forEach(dijit.findWidgets(dojo.byId('mainNavigation')), function(button) {
-            button.placeAt(dojo.byId('garbage'));
+            dojo.style(button.domNode, 'display', 'none');
         });
 
-        for (i in globalModules) {
+        var pos = 0;
+        for (var i in globalModules) {
             var button = dijit.byId("globalModule_" + globalModules[i].name);
             if (!button) {
                 var button = new dijit.form.Button({
@@ -319,11 +320,13 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                         this.setUrlHash(module);
                     })
                 });
+                button.placeAt(toolbar, pos + 1);
             } else {
                 // Update the label
                 button.set("label", globalModules[i].label);
+                dojo.style(button.domNode, 'display', 'inline');
             }
-            button.placeAt(toolbar);
+            pos++;
         }
 
         // Setting
@@ -338,11 +341,12 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                     this.setUrlHash("Setting", null, ["User"]);
                 })
             });
+            button.placeAt(toolbar, "last");
         } else {
             // Update the label
             button.set("label", phpr.nls.get('Setting'));
+            dojo.style(button.domNode, 'display', 'inline');
         }
-        button.placeAt(toolbar);
 
         if (isAdmin > 0) {
             // Administration
@@ -357,11 +361,12 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                         this.setUrlHash("Administration");
                     })
                 });
+                button.placeAt(toolbar, "last");
             } else {
                 // Update the label
                 button.set("label", phpr.nls.get('Administration'));
+                dojo.style(button.domNode, 'display', 'inline');
             }
-            button.placeAt(toolbar);
         }
 
         // Help
@@ -434,18 +439,6 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                     phpr.module = 'Project';
                 }
 
-                // Create the table for the module buttons
-                var trNavMain = dojo.byId('tr_nav_main');
-                if (!trNavMain) {
-                    var navigation = '<table id="nav_main"><tr id="tr_nav_main"></tr></table>';
-                    var tmp       = document.createElement('div');
-                    tmp.innerHTML = navigation;
-                    var widget    = new phpr.ScrollPane({}, tmp);
-                    dojo.byId("subModuleNavigation").appendChild(widget.domNode);
-                } else {
-                    var widget = dijit.byId(dojo.byId('subModuleNavigation').children[0].id);
-                }
-
                 // Create the buttons for the modules (only if not exists)
                 var activeTab  = false;
                 var modules    = this.sortModuleTabs(modules);
@@ -474,22 +467,23 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                                 liclass:        liclass,
                                 moduleFunction: moduleFunction,
                                 functionParams: functionParams});
-                            dojo.place(buttonHtml, dojo.byId('tr_nav_main'));
+                            dojo.place(buttonHtml, 'tr_nav_main', i + 1);
                         } else {
                             dojo.removeClass(td, "active");
                             if (liclass == 'class = active') {
                                 dojo.addClass(td, "active");
                             }
-                            dojo.place(td, dojo.byId('tr_nav_main'));
+                            dojo.style(td, 'display', (dojo.isIE) ? 'inline' : 'table-cell');
                         }
                     }
                     if (modules[i].rights.create && moduleName == phpr.module && currentModule != 'BasicData') {
                         this.setNewEntry();
                     }
                 }
+                self = null;
 
                 // Resize for the changes
-                widget.layout();
+                dijit.byId('subModuleNavigation').layout();
 
                 this.customSetNavigationButtons();
             })
@@ -509,51 +503,41 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                 iconClass: 'add'
             };
             var button = new dijit.form.Button(params);
-            dojo.byId("garbage").appendChild(button.domNode);
             dojo.connect(button, "onClick", dojo.hitch(this, 'newEntry'));
+            dojo.byId("buttonRow").appendChild(button.domNode);
+        } else {
+            dojo.style(button.domNode, 'display', 'inline');
         }
-
-        dojo.byId("buttonRow").appendChild(button.domNode);
     },
 
     customSetNavigationButtons:function() {
         // Summary:
         //     This function is called after the submodules are created
         //     Is used for extend the navigation routine
-        this.setNewEntry();
+        if (phpr.isGlobalModule(this.module)) {
+            this.setNewEntry();
+        }
     },
 
     cleanPage:function() {
         // Summary:
         //     Clean the navigations bars.
         // Description:
-        //     Move all the module tabs to garbage.
-        //     Move all the action buttons to garbage.
+        //     Hide all the module tabs.
+        //     HIde all the action buttons.
         //     Remove the "selected" class for global modules.
         //     Mark as selected the global module if is the current one.
 
         // Hide all the module tabs
-        var trGarbage = dojo.byId('trGarbage');
-        if (!trGarbage) {
-            var table = document.createElement('table');
-            table.id  = 'tableGarbage';
-            var row   = table.insertRow(table.rows.length);
-            row.id    = "trGarbage";
-            dojo.byId('garbage').appendChild(table);
-        }
         if (dojo.byId('nav_main')) {
-            var ids = new Array();
             dojo.forEach(dojo.byId('nav_main').rows[0].cells, function(button) {
-                ids.push(button.id);
-            });
-            dojo.forEach(ids, function(id) {
-                dojo.place(dojo.byId(id), trGarbage);
+                dojo.style(button, 'display', 'none');
             });
         }
 
         // Hide all the action buttons
         dojo.forEach(dijit.findWidgets(dojo.byId('buttonRow')), function(button) {
-            button.placeAt(dojo.byId('garbage'));
+            dojo.style(button.domNode, 'display', 'none');
         });
 
         // Remove the selected class for global modules
@@ -561,7 +545,7 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
         var globalModules = phpr.DataStore.getData({url: phpr.globalModuleUrl});
         globalModules[1000] = {id: "Setting", "name": "Setting"};
         globalModules[1001] = {id: "Admin", "name": "Administration"};
-        for (i in globalModules) {
+        for (var i in globalModules) {
             if (dojo.byId("globalModule_" + globalModules[i].name)) {
                 if (phpr.module == globalModules[i].name || phpr.parentmodule == globalModules[i].name) {
                     dojo.addClass(dojo.byId("globalModule_" + globalModules[i].name), "selected");

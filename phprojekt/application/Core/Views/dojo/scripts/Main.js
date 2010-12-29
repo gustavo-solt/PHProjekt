@@ -144,18 +144,6 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
                         "functionParams": "'" + parentModule + "', null, ['" + tmp[i].name + "']"});
                 }
 
-                // Create the table for the module buttons
-                var trNavMain = dojo.byId('tr_nav_main');
-                if (!trNavMain) {
-                    var navigation = '<table id="nav_main"><tr id="tr_nav_main"></tr></table>';
-                    var tmp       = document.createElement('div');
-                    tmp.innerHTML = navigation;
-                    var widget    = new phpr.ScrollPane({}, tmp);
-                    dojo.byId("subModuleNavigation").appendChild(widget.domNode);
-                } else {
-                    var widget = dijit.byId(dojo.byId('subModuleNavigation').children[0].id);
-                }
-
                 for (var i = 0; i < modules.length; i++) {
                     var liclass        = '';
                     var moduleName     = modules[i].name;
@@ -181,12 +169,12 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
                         if (liclass == 'class = active') {
                             dojo.addClass(td, "active");
                         }
-                        dojo.place(td, dojo.byId('tr_nav_main'));
+                        dojo.style(td, 'display', (dojo.isIE) ? 'inline' : 'table-cell');
                     }
                 }
 
                 // Resize for the changes
-                widget.layout();
+                dijit.byId('subModuleNavigation').layout();
 
                 this.customSetNavigationButtons();
             })

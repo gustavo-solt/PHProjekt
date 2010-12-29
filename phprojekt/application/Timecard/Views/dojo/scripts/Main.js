@@ -51,7 +51,9 @@ dojo.declare("phpr.Timecard.Main", phpr.Default.Main, {
         this.form = new this.formWidget(this, this._date);
     },
 
-    setNavigationButtons:function(currentModule) {
+    customSetNavigationButtons:function(currentModule) {
+        // Summary:
+        //   Do not add a new entry button
     },
 
     changeDate:function(date) {
