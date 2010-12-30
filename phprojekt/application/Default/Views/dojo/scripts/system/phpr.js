@@ -419,7 +419,7 @@ dojo.declare("phpr.DataStore", null, {
                 store: new phpr.ReadStore({url: params.url})
             };
         } else if (params.noCache) {
-            delete this._internalCache[params.url]['data'];
+            this._internalCache[params.url]['data'] = {}
         }
     },
 
@@ -523,7 +523,7 @@ dojo.declare("phpr.DataStore", null, {
         // Summary:
         //    Delete the cache data
         if (this._internalCache[params.url]) {
-           delete this._internalCache[params.url]['data'];
+           this._internalCache[params.url]['data'] = {}
         }
     },
 
@@ -533,7 +533,7 @@ dojo.declare("phpr.DataStore", null, {
         for (var url in this._internalCache) {
             var urlLeft = url.substring(0, params.url.length);
             if (urlLeft == params.url) {
-                delete this._internalCache[url]['data'];
+                this._internalCache[params.url]['data'] = {}
             }
         }
     },
@@ -550,7 +550,7 @@ dojo.declare("phpr.DataStore", null, {
         for (var i in this._internalCache) {
             // Special case for global modules since are not reloaded
             if (this._internalCache[i] && i != phpr.webpath + 'index.php/Core/module/jsonGetGlobalModules') {
-                delete this._internalCache[i]['data'];
+                this._internalCache[params.url]['data'] = {}
             }
         }
     }
