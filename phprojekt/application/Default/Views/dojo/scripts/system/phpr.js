@@ -411,19 +411,15 @@ dojo.declare("phpr.DataStore", null, {
         // Summary:
         //    Set a new store for save the data
         // Description:
-        //    Set a new store for save the data
+        //    If the store don't exists, set a new one.
+        //    If params.noCache is true, delete the data.
         if (typeof this._internalCache[params.url] == 'undefined') {
-            store = new phpr.ReadStore({url: params.url});
             this._internalCache[params.url] = {
                 data:  new Array(),
-                store: store
+                store: new phpr.ReadStore({url: params.url})
             };
         } else if (params.noCache) {
-            store = new phpr.ReadStore({url: params.url});
-            this._internalCache[params.url] = {
-                data:  new Array(),
-                store: store
-            };
+            delete this._internalCache[params.url]['data'];
         }
     },
 
@@ -436,7 +432,8 @@ dojo.declare("phpr.DataStore", null, {
         if (typeof params.processData == "undefined") {
             params.processData = null;
         }
-        if (this._internalCache[params.url]['data'].length == 0) {
+        if (!this._internalCache[params.url]['data']['data']
+            || this._internalCache[params.url]['data']['data'].length == 0) {
             phpr.loading.show();
             if (this._active == true) {
                 setTimeout(dojo.hitch(this, "requestData", params), 500);
@@ -493,7 +490,13 @@ dojo.declare("phpr.DataStore", null, {
         //    Store the data in the cache
         //    Then return to the processData function
         this._active = false;
-        this._internalCache[params.url]['data'] = data;
+        var store    = this.getStore(params);
+        if (store.hasAttribute(data[0], "data")) {
+            this._internalCache[params.url]['data']['data'] = store.getValue(data[0], "data") || Array();
+        }
+        if (store.hasAttribute(data[1], "metadata")) {
+            this._internalCache[params.url]['data']['metadata'] = store.getValue(data[1], "metadata") || Array();
+        }
         phpr.loading.hide();
         if (params.processData) {
             params.processData.call();
@@ -504,35 +507,33 @@ dojo.declare("phpr.DataStore", null, {
         // Summary:
         //    Return the "data" tag from the server
         // Description:
-        //    Return the "data" tag from the server
-        return this.getStore(params).getValue(this._internalCache[params.url]['data'][0], "data") || Array();
+        //    Return a clone of the "data" tag from the server
+        return dojo.clone(this._internalCache[params.url]['data']['data']);
     },
 
     getMetaData:function(params) {
         // Summary:
         //    Return the "metadata" tag from the server
         // Description:
-        //    Return the "metadata" tag from the server
-        return this.getStore(params).getValue(this._internalCache[params.url]['data'][1], "metadata") || Array();
+        //    Return a clone of the "metadata" tag from the server
+        return dojo.clone(this._internalCache[params.url]['data']['metadata']);
     },
 
     deleteData:function(params) {
         // Summary:
-        //    Delete the cache
-        // Description:
-        //    Delete the cache
+        //    Delete the cache data
         if (this._internalCache[params.url]) {
-           this._internalCache[params.url]['data'] = new Array();
+           delete this._internalCache[params.url]['data'];
         }
     },
 
     deleteDataPartialString:function(params) {
         // Summary:
-        //    Deletes the cache for the urls that start with the received string.
-        for (url in this._internalCache) {
+        //    Deletes the cache data for the urls that start with the received string
+        for (var url in this._internalCache) {
             var urlLeft = url.substring(0, params.url.length);
             if (urlLeft == params.url) {
-                this._internalCache[url]['data'] = new Array();
+                delete this._internalCache[url]['data'];
             }
         }
     },
@@ -540,20 +541,16 @@ dojo.declare("phpr.DataStore", null, {
     getStore:function(params) {
         // Summary:
         //    Return the current data.store
-        // Description:
-        //    Return the current data.store
         return this._internalCache[params.url]['store'];
     },
 
     deleteAllCache:function() {
         // Summary:
-        //    Delete all the cache
-        // Description:
-        //    Delete all the cache
+        //    Delete all the cache data
         for (var i in this._internalCache) {
             // Special case for global modules since are not reloaded
             if (this._internalCache[i] && i != phpr.webpath + 'index.php/Core/module/jsonGetGlobalModules') {
-                this._internalCache[i]['data'] = new Array();
+                delete this._internalCache[i]['data'];
             }
         }
     }
