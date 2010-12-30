@@ -142,7 +142,7 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                         var moduleFunction = modules[i].moduleFunction || null;
                         var functionParams = modules[i].functionParams;
                         if (modules[i].rights.read) {
-                            if (moduleName == this.module && functionParams != "'Project', null, ['basicData']") {
+                            if (moduleName == this.module) {
                                 usefirstModule = false;
                                 currentModule  = moduleName;
                             }
@@ -416,16 +416,8 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
         phpr.DataStore.requestData({
             url:         subModuleUrl,
             processData: dojo.hitch(this, function() {
-                var modules        = phpr.DataStore.getData({url: subModuleUrl});
-                var foundBasicData = false;
-                for (var i = 0; i < modules.length; i++) {
-                    if (modules[i].label == 'Basic Data') {
-                        foundBasicData = true;
-                        break;
-                    }
-                }
-
-                if (!foundBasicData && phpr.currentProjectId != 1) {
+                var modules = phpr.DataStore.getData({url: subModuleUrl});
+                if (phpr.currentProjectId != 1) {
                     modules.unshift({
                         name:           "Project",
                         label:          "Basic Data",
@@ -445,11 +437,14 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                 for (var i = 0; i < modules.length; i++) {
                     var liclass        = '';
                     var moduleName     = modules[i].name;
+                    var moduleId       = modules[i].name;
                     var moduleLabel    = modules[i].label;
                     var moduleFunction = modules[i].moduleFunction || "setUrlHash";
                     var functionParams = modules[i].functionParams || "\'" + modules[i].name + "\'";
+
                     if (modules[i].rights.read) {
-                       if (functionParams == "'Project', null, ['basicData']" && currentModule == 'BasicData'
+                        // Set active class
+                        if (functionParams == "'Project', null, ['basicData']" && currentModule == 'BasicData'
                             && !activeTab) {
                             liclass   = 'class = active';
                             activeTab = true;
@@ -458,22 +453,40 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
                             liclass   = 'class = active';
                             activeTab = true;
                         }
-                        var td = dojo.byId("navigation_" + moduleName);
+
+                        // Change moduleId for Basic Data
+                        if (functionParams == "'Project', null, ['basicData']") {
+                            moduleId = 'BasicData';
+                        }
+
+                        var td = dojo.byId("navigation_" + moduleId);
                         if (!td) {
                             var buttonHtml = self.render(["phpr.Default.template", "navigation.html"], null, {
-                                id:             moduleName,
+                                id:             moduleId,
                                 moduleName:     moduleName,
                                 moduleLabel:    moduleLabel,
                                 liclass:        liclass,
                                 moduleFunction: moduleFunction,
                                 functionParams: functionParams});
-                            dojo.place(buttonHtml, 'tr_nav_main', i + 1);
+
+                            // Search the pos for the next button
+                            var pos      = (dojo.isIE) ? 0 : 1;
+                            var foundPos = "last";
+                            dojo.forEach(dojo.byId('tr_nav_main').cells, function(button) {
+                                if (modules[i + 1]) {
+                                    if (button.id == "navigation_" + modules[i + 1].name) {
+                                        foundPos = pos;
+                                    }
+                                }
+                                pos++;
+                            });
+                            dojo.place(buttonHtml, 'tr_nav_main', foundPos);
                         } else {
                             dojo.removeClass(td, "active");
                             if (liclass == 'class = active') {
                                 dojo.addClass(td, "active");
                             }
-                            dojo.style(td, 'display', (dojo.isIE) ? 'inline' : 'table-cell');
+                            dojo.style(td, 'display', 'table-cell');
                         }
                     }
                     if (modules[i].rights.create && moduleName == phpr.module && currentModule != 'BasicData') {
@@ -529,8 +542,9 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
         //     Mark as selected the global module if is the current one.
 
         // Hide all the module tabs
-        if (dojo.byId('nav_main')) {
-            dojo.forEach(dojo.byId('nav_main').rows[0].cells, function(button) {
+
+        if (dojo.byId('tr_nav_main')) {
+            dojo.forEach(dojo.byId('tr_nav_main').cells, function(button) {
                 dojo.style(button, 'display', 'none');
             });
         }
@@ -1144,7 +1158,8 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
         //    Sort the system modules in a fixed order
         // Description:
         //    Sort the system modules in a fixed order
-        var sort          = new Array('Project', 'Gantt', 'Statistic', 'Todo', 'Note', 'Filemanager', 'Minutes');
+        var sort = new Array('Project', 'Gantt', 'Statistic', 'Todo', 'Note', 'Filemanager',
+            'Minutes', 'Helpdesk');
         var sortedModules = new Array();
 
         // Sort the modules with the sort array

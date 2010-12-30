@@ -169,7 +169,7 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
                         if (liclass == 'class = active') {
                             dojo.addClass(td, "active");
                         }
-                        dojo.style(td, 'display', (dojo.isIE) ? 'inline' : 'table-cell');
+                        dojo.style(td, 'display', 'table-cell');
                     }
                 }
 
