@@ -79,7 +79,7 @@ dojo.declare("phpr.Tree", phpr.Component, {
         // Create the store
         var store          = new dojo.data.ItemFileWriteStore({});
         store.clearOnClose = true;
-        store.data         = this.processData(dojo.clone(phpr.DataStore.getData({url: this.url})));
+        store.data         = this.processData(phpr.DataStore.getData({url: this.url}));
 
         // Create the model
         return new dijit.tree.ForestStoreModel({
@@ -304,7 +304,7 @@ dojo.declare("phpr.Tree", phpr.Component, {
         //    - Edit existing nodes
         //    - Move nodes
         //    - Delete nodes
-        var data    = this.processData(dojo.clone(phpr.DataStore.getData({url: this.url})));
+        var data    = this.processData(phpr.DataStore.getData({url: this.url}));
         var newData = data.items;
         this.tree.model.store.fetch({
             queryOptions: {deep: true},
