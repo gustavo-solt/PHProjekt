@@ -108,17 +108,17 @@ dojo.declare("phpr.Timecard.Grid", phpr.Component, {
         //    Reload the list if some value change
         // Description:
         //    Reload the list if some value change or forceReload is true
-        var newMonth = date.getMonth();
-        var newYear  = date.getFullYear();
-        if (forceReload || newMonth != this._month || newYear != this._year) {
-            phpr.DataStore.deleteData({url: this.url});
-            this._date  = date,
-            this._month = date.getMonth();
-            this._year  = date.getFullYear();
-            this.setUrl();
-            phpr.DataStore.addStore({url: this.url});
-            phpr.DataStore.requestData({url: this.url, processData: dojo.hitch(this, "onLoaded")});
-        }
+        //var newMonth = date.getMonth();
+        //var newYear  = date.getFullYear();
+        //if (forceReload || newMonth != this._month || newYear != this._year) {
+        //    phpr.DataStore.deleteData({url: this.url});
+        //    this._date  = date,
+        //    this._month = date.getMonth();
+        //    this._year  = date.getFullYear();
+        //    this.setUrl();
+        //    phpr.DataStore.addStore({url: this.url});
+        //    phpr.DataStore.requestData({url: this.url, processData: dojo.hitch(this, "onLoaded")});
+        //}
     },
 
     setExportButton:function() {

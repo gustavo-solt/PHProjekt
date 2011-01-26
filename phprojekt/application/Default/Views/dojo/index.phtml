@@ -148,6 +148,13 @@
             ?>
         });
 
+
+        areload = function() {
+            dojo.publish("Note.reload");
+        };
+
+        //setInterval(areload, 10000);
+
         window.onresize = function() {
             init();
         };

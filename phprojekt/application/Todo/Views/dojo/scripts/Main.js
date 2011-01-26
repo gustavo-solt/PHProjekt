@@ -23,6 +23,7 @@ dojo.provide("phpr.Todo.Main");
 
 dojo.declare("phpr.Todo.Main", phpr.Default.Main, {
     constructor:function() {
+        //console.debug('TODO constructor');
         this.module = "Todo";
         this.loadFunctions(this.module);
 
@@ -33,7 +34,8 @@ dojo.declare("phpr.Todo.Main", phpr.Default.Main, {
     openForm:function(id, module) {
         // Summary:
         //    This function opens a new Detail View
-        if (!dojo.byId('detailsBox')) {
+        //console.debug('TODO openForm');
+        if (!dojo.byId('detailsBox-' + phpr.module)) {
             this.reload();
         }
 
@@ -42,6 +44,9 @@ dojo.declare("phpr.Todo.Main", phpr.Default.Main, {
             params['startDate'] = phpr.Date.getIsoDate(new Date());
         }
 
-        this.form = new this.formWidget(this, id, module, params);
+        if (!this.form) {
+            this.form = new this.formWidget(module, this.subModules);
+        }
+        this.form.init(id, params);
     }
 });

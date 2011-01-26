@@ -23,6 +23,7 @@ dojo.provide("phpr.Helpdesk.Main");
 
 dojo.declare("phpr.Helpdesk.Main", phpr.Default.Main, {
     constructor:function() {
+        //console.debug('HELPDESK constructor');
         this.module = "Helpdesk";
         this.loadFunctions(this.module);
 

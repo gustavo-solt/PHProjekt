@@ -586,29 +586,29 @@ phpr.makeModuleDesignerField = function(formType, target, params) {
         case 'date':
             formLabel = params['formLabel'] || 'Date';
             labelFor = 'date';
-            inputTxt = '<input type="text" dojoType="phpr.DateTextBox" constraints="{datePattern:\'yyyy-MM-dd\'}"'
+            inputTxt = '<input type="text" dojoType="phpr.form.DateTextBox" constraints="{datePattern:\'yyyy-MM-dd\'}"'
                 + ' promptMessage="dd.mm.yy" />';
             break;
         case 'time':
             formLabel = params['formLabel'] || 'Time';
             labelFor = 'time';
-            inputTxt = '<input type="text" dojoType="dijit.form.TimeTextBox"'
+            inputTxt = '<input type="text" dojoType="phpr.form.TimeTextBox"'
                 + ' constraints="{formatLength:\'short\', timePattern:\'HH:mm\'}" />';
             break;
         case 'datetime':
             formLabel = params['formLabel'] || 'Datetime';
             labelFor = 'datetime';
             inputTxt = '<div class="twoFields">';
-            inputTxt += '<input type="text" dojoType="phpr.DateTextBox" constraints="{datePattern:\'yyyy-MM-dd\'}"'
+            inputTxt += '<input type="text" dojoType="phpr.form.DateTextBox" constraints="{datePattern:\'yyyy-MM-dd\'}"'
                 + ' promptMessage="dd.mm.yy" />';
-            inputTxt += '<input type="text" dojoType="dijit.form.TimeTextBox"'
+            inputTxt += '<input type="text" dojoType="phpr.form.TimeTextBox"'
                 + ' constraints="{formatLength:\'short\', timePattern:\'HH:mm\'}" />';
             inputTxt += '</div>';
             break;
         case 'selectValues':
             formLabel = params['formLabel'] || 'Select';
             labelFor  = 'select';
-            inputTxt  = '<select dojoType="phpr.FilteringSelect" autocomplete="false" invalidMessage="" >';
+            inputTxt  = '<select dojoType="phpr.form.FilteringSelect" autocomplete="false" invalidMessage="" >';
 
             if (selectType == 'project') {
                 inputTxt += '<option value="1">' + phpr.nls.get('Example Project 1') + '</option>';
@@ -631,7 +631,7 @@ phpr.makeModuleDesignerField = function(formType, target, params) {
                         if (values[0] && values[1]) {
                             formRangeOptions.push({
                                 'id':   values[0],
-                                'name': phpr.nls.get(values[1], dijit.byId('name').value)
+                                'name': phpr.nls.get(values[1], dijit.byId('name-Administration-Module').value)
                             });
                         }
                     }
@@ -684,7 +684,7 @@ phpr.makeModuleDesignerField = function(formType, target, params) {
             inputTxt = '<input type="file" class="file" />';
             break;
     }
-    labelTxt = '<label for="' + labelFor + '">' + phpr.nls.get(formLabel, dijit.byId('name').value) + '</label>';
+    labelTxt = '<label for="' + labelFor + '">' + phpr.nls.get(formLabel, dijit.byId('name-Administration-Module').value) + '</label>';
 
     html += '<table class="form"><col class="col1" /><col class="col2" /><col class="col3" />';
     html += '<tr><td class="label">';

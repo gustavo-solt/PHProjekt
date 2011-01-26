@@ -23,6 +23,7 @@ dojo.provide("phpr.Note.Main");
 
 dojo.declare("phpr.Note.Main", phpr.Default.Main, {
     constructor:function() {
+        //console.debug('NOTE constructor');
         this.module = 'Note';
         this.loadFunctions(this.module);
 

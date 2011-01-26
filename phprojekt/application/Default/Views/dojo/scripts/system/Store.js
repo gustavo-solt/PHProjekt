@@ -27,14 +27,14 @@ dojo.provide("phpr.Store.RoleModuleAccess");
 dojo.provide("phpr.Store.Tab");
 dojo.provide("phpr.Store.Config");
 
-dojo.declare("phpr.Store", phpr.Component, {
+dojo.declare("phpr.Store", null, {
     // Summary:
     //    Get all the active users
     // Description:
     //    Get the users and return the list
     //    for use with dojo fields
     _url:  null,
-    _list: null,
+    _list: [],
 
     fetch:function(processData) {
         // Summary:
@@ -47,10 +47,13 @@ dojo.declare("phpr.Store", phpr.Component, {
         }
         phpr.DataStore.addStore({url: this._url});
         phpr.DataStore.requestData({url: this._url, processData: dojo.hitch(this, function() {
-            self.makeSelect();
+            if (self._list.length == 0) {
+                self.makeSelect();
+            }
             if (processData) {
                 processData.call();
             }
+            self = null;
         })});
     },
 
@@ -67,6 +70,7 @@ dojo.declare("phpr.Store", phpr.Component, {
         //    Delete de cache
         // Description:
         //    Delete de cache
+        this._list = [];
         phpr.DataStore.deleteData({url: this._url});
     }
 });
@@ -135,12 +139,17 @@ dojo.declare("phpr.Store.Role", phpr.Store, {
         this._list         = new Array();
         this._relationList = new Array();
         for (i in roles) {
-            this._list.push({"id":roles[i]['id'], "name":roles[i]['name']});
+            this._list.push({
+                "id":   roles[i]['id'],
+                "name": roles[i]['name']
+            });
             for (j in roles[i]['users']) {
-                this._relationList.push({"roleId":      roles[i]['id'],
-                                         "roleName":    roles[i]['name'],
-                                         "userId":      roles[i]['users'][j]['id'],
-                                         "userDisplay": roles[i]['users'][j]['display']});
+                this._relationList.push({
+                    "roleId":      roles[i]['id'],
+                    "roleName":    roles[i]['name'],
+                    "userId":      roles[i]['users'][j]['id'],
+                    "userDisplay": roles[i]['users'][j]['display']
+                });
             }
         }
     },

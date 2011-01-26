@@ -42,6 +42,8 @@ dojo.require("dojo.parser");
 dojo.require("dojo.regexp");
 dojo.require("dojo.string");
 
+dojo.require("dojo.io.iframe");
+
 // Dojo Date
 dojo.require("dojo.date");
 dojo.require("dojo.date.locale");
@@ -207,6 +209,7 @@ phpr.initWidgets = function(el) {
 phpr.destroySubWidgets = function(el) {
     // Destroy all the old widgets, so dojo can init the new ones with the same IDs again.
     if (dojo.byId(el)) {
+          //  phpr.purge(dojo.byId(el));
         var oldWidgetNodes = dojo.query("[widgetId]", dojo.byId(el));
         for (var i = 0; i < oldWidgetNodes.length; i++) {
             if (dijit.byNode(oldWidgetNodes[i])) {
@@ -214,6 +217,7 @@ phpr.destroySubWidgets = function(el) {
             }
         }
     } else if (dijit.byId(el)) {
+        //    phpr.purge(dijit.byId(el.domNode));
         dijit.byId(el).destroyRecursive();
     }
 };
@@ -221,9 +225,34 @@ phpr.destroySubWidgets = function(el) {
 phpr.destroyWidget = function(el) {
     // Destroy only one widgwt using the id
     if (dijit.byId(el)) {
+        //phpr.purge(dijit.byId(el.domNode));
         dijit.byId(el).destroyRecursive();
     }
 };
+
+phpr.purge = function(el) {
+    var a = el.dojoAttachevent, i, l, n;
+    if (a) {
+        l = a.length;
+        for (i = 0; i < l; i += 1) {
+                        console.debug(el.id + " " + a[n]);
+            n = a[i].name;
+            //console.debug(el.id + " " + el[n]);
+            if (typeof el[n] === 'function') {
+                console.debug('NULL');
+                el[n] = null;
+            }
+        }
+    }
+
+    a = el.childNodes;
+    if (a) {
+        l = a.length;
+        for (i = 0; i < l; i += 1) {
+            phpr.purge(el.childNodes[i]);
+        }
+    }
+}
 
 phpr.send = function(/*Object*/paramsIn) {
     // Send the given content to the server using the Default values,
@@ -415,11 +444,13 @@ dojo.declare("phpr.DataStore", null, {
         //    If params.noCache is true, delete the data.
         if (typeof this._internalCache[params.url] == 'undefined') {
             this._internalCache[params.url] = {
-                data:  new Array(),
-                store: new phpr.ReadStore({url: params.url})
+                cached: false,
+                data:   new Array(),
+                store:  new phpr.ReadStore({url: params.url})
             };
         } else if (params.noCache) {
-            this._internalCache[params.url]['data'] = {}
+            this._internalCache[params.url]['data']['cached'] = false;
+            this._internalCache[params.url]['data']           = {};
         }
     },
 
@@ -432,8 +463,7 @@ dojo.declare("phpr.DataStore", null, {
         if (typeof params.processData == "undefined") {
             params.processData = null;
         }
-        if (!this._internalCache[params.url]['data']['data']
-            || this._internalCache[params.url]['data']['data'].length == 0) {
+        if (!this._internalCache[params.url]['data']['cached']) {
             phpr.loading.show();
             if (this._active == true) {
                 setTimeout(dojo.hitch(this, "requestData", params), 500);
@@ -497,6 +527,8 @@ dojo.declare("phpr.DataStore", null, {
         if (store.hasAttribute(data[1], "metadata")) {
             this._internalCache[params.url]['data']['metadata'] = store.getValue(data[1], "metadata") || Array();
         }
+        this._internalCache[params.url]['data']['cached'] = true;
+        store = null;
         phpr.loading.hide();
         if (params.processData) {
             params.processData.call();
@@ -508,7 +540,8 @@ dojo.declare("phpr.DataStore", null, {
         //    Return the "data" tag from the server
         // Description:
         //    Return a clone of the "data" tag from the server
-        return dojo.clone(this._internalCache[params.url]['data']['data']);
+        //return phpr.clone(this._internalCache[params.url]['data']['data']);
+        return this._internalCache[params.url]['data']['data'];
     },
 
     getMetaData:function(params) {
@@ -516,7 +549,8 @@ dojo.declare("phpr.DataStore", null, {
         //    Return the "metadata" tag from the server
         // Description:
         //    Return a clone of the "metadata" tag from the server
-        return dojo.clone(this._internalCache[params.url]['data']['metadata']);
+        //return phpr.clone(this._internalCache[params.url]['data']['metadata']);
+        return this._internalCache[params.url]['data']['metadata'];
     },
 
     deleteData:function(params) {
@@ -533,7 +567,9 @@ dojo.declare("phpr.DataStore", null, {
         for (var url in this._internalCache) {
             var urlLeft = url.substring(0, params.url.length);
             if (urlLeft == params.url) {
-                this._internalCache[params.url]['data'] = {}
+                if (this._internalCache[params.url]) {
+                    this._internalCache[params.url]['data'] = {}
+                }
             }
         }
     },
@@ -550,7 +586,7 @@ dojo.declare("phpr.DataStore", null, {
         for (var i in this._internalCache) {
             // Special case for global modules since are not reloaded
             if (this._internalCache[i] && i != phpr.webpath + 'index.php/Core/module/jsonGetGlobalModules') {
-                this._internalCache[params.url]['data'] = {}
+                this._internalCache[i]['data'] = {}
             }
         }
     }
@@ -614,26 +650,6 @@ dojo.declare("phpr.ReadStore", dojox.data.QueryReadStore, {
         }
 
         return ret;
-    }
-});
-
-dojo.declare("phpr.DateTextBox", [dijit.form.DateTextBox], {
-    _blankValue: '', // used by filter() when the textbox is blank
-
-    parse:function(value, constraints) {
-        // Summary:
-        //    Parses as string as a Date, according to constraints
-        // Date
-        return this.dateLocaleModule.parse(value, constraints) || (this._isEmpty(value) ? '' : undefined);
-    },
-
-    serialize:function(d, options) {
-        // Summary:
-        //     This function overwrites the dijit.form.DateTextBox display
-        // Description:
-        //     Make sure that the date is not only displayed localized, but also
-        //     the value which is returned is set to this date format
-        return dojo.date.locale.format(d, {selector:'date', datePattern:'yyyy-MM-dd'}).toLowerCase();
     }
 });
 
@@ -1146,100 +1162,6 @@ phpr.inArray = function(needle, haystack) {
     return false;
 };
 
-dojo.declare("phpr.FilteringSelect", dijit.form.FilteringSelect, {
-    // Summary:
-    //    Extend the dojo FilteringSelect for fix some bugs.
-    // Description:
-    //    The dojo select do not allow two or more labels with the same name,
-    //    for select users that is a problem (users with the same name),
-    //    See: http://trac.dojotoolkit.org/ticket/7279
-    //    Also change the query options and highlight for work with trees in select.
-
-    // Highlight any occurrence
-    highlightMatch: "all",
-
-    // `${0}*` means "starts with", `*${0}*` means "contains", `${0}` means "is"
-    queryExpr: "*${0}*",
-
-    // Internal var for fix the bug of items with the same display
-    _lastSelectedId: null,
-
-    _doSelect:function(/*Event*/ tgt) {
-        // Summary:
-        //    Overrides ComboBox._doSelect(), the method called when an item in the menu is selected.
-        // Description:
-        //    FilteringSelect overrides this to set both the visible and
-        //    hidden value from the information stored in the menu.
-        //    Also mark the last selected item.
-        this._setValueFromItem(tgt.item, true);
-        this._lastSelectedId = this.get('value');
-    },
-
-    _setDisplayedValueAttr:function(/*String*/ label, /*Boolean?*/ priorityChange) {
-        // Summary:
-        //    Overrides dijit.form.FilteringSelect._setDisplayedValueAttr().
-        // Description:
-        //    Change the query for search the id if an item is select,
-        //    or by the name is not (normal case)
-
-        // When this is called during initialization it'll ping the datastore
-        // for reverse lookup, and when that completes (after an XHR request)
-        // will call setValueAttr()... but that shouldn't trigger an onChange()
-        // event, even when it happens after creation has finished
-        if(!this._created){
-            priorityChange = false;
-        }
-
-        if(this.store) {
-            var query = dojo.clone(this.query); // #6196: populate query with user-specifics
-            // Escape meta characters of dojo.data.util.filter.patternToRegExp().
-            if (this._lastSelectedId != null) {
-                this._lastQuery = query['value'] = this._lastSelectedId;
-            } else {
-                this._lastQuery = query[this.searchAttr] = label.replace(/([\\\*\?])/g, "\\$1");
-            }
-            this._lastSelectedId = null;
-
-            // If the label is not valid, the callback will never set it,
-            // so the last valid value will get the warning textbox set the
-            // textbox value now so that the impending warning will make
-            // sense to the user
-            this.textbox.value = label;
-            this._lastDisplayedValue = label;
-            var _this = this;
-            var fetch = {
-                query:        query,
-                queryOptions: {
-                    ignoreCase: this.ignoreCase,
-                    deep:       true
-                },
-                onComplete: function(result, dataObject) {
-                    dojo.hitch(_this, "_callbackSetLabel")(result, dataObject, priorityChange);
-                },
-                onError: function(errText) {
-                    dojo.hitch(_this, "_setValue")("", label, false);
-                }
-            };
-            dojo.mixin(fetch, this.fetchProperties);
-            this.store.fetch(fetch);
-        }
-    },
-
-    doHighlight: function(/*String*/label, /*String*/find) {
-        // Summary:
-        //    Highlights the string entered by the user in the menu.
-        //    Change the function for Highlights all the occurences
-
-        // Add greedy when this.highlightMatch=="all"
-        var modifiers = "i"+(this.highlightMatch=="all"?"g":"");
-        var escapedLabel = this._escapeHtml(label);
-        find = dojo.regexp.escapeString(find); // escape regexp special chars
-        var ret = escapedLabel.replace(new RegExp("(^|\\s|\\w)("+ find +")", modifiers),
-            '$1<span class="dijitComboBoxHighlightMatch">$2</span>');
-        return ret; // Returns String, (almost) valid HTML (entities encoded)
-    }
-});
-
 phpr.isGlobalModule = function(module) {
     // Summary:
     //    Return if the module is global or per project
@@ -1405,3 +1327,11 @@ dojo.extend(dijit.layout._Splitter, {
         dojo.stopEvent(e);
     }
 });
+
+phpr.clone = function(obj) {
+    var outpurArr = new Array();
+    for (var i in obj) {
+        outpurArr[i] = typeof (obj[i]) == 'object' ? phpr.clone(obj[i]) : obj[i];
+    }
+    return outpurArr;
+};

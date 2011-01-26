@@ -22,11 +22,11 @@
 dojo.provide("phpr.MinutesItem.Main");
 
 dojo.declare("phpr.MinutesItem.Main", phpr.Default.SubModule, {
-    constructor:function(parentId) {
+    constructor:function() {
         this.module     = "MinutesItem";
         this.gridWidget = phpr.MinutesItem.Grid;
         this.formWidget = phpr.MinutesItem.Form;
-        this.parentId   = parentId;
+
+        this.loadFunctions();
     }
 });
-

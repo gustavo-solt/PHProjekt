@@ -511,6 +511,7 @@ class IndexController extends Zend_Controller_Action
 
         if ($model instanceof Phprojekt_Model_Interface) {
             $params = $this->setParams($this->getRequest()->getParams(), $model, $newItem);
+
             Default_Helpers_Save::save($model, $params);
 
             $return = array('type'    => 'success',

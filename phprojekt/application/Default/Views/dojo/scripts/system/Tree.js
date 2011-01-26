@@ -52,7 +52,7 @@ dojo.declare("phpr.Tree", phpr.Component, {
                     dojo.connect(phpr.Tree.tree, "onClick", dojo.hitch(this, "onItemClick"));
                     dojo.byId("navigation-container-title").innerHTML = phpr.nls.get('Projects');
                 } else {
-                    this.processDataDiff();
+                    this._processDataDiff();
                 }
                 phpr.Tree.setId(phpr.Tree.tree.id);
                 phpr.Tree.finishDraw();
@@ -79,7 +79,7 @@ dojo.declare("phpr.Tree", phpr.Component, {
         // Create the store
         var store          = new dojo.data.ItemFileWriteStore({});
         store.clearOnClose = true;
-        store.data         = this.processData(phpr.DataStore.getData({url: this.url}));
+        store.data         = this.processData(phpr.clone(phpr.DataStore.getData({url: this.url})));
 
         // Create the model
         return new dijit.tree.ForestStoreModel({
@@ -248,28 +248,26 @@ dojo.declare("phpr.Tree", phpr.Component, {
     drawBreadCrumb:function() {
         // Summary:
         //    Set the Breadcrumb with all the projects and the module
+        var projects = new Array();
         if (!phpr.isGlobalModule(phpr.module)) {
             if (phpr.treeLastProjectSelected != phpr.currentProjectId || phpr.currentProjectId == 1) {
-                var projects = new Array();
-                this.tree.model.store.fetchItemByIdentity({identity: phpr.currentProjectId,
-                    onItem:function(item) {
-                        if (item) {
-                            var paths = phpr.treePaths[phpr.currentProjectId].toString().split("\/");
-                            for (var i in paths) {
-                                if (paths[i] > 0 && paths[i] != phpr.currentProjectId) {
-                                    phpr.Tree.tree.model.store.fetchItemByIdentity({identity: paths[i],
-                                        onItem:function(item) {
-                                            if (item) {
-                                                projects.push({"id":   item.id,
-                                                               "name": item.longName || item.name});
-                                            }
-                                    }});
-                                }
+                var store = this.tree.model.store;
+                var data  = store._itemsByIdentity;
+                var item  = data[phpr.currentProjectId];
+                if (item) {
+                    var paths = phpr.treePaths[phpr.currentProjectId].toString().split("\/");
+                    for (var i in paths) {
+                        if (paths[i] > 0 && paths[i] != phpr.currentProjectId) {
+                            var subItem = data[paths[i]];
+                            if (subItem) {
+                                projects.push({"id":   subItem.id,
+                                               "name": subItem.longName || subItem.name});
                             }
-                            projects.push({"id":   item.id,
-                                           "name": item.longName || item.name});
                         }
-                }});
+                    }
+                    projects.push({"id":   item.id,
+                                   "name": item.longName || item.name});
+                }
                 phpr.BreadCrumb.setProjects(projects);
             }
         } else {
@@ -295,6 +293,7 @@ dojo.declare("phpr.Tree", phpr.Component, {
         }
     },
 
+    /*
     processDataDiff:function() {
         // Summary:
         //    Process the new data for the tree
@@ -387,5 +386,75 @@ dojo.declare("phpr.Tree", phpr.Component, {
                 }
             })
         });
+    },
+    */
+
+    _processDataDiff:function() {
+        // Summary:
+        //    Process the new data for the tree.
+        // Description:
+        //    Check for changes between the store and the new data.
+        //    - Add new nodes.
+        //    - Edit existing nodes.
+        //    - Move nodes.
+        //    - Delete nodes.
+        var newDataArray = this.processData(phpr.clone(phpr.DataStore.getData({url: this.url})));
+        var newData = newDataArray['items'];
+        var store   = this.tree.model.store;
+        var oldData = store._itemsByIdentity;
+        var toKeep  = [];
+
+            console.debug(newData);
+        for (var j = 0; j < newData.length; j++) {
+            var item = oldData[newData[j]['id']];
+            if (null == item) {
+                // Add a new item
+                phpr.Tree.tree.model.newItem({
+                    id:     newData[j]['id'],
+                    name:   newData[j]['name'],
+                    parent: newData[j]['parent'],
+                    path:   newData[j]['path'],
+                    cut:    newData[j]['cut']
+                }, oldData[newData[j]['parent']]);
+                console.debug('ADD TREE');
+
+                // Mark for keep it
+                toKeep[newData[j]['id']] = true;
+            } else {
+                if (newData[j]['name'] != item.name) {
+                    // The name was changed
+                    store.setValue(item, 'name', newData[j]['name']);
+                    store.setValue(item, 'cut', newData[j]['cut']);
+                    console.debug('UPDATE NAME TREE');
+                }
+
+                if (newData[j]['parent'] != item.parent) {
+                    // The parent was changed
+                    phpr.Tree.tree.model.pasteItem(item, oldData[item.parent], oldData[newData[j]['parent']], false);
+                    store.setValue(item, 'parent', newData[j]['parent']);
+                    store.setValue(item, 'path', newData[j]['path']);
+                    console.debug('UPDATE PARENT TREE');
+                }
+
+                // Mark for keep it
+                toKeep[item.id] = true;
+            }
+        }
+
+        // Search for deleted items
+        for (var i in oldData) {
+            if (oldData[i] && !toKeep[oldData[i].id]) {
+                store.deleteItem(oldData[i]);
+                console.debug('DELETE TREE');
+            }
+        }
+
+        // Save the changes
+        store.save({});
+
+        // Delete vars
+        newData = [];
+        oldData = [];
+        toKeep  = [];
     }
 });

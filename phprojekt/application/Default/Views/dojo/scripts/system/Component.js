@@ -29,39 +29,48 @@ dojo.declare("phpr.Component", null, {
         var context = new dojox.dtl.Context(content);
         // Use the cached template
         var tplContent = __phpr_templateCache[template[0] + "." + template[1]];
-        var tpl        = new dojox.dtl.Template(tplContent);
-        var content    = tpl.render(context);
-
-        // [a-zA-Z1-9[]:|]
-        var eregId = /id=\\?["'][\w\x5b\x5d\x3a\x7c]*\\?["']/gi;
-        var result = content.match(eregId);
-        if (result) {
-            for (var i = 0; i < result.length; i++) {
-                var id = result[i].replace(/id=\\?["']/gi, '').replace(/\\?["']/gi, '');
-                if (dijit.byId(id)) {
-                    dijit.byId(id).destroy();
-                }
-            }
+        if (!__phpr_templateObjectCache[template[0] + "." + template[1]]) {
+            __phpr_templateObjectCache[template[0] + "." + template[1]] = new dojox.dtl.Template(tplContent, true);
         }
+
+        var html = __phpr_templateObjectCache[template[0] + "." + template[1]].render(context);
+        context  = null;
+
+        /*
+if(dojo.isIE){
+	dojo.addOnWindowUnload(function(){
+		var cache = dijit._Templated._templateCache;
+		for(var key in cache){
+			var value = cache[key];
+			if(typeof value == "object"){ // value is either a string or a DOM node template
+				dojo.destroy(value);
+			}
+			delete cache[key];
+		}
+	});
+}
+        */
 
         if (node) {
             var dojoType = node.getAttribute('dojoType');
             if ((dojoType == 'dijit.layout.ContentPane') ||
                 (dojoType == 'dijit.layout.BorderContainer') ) {
-                dijit.byId(node.getAttribute('id')).set('content', content);
-                dojo.addOnLoad(function(){
-                    dijit.byId(node.getAttribute('id')).resize();
-                });
+
+                if (dijit.byId(node.getAttribute('id'))) {
+                    dijit.byId(node.getAttribute('id')).destroyDescendants(true);
+                }
+
+                dijit.byId(node.getAttribute('id')).set('content', html);
             } else {
-                node.innerHTML = content;
+                node.innerHTML = html;
                 phpr.initWidgets(node);
             }
         } else {
-            return content;
+            return html;
         }
     },
 
-    publish:function(/*String*/ name, /*array*/args){
+    publish:function(/*String*/ name, /*array*/args) {
         // summary:
         //    Publish the topic for the current module, its always prefixed with the module.
         // description:
@@ -71,10 +80,10 @@ dojo.declare("phpr.Component", null, {
         //    The topic of this module that shall be published.
         // args: Array
         //    Arguments that should be published with the topic
-        dojo.publish(phpr.module+"."+name, args);
+        dojo.publish(phpr.module + "." + name, args);
     },
 
-    subscribe:function(/*String*/name, /*String or null*/ context, /*String or function*/ method ){
+    subscribe:function(/*String*/name, /*String or null*/ context, /*String or function*/ method ) {
         // summary:
         //    Subcribe topic which was published for the current module, its always prefixed with the module.
         // description:
@@ -84,6 +93,6 @@ dojo.declare("phpr.Component", null, {
         //    The topic of this module that shall be published.
         // args: Array
         //    Arguments that should be published with the topic
-        dojo.subscribe(phpr.module+"."+name, context, method);
+        dojo.subscribe(phpr.module + "." + name, context, method);
     }
 });

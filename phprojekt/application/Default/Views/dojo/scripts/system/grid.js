@@ -115,7 +115,7 @@ dojo.declare("phpr.grid.cells.DateTextBox", dojox.grid.cells.DateTextBox, {
     //    Redefine the function to work with iso format
     // description:
     //    Redefine the function to work with iso format
-    widgetClass: dijit.form.DateTextBox,
+    widgetClass: phpr.form.DateTextBox,
 
     getValue:function(inRowIndex) {
         var date = this.widget.get('value');
@@ -324,7 +324,8 @@ dojo.declare('phpr.grid._View', [dojox.grid._View], {
         + 'class="dojoxGridHiddenFocus" wairole="presentation" />\r\n\t<div class="dojoxGridScrollbox" '
         + 'dojoAttachPoint="scrollboxNode" wairole="presentation">\r\n\t\t<div class="dojoxGridContent" '
         + 'dojoAttachPoint="contentNode" hidefocus="hidefocus" wairole="presentation"></div>\r\n\t\t'
-        + '<div dojoAttachPoint="gridActions"></div>\r\n\t</div>\r\n</div>\r\n',
+        + '<div dojoAttachPoint="gridActions" class="gridActions" style="vertical-align: baseline;">'
+        + '</div>\r\n\t</div>\r\n</div>\r\n',
 
     doStyleRowNode:function(inRowIndex, inRowNode) {
         // Summary
@@ -358,7 +359,18 @@ dojo.declare('phpr.grid._View', [dojox.grid._View], {
                 this.grid.onHeaderEvent(e);
             }
         }
-    }
+    },
+
+	renderHeader:function() {
+	    if (this.headerContentNode.innerHTML == '') {
+            this.headerContentNode.innerHTML = this.header.generateHtml(this._getHeaderContent);
+	    }
+		if(this.flexCells){
+			this.contentWidth = this.getContentWidth();
+			this.headerContentNode.firstChild.style.width = this.contentWidth;
+		}
+		dojox.grid.util.fire(this, "onAfterRow", [-1, this.structure.cells, this.headerContentNode]);
+	}
 });
 
 dojo.declare('phpr.Filter.ExpandoPane', [dojox.layout.ExpandoPane], {
@@ -395,7 +407,8 @@ dojo.declare('phpr.Filter.ExpandoPane', [dojox.layout.ExpandoPane], {
             this._startupSizes(psize);
         }
 
-        var    size = (psize && psize.h) ? psize : dojo.marginBox(this.domNode);
+        var size = (psize && psize.h) ? psize : dojo.marginBox(this.domNode);
+
         this._contentBox = {
             w: size.w || dojo.marginBox(this.domNode).w,
             h: size.h - 26
@@ -407,5 +420,18 @@ dojo.declare('phpr.Filter.ExpandoPane', [dojox.layout.ExpandoPane], {
         dojo.style(this.containerNode, "height", this._contentBox.h + "px");
         dojo.style(this.containerNode, "overflowX", "hidden");
         this._layoutChildren();
+    }
+});
+
+dojo.extend(dojox.grid.DataGrid, {
+    doclick:function(e) {
+        dojo.publish(phpr.module + '.gridProxy', ['doClick', e]);
+    },
+
+    dodblclick:function(e) {
+        dojo.publish(phpr.module + '.gridProxy', ['doDblClick', e]);
+    },
+
+    onRowClick:function(e) {
     }
 });

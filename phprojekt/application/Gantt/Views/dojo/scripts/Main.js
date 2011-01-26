@@ -41,12 +41,11 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
     renderTemplate:function() {
         // Summary:
         //   Custom renderTemplate for gantt
-        var projectPeriodHelp = phpr.nls.get('Click on a Project timeline and see and/or change here the Start and End '
-            + 'dates.');
         this.render(["phpr.Gantt.template", "mainContent.html"], dojo.byId('centerMainContent'), {
             webpath:                     phpr.webpath,
             selectedProjectTimelineText: phpr.nls.get('Selected Project Timeline'),
-            projectPeriodHelp:           projectPeriodHelp
+            projectPeriodHelp:           phpr.nls.get('Click on a Project timeline and see and/or change here the '
+                + 'Start and End dates.')
         });
     },
 
@@ -159,7 +158,7 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
         phpr.destroyWidget("minDate");
         phpr.destroyWidget("maxDate");
         // the project begin date widget (calendar view)
-        this.gantt.DateMin = new dijit.form.DateTextBox({
+        this.gantt.DateMin = new phpr.form.DateTextBox({
             name:          'minDate',
             id:            'minDate',
             constraints:   {datePattern:'yyyy-MM-dd', strict:true},
@@ -173,7 +172,7 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
         );
 
         // The project end date widget (calendar view)
-        this.gantt.DateMax = new dijit.form.DateTextBox({
+        this.gantt.DateMax = new phpr.form.DateTextBox({
             name:          'maxDate',
             id:            'maxDate',
             constraints:   {datePattern:'yyyy-MM-dd', strict:true},

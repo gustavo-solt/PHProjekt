@@ -48,6 +48,11 @@ dojo.declare("phpr.Administration.Main", phpr.Core.Main, {
         phpr.DataStore.deleteAllCache();
         phpr.Tree.updateData();
         phpr.treeLastProjectSelected = null;
+        /*
+        if (this._forms[phpr.submodule]) {
+            this._forms[phpr.submodule].updateData();
+        }
+        */
         if (this.form) {
             this.form.updateData();
         }

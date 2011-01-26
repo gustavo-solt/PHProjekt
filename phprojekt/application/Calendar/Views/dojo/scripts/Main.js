@@ -65,23 +65,11 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
         this.formWidget          = phpr.Calendar.Form;
     },
 
-    renderTemplate:function() {
-        // Summary:
-        //   Custom renderTemplate for calendar
-        this.render(["phpr.Calendar.template", "mainContent.html"], dojo.byId('centerMainContent'), {
-            changeDate: phpr.nls.get('Change date'),
-            today:      phpr.nls.get('Today'),
-            user:       phpr.nls.get('User'),
-            self:       phpr.nls.get('Self'),
-            selection:  phpr.nls.get('Selection')
-        });
-    },
-
     setWidgets:function() {
         // Summary:
         //   Custom setWidgets for calendar
-        phpr.Tree.loadTree();
-        this.loadAppropriateList();
+        //phpr.Tree.loadTree();
+        //this.loadAppropriateList();
     },
 
     loadAppropriateList:function() {
@@ -104,17 +92,17 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
     loadGrid:function() {
         // Summary:
         //   This function loads the Dojo Grid
-        this.scrollDisconnect();
-        this.resizeDisconnect();
-        this.destroyOtherLists('grid');
-        var updateUrl = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSaveMultiple/nodeId/'
-            + phpr.currentProjectId;
-        this.grid = new this.gridWidget(updateUrl, this, phpr.currentProjectId);
+        //this.scrollDisconnect();
+        //this.resizeDisconnect();
+        //this.destroyOtherLists('grid');
+        //var updateUrl = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSaveMultiple/nodeId/'
+        //    + phpr.currentProjectId;
+        //this.grid = new this.gridWidget(updateUrl, this, phpr.currentProjectId);
         this.cleanPage();
         this.setNavigationButtons();
 
-        this.setScheduleBar(false, false);
-        this._actionPending = false;
+        //this.setScheduleBar(false, false);
+        //this._actionPending = false;
         phpr.loading.hide();
     },
 
@@ -195,6 +183,7 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
     dayViewClick:function() {
         // Summary:
         //    This function loads the Day List with the entered date, if any.
+        /*
         if (dijit.byId('gridFiltersBox') && dojo.byId('gridFiltersBox').style.height != '0px') {
             dijit.byId('gridFiltersBox').toggle();
         }
@@ -206,9 +195,11 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
         } else {
             this.loadDayListSelect();
         }
+        */
     },
 
     weekViewClick:function() {
+        /*
         // Summary:
         //    This function loads the Week List with the entered date, if any.
         if (dijit.byId('gridFiltersBox') && dojo.byId('gridFiltersBox').style.height != '0px') {
@@ -218,9 +209,11 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
             return;
         }
         this.loadWeekList();
+        */
     },
 
     monthViewClick:function() {
+        /*
         // Summary:
         //    This function loads the Month List with the entered date, if any.
         if (dijit.byId('gridFiltersBox') && dojo.byId('gridFiltersBox').style.height != '0px') {
@@ -230,6 +223,7 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
             return;
         }
         this.loadMonthList();
+        */
     },
 
     setDate:function(day) {
@@ -345,7 +339,10 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
             params['endDatetime']   = phpr.Date.getIsoDatetime(startDate, endTime);
         }
 
-        this.form = new this.formWidget(this, id, module, params);
+        if (!this.form) {
+            this.form = new this.formWidget(module, this.subModules);
+        }
+        this.form.init(id, params);
     },
 
     userSelfClick:function() {

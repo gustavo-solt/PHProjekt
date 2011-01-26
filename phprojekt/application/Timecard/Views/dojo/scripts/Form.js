@@ -26,7 +26,7 @@ dojo.declare("phpr.Timecard.Form", phpr.Component, {
     formdata:           new Array(),
     dateObject:         null,
     id:                 0,
-    _url:               null,
+    url:                null,
     _bookUrl:           null,
     _favoritesUrl:      null,
     _date:              null,
@@ -42,7 +42,7 @@ dojo.declare("phpr.Timecard.Form", phpr.Component, {
         this.main          = main;
         this.id            = 0;
         this._favoritesUrl = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonGetFavoritesProjects';
-        this._url          = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonDetail/nodeId/1/id/' + this.id;
+        this.url           = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonDetail/nodeId/1/id/' + this.id;
 
         // Fixed hours 0-24
         var hours    = new Array();
@@ -192,25 +192,40 @@ dojo.declare("phpr.Timecard.Form", phpr.Component, {
         //    Render the form and the favorites
         // Description:
         //    Render the form and the favorites
-        this._url = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonDetail/nodeId/1/id/' + this.id;
+        this.url = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonDetail/nodeId/1/id/' + this.id;
         phpr.DataStore.addStore({url: this._favoritesUrl});
         phpr.DataStore.requestData({url: this._favoritesUrl, processData: dojo.hitch(this, function() {
-            phpr.DataStore.addStore({url: this._url});
-            phpr.DataStore.requestData({url: this._url, processData: dojo.hitch(this, function() {
+            phpr.DataStore.addStore({url: this.url});
+            phpr.DataStore.requestData({url: this.url, processData: dojo.hitch(this, function() {
                 if (!dijit.byId('timecardTooltipDialog')) {
                     var favorites = phpr.DataStore.getData({url: this._favoritesUrl});
-                    var meta      = phpr.DataStore.getMetaData({url: this._url});
+                    var meta      = phpr.DataStore.getMetaData({url: this.url});
 
                     this.fieldTemplate = new phpr.Default.Field();
 
                     // Init formdata
                     var formData = '';
+
                     // startDatetime
-                    formData += this.fieldTemplate.datetimeRender(meta[0]["label"], meta[0]["key"], '',
-                        meta[0]["required"], false, meta[0]["hint"]);
+                    var fieldValues = new Array({
+                        id:       meta[0]["key"],
+                        label:    meta[0]["label"],
+                        value:    '',
+                        disabled: false,
+                        required: meta[0]["required"],
+                        hint:     meta[0]["hint"]});
+                    formData += this.fieldTemplate.datetimeRender(fieldValues);
+
                     // endTime
-                    formData += this.fieldTemplate.timeRender(meta[1]["label"], meta[1]["key"], '',
-                        meta[1]["required"], false, meta[1]["hint"]);
+                    var fieldValues = new Array({
+                        id:       meta[1]["key"],
+                        label:    meta[1]["label"],
+                        value:    '',
+                        disabled: false,
+                        required: meta[1]["required"],
+                        hint:     meta[1]["hint"]});
+                    formData += this.fieldTemplate.timeRender(fieldValues);
+
                     // projectId
                     var range = dojo.clone(meta[3]['range']);
                     range.unshift({'id': -1, 'name': '----'});
@@ -226,14 +241,34 @@ dojo.declare("phpr.Timecard.Form", phpr.Component, {
                             range.unshift({'id': parseInt(favorites[i].id), 'name': favorites[i].name});
                         }
                     }
-                    formData += this.fieldTemplate.selectRender(range, meta[3]["label"], meta[3]["key"], -1,
-                        meta[3]["required"], false, meta[3]["hint"]);
+                    var fieldValues = new Array({
+                        id:       meta[3]["key"],
+                        label:    meta[3]["label"],
+                        value:    -1,
+                        range:    range,
+                        disabled: false,
+                        required: meta[3]["required"],
+                        hint:     meta[3]["hint"]});
+                    formData += this.fieldTemplate.selectRender(fieldValues);
+
                     // notes
-                    formData += this.fieldTemplate.textAreaRender(meta[4]["label"], meta[4]["key"], '',
-                        meta[4]["required"], false, meta[4]["hint"]);
+                    var fieldValues = new Array({
+                        id:       meta[4]["key"],
+                        label:    meta[4]["label"],
+                        value:    '',
+                        disabled: false,
+                        required: meta[4]["required"],
+                        hint:     meta[4]["hint"]});
+                    formData += this.fieldTemplate.textAreaRender(fieldValues);
 
                     // timecardId
-                    formData += this.fieldTemplate.hiddenFieldRender('', 'timecardId', this.id, true, false);
+                    var fieldValues = new Array({
+                        id:       'timecardId',
+                        label:    '',
+                        value:    this.id,
+                        disabled: false,
+                        required: true});
+                    formData += this.fieldTemplate.hiddenFieldRender(fieldValues);
 
                     var content = this.render(["phpr.Timecard.template", "formView.html"], null, {
                         formData:   formData,
@@ -408,7 +443,7 @@ dojo.declare("phpr.Timecard.Form", phpr.Component, {
         // Description:
         //    Delete the cache and reload the views
         this.id = 0;
-        phpr.DataStore.deleteData({url: this._url});
+        phpr.DataStore.deleteData({url: this.url});
         phpr.DataStore.deleteData({url: this._bookUrl});
         this.main.grid.reload(this.dateObject, true);;
         this.drawDayView();
@@ -421,10 +456,10 @@ dojo.declare("phpr.Timecard.Form", phpr.Component, {
         if (dojo.byId("dialogContent").innerHTML.replace(/\s/g, "") == "") {
             phpr.DataStore.addStore({url: this._favoritesUrl});
             phpr.DataStore.requestData({url: this._favoritesUrl, processData: dojo.hitch(this, function() {
-                phpr.DataStore.addStore({url: this._url});
-                phpr.DataStore.requestData({url: this._url, processData: dojo.hitch(this, function() {
+                phpr.DataStore.addStore({url: this.url});
+                phpr.DataStore.requestData({url: this.url, processData: dojo.hitch(this, function() {
                     var favorites = phpr.DataStore.getData({url: this._favoritesUrl});
-                    var meta      = phpr.DataStore.getMetaData({url: this._url});
+                    var meta      = phpr.DataStore.getMetaData({url: this.url});
                     var range     = meta[3]['range'] || new Array();
 
                     // Get Favorites
@@ -503,11 +538,11 @@ dojo.declare("phpr.Timecard.Form", phpr.Component, {
         //    Fill the form with the data from a saved item
         // Description:
         //    Fill the form with the data from a saved item
-        this.id   = id;
-        this._url = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonDetail/nodeId/1/id/' + this.id;
-        phpr.DataStore.addStore({url: this._url});
-        phpr.DataStore.requestData({url: this._url, processData: dojo.hitch(this, function() {
-            var data      = phpr.DataStore.getData({url: this._url});
+        this.id  = id;
+        this.url = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonDetail/nodeId/1/id/' + this.id;
+        phpr.DataStore.addStore({url: this.url});
+        phpr.DataStore.requestData({url: this.url, processData: dojo.hitch(this, function() {
+            var data      = phpr.DataStore.getData({url: this.url});
             var endTime   = data[0]['endTime'].substr(0, 5);
             var startTime = data[0]['startDatetime'].substr(11, 5);
             if (endTime == 0 || endTime == null) {

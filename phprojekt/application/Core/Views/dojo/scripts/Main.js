@@ -22,6 +22,8 @@
 dojo.provide("phpr.Core.Main");
 
 dojo.declare("phpr.Core.Main", phpr.Default.Main, {
+    _forms: [],
+
     constructor:function() {
         this.module = "Core";
         this.loadFunctions(this.module);
@@ -61,6 +63,71 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         //    Function for be rewritten
     },
 
+    reload:function(module) {
+        // Summary:
+        //    Rewritten the function for work like a system module and like a form.
+        this.defineModules(module);
+
+        this.cleanPage();
+        phpr.Tree.fadeOut();
+        this.hideSuggest();
+        this.setSearchForm();
+        this.setNavigationButtons();
+
+        if (this.isSystemModule(this.module)) {
+            // System modules (Grid and Form)
+            var moduleId = phpr.parentmodule + '-' + this.module;
+            if (!dojo.byId('defaultMainContent-' + moduleId)) {
+                this.render(["phpr.Default.template", "mainContent.html"], dojo.byId('centerMainContent'), {
+                    module: moduleId
+                });
+            } else {
+                dojo.place('defaultMainContent-' + moduleId, 'centerMainContent');
+                dojo.style(dojo.byId('defaultMainContent-' + moduleId), "display", "block");
+            }
+        } else {
+            // Settings and Administration/General Forms
+            if (phpr.submodule) {
+                var moduleId = phpr.module + '-' + phpr.submodule;
+                if (!dojo.byId('defaultMainContent-' + moduleId)) {
+                    this.render(["phpr.Core.template", "mainContent.html"], dojo.byId('centerMainContent'), {
+                        module: moduleId
+                    });
+                } else {
+                    dojo.place('defaultMainContent-' + moduleId, 'centerMainContent');
+                    dojo.style(dojo.byId('defaultMainContent-' + moduleId), "display", "block");
+                }
+            } else {
+                var summaryTxt = this.getSummary();
+                if (!dojo.byId('defaultMainContentText-' + phpr.module)) {
+                    var node = new dijit.layout.ContentPane({
+                        id:      'defaultMainContentText-' + phpr.module,
+                        style:   "padding: 10px;",
+                        content: summaryTxt
+                    });
+                    dojo.byId('centerMainContent').appendChild(node.domNode);
+                } else {
+                    dojo.place('defaultMainContentText-' + phpr.module, 'centerMainContent');
+                    dijit.byId('defaultMainContentText-' + phpr.module).set('content', summaryTxt);
+                    dojo.style(dojo.byId('defaultMainContentText-' + phpr.module), "display", "block");
+                }
+            }
+        }
+
+        var isSystemModule = this.isSystemModule(this.module);
+
+        if (isSystemModule) {
+            var updateUrl = phpr.webpath + 'index.php/Core/' + phpr.module.toLowerCase() + '/jsonSaveMultiple/nodeId/1';
+            //this.grid = new this.gridWidget(updateUrl, this, phpr.currentProjectId);
+        } else if (module) {
+            var moduleId = phpr.module + '-' + phpr.submodule;
+            if (!this._forms[moduleId]) {
+                this._forms[moduleId] = new this.formWidget(moduleId, this.subModules);
+            }
+            this._forms[moduleId].init(0, [], isSystemModule);
+        }
+    },
+
     defineModules:function(module) {
         // Summary:
         //    Set the global vars for this module
@@ -73,38 +140,6 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         } else {
             phpr.submodule    = module || '';
             phpr.parentmodule = '';
-        }
-    },
-
-    reload:function(module) {
-        // Summary:
-        //    Rewritten the function for work like a system module and like a form
-        // Description:
-        //    Rewritten the function for work like a system module and like a form
-        this.defineModules(module);
-        if (this.isSystemModule(this.module)) {
-            this.render(["phpr.Default.template", "mainContent.html"], dojo.byId('centerMainContent'));
-        } else {
-            if (!module) {
-                var summaryTxt = this.getSummary();
-            } else {
-                var summaryTxt = '';
-            }
-            this.render(["phpr.Core.template", "mainContent.html"], dojo.byId('centerMainContent'), {
-                summaryTxt: summaryTxt
-            });
-        }
-        this.cleanPage();
-        phpr.Tree.fadeOut();
-        this.setNavigationButtons();
-        this.hideSuggest();
-        this.setSearchForm();
-        phpr.Tree.loadTree();
-        if (this.isSystemModule(this.module)) {
-            var updateUrl = phpr.webpath + 'index.php/Core/' + phpr.module.toLowerCase() + '/jsonSaveMultiple/nodeId/1';
-            this.grid = new this.gridWidget(updateUrl, this, phpr.currentProjectId);
-        } else if (module) {
-            this.form = new this.formWidget(this, 0, this.module);
         }
     },
 
@@ -165,11 +200,10 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
                             functionParams: functionParams});
                         dojo.place(buttonHtml, dojo.byId('tr_nav_main'));
                     } else {
-                        dojo.removeClass(td, "active");
+                        dojo.removeClass(td, "hidden active");
                         if (liclass == 'class = active') {
                             dojo.addClass(td, "active");
                         }
-                        dojo.style(td, 'display', 'table-cell');
                     }
                 }
 
@@ -181,6 +215,21 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         })
     },
 
+    openForm:function(id, module) {
+        //Summary: this function opens a new Detail View
+        var moduleId = phpr.parentmodule + '-' + phpr.module;
+        if (!dojo.byId('detailsBox-' + moduleId)) {
+            this.reload();
+        }
+        //this.form = new this.formWidget(this, id, module);
+
+        if (!this.form) {
+            this.form = new this.formWidget(moduleId, this.subModules);
+        }
+        var isSystemModule = this.isSystemModule(phpr.module);
+        this.form.init(id, [], isSystemModule);
+    },
+
     updateCacheData:function() {
         // Summary:
         //    Rewritten the function for delete all the cache
@@ -190,8 +239,8 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         if (this.grid) {
             this.grid.updateData();
         }
-        if (this.form) {
-            this.form.updateData();
+        if (this._forms[phpr.submodule]) {
+            this._forms[phpr.submodule].updateData();
         }
     },
 

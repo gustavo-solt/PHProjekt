@@ -29,16 +29,12 @@ dojo.declare("phpr.Module.Main", phpr.Core.Main, {
         this.gridWidget = phpr.Module.Grid;
         this.formWidget = phpr.Module.Form;
 
-        dojo.subscribe("Module.openDialog", this, "openDialog");
         dojo.subscribe("Module.submitForm", this, "submitForm");
+        dojo.subscribe("Module.setGlobalModulesNavigation", this, "setGlobalModulesNavigation");
     },
 
     customSetNavigationButtons:function() {
         this.setNewEntry();
-    },
-
-    openDialog:function() {
-        this.form.openDialog();
     },
 
     submitForm:function() {

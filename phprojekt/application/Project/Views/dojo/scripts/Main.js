@@ -22,6 +22,8 @@
 dojo.provide("phpr.Project.Main");
 
 dojo.declare("phpr.Project.Main", phpr.Default.Main, {
+    formBasicData: null,
+
     constructor:function() {
         this.module = 'Project';
         this.loadFunctions(this.module);
@@ -42,24 +44,38 @@ dojo.declare("phpr.Project.Main", phpr.Default.Main, {
     },
 
     basicData:function() {
-        phpr.module = this.module;
+        this.setGlobalVars();
         this.cleanPage();
-        this.render(["phpr.Project.template", "BasicData.html"], dojo.byId('centerMainContent'));
-        this.setNavigationButtons('BasicData');
+
+        // setNavigations () for BasicData
+        if (phpr.isGlobalModule(this.module)) {
+            phpr.Tree.fadeOut();
+        } else {
+            phpr.Tree.fadeIn();
+        }
         this.hideSuggest();
         this.setSearchForm();
-        phpr.Tree.fadeIn();
-        phpr.Tree.loadTree();
-        if (!dojo.byId('detailsBox')) {
-            this.reload();
+        this.setNavigationButtons('BasicData');
+
+        // renderTemplate() for BasicData
+        if (!dojo.byId('defaultMainContent-BasicData')) {
+            this.render(["phpr.Project.template", "basicData.html"], dojo.byId('centerMainContent'));
+        } else {
+            dojo.place('defaultMainContent-BasicData', 'centerMainContent');
+            dojo.style(dojo.byId('defaultMainContent-BasicData'), "display", "block");
         }
-        this.form = new this.formBasicDataWidget(this, phpr.currentProjectId, phpr.module);
+
+        // openForm() for BasicData
+        if (!this.formBasicData) {
+            this.formBasicData = new this.formBasicDataWidget(module, this.subModules);
+        }
+        this.formBasicData.init(phpr.currentProjectId);
     },
 
     openForm:function(id, module) {
         // Summary:
         //    This function opens a new Detail View
-        if (!dojo.byId('detailsBox')) {
+        if (!dojo.byId('detailsBox-' + phpr.module)) {
             this.reload();
         }
 
@@ -68,7 +84,10 @@ dojo.declare("phpr.Project.Main", phpr.Default.Main, {
             params['startDate'] = phpr.Date.getIsoDate(new Date());
         }
 
-        this.form = new this.formWidget(this, id, module, params);
+        if (!this.form) {
+            this.form = new this.formWidget(module, this.subModules);
+        }
+        this.form.init(id, params);
     },
 
     updateCacheData:function() {

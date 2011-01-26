@@ -77,12 +77,14 @@ dojo.declare("phpr.FrontendMessage", null, {
         var moduleUrl  = "#" + data.module + "," + data.projectId + ",id," + data.itemId;
         var currentUrl = window.location.hash;
 
+        console.debug(moduleUrl);
+        console.debug(currentUrl);
         // Be fault tolerant and catch any error if the highlighting of a field does not run.
         try {
             if ('edit' == data.process) {
                 // Check urls
                 if (moduleUrl == currentUrl) {
-                    dojo.publish(phpr.module + '.highlightChanges', [data]);
+                    dojo.publish(phpr.module + '.formProxy', ['highlightChanges', data]);
                 }
             }
         } catch (err) {
@@ -117,7 +119,7 @@ dojo.declare("phpr.FrontendMessage", null, {
 
             // Restore the views
             if (data.module == phpr.module) {
-                dojo.publish(phpr.module + '.setNavigations');
+                //dojo.publish(phpr.module + '.setNavigations');
                 dojo.publish(phpr.module + '.setWidgets');
             }
         }
