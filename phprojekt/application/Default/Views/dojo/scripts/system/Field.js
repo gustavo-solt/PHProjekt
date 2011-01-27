@@ -92,9 +92,12 @@ dojo.declare("phpr.Default.TableForm", null, {
 
         // Create and set the widget
         var widgetClass = this._getFieldClass(field);
-        this._widgets.push(widgetClass);
 
         if (!dojo.byId(rowId)) {
+            // Add the class for future use
+            this._widgets.push(widgetClass);
+
+            // Create row
             var row = this._tables[tableId].insertRow(this._tables[tableId].rows.length);
             row.id  = rowId;
             if (field['type'] == 'hidden') {
@@ -103,7 +106,7 @@ dojo.declare("phpr.Default.TableForm", null, {
             }
 
             // Label
-            var cell = row.insertCell(0);
+            var cell       = row.insertCell(0);
             cell.className = "label";
             cell.appendChild(widgetClass.getLabel());
 
@@ -117,7 +120,6 @@ dojo.declare("phpr.Default.TableForm", null, {
                 cell.appendChild(dijit.byId(widgetClass.buttonsId).domNode);
             }
         }
-        widgetClass = null;
     },
 
     addHighlight:function(field) {

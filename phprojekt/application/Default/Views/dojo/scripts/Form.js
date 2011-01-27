@@ -31,7 +31,6 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
     _id:                0,
     _fieldTemplate:     null,
     _form:              null,
-    _meta:              null,
     _module:            null,
     _presetValuesArray: null,
     _userStore:         null,
@@ -96,7 +95,6 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
         this._deletePermissions = false;
         this._writePermissions  = true;
         this._initDataArray     = [];
-        this._meta              = [];
         this._presetValuesArray = [];
 
         // If the form was updated with a highlight class (from FrontEndMesage)
@@ -174,6 +172,7 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
         //    Checks if I am on the same data record as the user who changes something.
         //    If so, adds the CSS class "highlightChanges" to the form element
         //    (typicall border: 3px solid #ff0000) and overwrites the given value with the new one.
+        var meta       = phpr.DataStore.getMetaData({url: this._url});
         var details    = data.details;
         var detailsLen = details.length;
         for (var i = 0; i < detailsLen; i++) {
@@ -181,12 +180,11 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
             var value = details[i].newValue;
 
             // Search the field
-            for (var k = 0; k < this._meta.length; k++) {
-                if (this._meta[k]['key'] == field) {
-
-                    var fieldData = [];
-                    fieldData[this._meta[k]['key']] = details[i].newValue;
-                    var fieldValues          = this._setFieldValues(this._meta[k], fieldData);
+            for (var k = 0; k < meta.length; k++) {
+                if (meta[k]['key'] == field) {
+                    var fieldData                   = [];
+                    fieldData[meta[k]['key']] = details[i].newValue;
+                    var fieldValues           = this._setFieldValues(meta[k], fieldData);
                     if (fieldValues['type'] == 'upload') {
                         fieldValues['iFramePath'] = this._getUploadIframePath(fieldValues['id']);
                     }
@@ -309,8 +307,8 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
         //    This function processes the form data which is stored in a phpr.DataStore and
         //    renders the actual form according to the received data.
         // Get the data and metadata
-        this._meta = phpr.DataStore.getMetaData({url: this._url});
-        var data   = phpr.clone(phpr.DataStore.getData({url: this._url}));
+        var meta = phpr.DataStore.getMetaData({url: this._url});
+        var data = phpr.clone(phpr.DataStore.getData({url: this._url}));
 
         if (data.length == 0) {
             // Show error
@@ -326,9 +324,9 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
             this._presetValues(data);
 
             // Process each field
-            for (var i = 0; i < this._meta.length; i++) {
+            for (var i = 0; i < meta.length; i++) {
                 // Set the field values
-                var fieldValues = this._setFieldValues(this._meta[i], data[0]);
+                var fieldValues = this._setFieldValues(meta[i], data[0]);
 
                 // Draw the BreadCrumb with the first field value
                 if (i == 0) {

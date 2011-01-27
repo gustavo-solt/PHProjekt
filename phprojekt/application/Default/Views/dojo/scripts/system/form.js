@@ -193,9 +193,9 @@ dojo.declare("phpr.form.FilteringSelect", dijit.form.FilteringSelect, {
         //    Change the function for Highlights all the occurences
 
         // Add greedy when this.highlightMatch=="all"
-        var modifiers = "i"+(this.highlightMatch=="all"?"g":"");
+        var modifiers    = "i" + (this.highlightMatch == "all" ? "g" : "");
         var escapedLabel = this._escapeHtml(label);
-        find = dojo.regexp.escapeString(find); // escape regexp special chars
+        find             = dojo.regexp.escapeString(find); // escape regexp special chars
         var ret = escapedLabel.replace(new RegExp("(^|\\s|\\w)("+ find +")", modifiers),
             '$1<span class="dijitComboBoxHighlightMatch">$2</span>');
         return ret; // Returns String, (almost) valid HTML (entities encoded)
