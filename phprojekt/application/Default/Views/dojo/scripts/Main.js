@@ -311,10 +311,10 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
         // Description:
         //    Set and start the widgets of the module
         phpr.Tree.loadTree();
-        var updateUrl = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSaveMultiple/nodeId/'
-            + phpr.currentProjectId;
-        //alert('new grid');
-        //this.grid = new this.gridWidget(updateUrl, this, phpr.currentProjectId);
+        if (!this.grid) {
+            this.grid = new this.gridWidget(phpr.module);
+        }
+        this.grid.init(phpr.currentProjectId);
 
         //if (!this.form) {
         //    this.form = new this.formWidget(phpr.module, this.subModules);
@@ -1280,9 +1280,9 @@ dojo.declare("phpr.Default.Main", phpr.Component, {
     },
 
     destroyLayout:function() {
-        if (this.grid) {
-            this.grid.destroyLayout();
-        }
+        //if (this.grid) {
+        //    this.grid.destroyLayout();
+        //}
         if (this.form) {
             this.form.destroyLayout();
         }

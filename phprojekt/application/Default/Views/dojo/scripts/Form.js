@@ -241,12 +241,6 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
         this._accessRender  = new phpr.Access(this._module);
     },
 
-    _getNodeId:function() {
-        // Summary:
-        //    Set the node where put the form.
-        return "detailsBox-" + this._module;
-    },
-
     _setUrl:function() {
         // Summary:
         //    Set the url for get the data.
@@ -302,9 +296,9 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
 
     _getFormData:function() {
         // Summary:
-        //    This function renders the form data according to the database manager settings.
+        //    Renders the form data according to the database manager settings.
         // Description:
-        //    This function processes the form data which is stored in a phpr.DataStore and
+        //    Processes the form data which is stored in a phpr.DataStore and
         //    renders the actual form according to the received data.
         // Get the data and metadata
         var meta = phpr.DataStore.getMetaData({url: this._url});
@@ -532,6 +526,12 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
         };
 
         this._fieldTemplate.addRow(fieldValues);
+    },
+
+    _getNodeId:function() {
+        // Summary:
+        //    Set the node where put the form.
+        return "detailsBox-" + this._module;
     },
 
     _setFormContent:function() {

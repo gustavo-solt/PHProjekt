@@ -23,12 +23,44 @@ dojo.provide("phpr.Default.Grid");
 
 dojo.declare("phpr.Default.Grid", phpr.Component, {
     // Summary:
-    //    Class for displaying a PHProjekt grid
+    //    Class for displaying a PHProjekt grid.
     // Description:
-    //    This Class takes care of displaying the list information we receive from our Server in a dojo grid
+    //    This Class takes care of displaying the list information
+    //    that receive from the Server in a dojo grid.
+
+    // General
+    _grid: null,
+    _id:   0,
+    _splitFields: [],
+    _store:         null,
+    _firstExtraCol: null,
+
+    // Cache control
+    _lastId: 0,
+    _cached: [],
+
+    // Actions
+    _comboActions: [],
+    _extraColumns: [],
+
+    // Url
+    _getActionsUrl: null,
+    _updateUrl:     null,
+
+    // Filters
+    _filterField:  [],
+
+    // Constants
+    MODE_XHR:        0,
+    MODE_WINDOW:     1,
+    MODE_CLIENT:     2,
+    TARGET_SINGLE:   0,
+    TARGET_MULTIPLE: 1,
+
+    /****/
+
     main:          null,
     id:            0,
-    updateUrl:     null,
     node:          null,
     nodeId:        null,
     store:         null,
@@ -37,15 +69,14 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
 
     _newRowValues: new Array(),
     _oldRowValues: new Array(),
-    gridData:      new Array(),
     url:           null,
-    getActionsUrl: null,
 
-    extraColumns:  new Array(),
-    comboActions:  new Array(),
-    firstExtraCol: null,
-    gridLayout:    new Array(),
-    splitFields:   new Array(),
+
+    //_extraColumns:  new Array(),
+    //_comboActions:  new Array(),
+
+
+
     _lastTime:     null,
     _active:       false,
     _doubleClick:  false,
@@ -55,472 +86,449 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
     _sortAscCookie:    null,
     _scrollTopCookie:  null,
 
-    // Filters
-    filterField:       new Array(),
+
     _rules:            new Array(),
     _filterCookie:     null,
     _deleteAllFilters: null,
     _filterSeparator:  ';',
     _filterData:       new Array(),
 
-    // Constants
-    MODE_XHR:        0,
-    MODE_WINDOW:     1,
-    MODE_CLIENT:     2,
-    TARGET_SINGLE:   0,
-    TARGET_MULTIPLE: 1,
-
-    constructor:function(/*String*/updateUrl, /*Object*/main, /*Int*/ id) {
+    constructor:function(module) {
         // Summary:
-        //    render the grid on construction
+        //    Construct the grid only one time.
         // Description:
-        //    this function receives the list data from the server and renders the corresponding grid
-        alert('start CONST');
-        this.main          = main;
-        this.id            = id;
-        this.updateUrl     = updateUrl;
-        this._newRowValues = {};
-        this._oldRowValues = {};
-        this.gridData      = {};
-        this.url           = null;
-        this.getActionsUrl = null;
-        this.extraColumns  = new Array();
-        this.comboActions  = new Array();
+        //    Init general vars and call a private function for constructor
+        //    that can be overwritten by other modules.
+        this._grid                 = null;
+        this._getActionsUrl        = null;
+        this._comboActions         = [];
+        this._extraColumns         = [];
+        this._lastId               = 0;
+        this._cached               = [];
 
-        // Set cookies urls
-        if (phpr.isGlobalModule(phpr.module)) {
-            var getHashForCookie = phpr.module;
-        } else {
-            var getHashForCookie = phpr.module + '.' + phpr.currentProjectId;
-        }
-        this._filterCookie     = getHashForCookie + '.filters';
-        this._sortColumnCookie = getHashForCookie + ".grid.sortColumn";
-        this._sortAscCookie    = getHashForCookie + ".grid.sortAsc";
-        this._scrollTopCookie  = getHashForCookie + ".grid.scroll";
+        this._constructor(module);
+        this._setGetExtraActionsUrl();
+        this._setUpdateUrl();
+    },
 
-        this.gridLayout  = new Array();
-        this.filterField = new Array();
+    init:function(id) {
+        // Summary:
+        //    Init the grid for a new render.
 
-        //this.setFilterQuery(this.getFilters());
-        this.setGetExtraActionsUrl();
-        this.setNode();
+        // Reset vars
+        this._id  = id;
+        this._url = null;
 
-        this.setUrl();
+        //this._setFilterQuery(this._getFilters());
 
-        phpr.DataStore.addStore({url: this.url});
-            //phpr.DataStore.requestData({url: this.url, serverQuery: {'filters[]': this._filterData},
-        phpr.DataStore.requestData({url: this.url,
+        this._setUrl();
+
+        phpr.DataStore.addStore({url: this._url});
+            //phpr.DataStore.requestData({url: this._url, serverQuery: {'filters[]': this._filterData},
+        phpr.DataStore.requestData({url: this._url,
             processData: dojo.hitch(this, function() {
-                phpr.DataStore.addStore({url: this.getActionsUrl});
-                phpr.DataStore.requestData({url: this.getActionsUrl, processData: dojo.hitch(this, "onLoaded")});
+                phpr.DataStore.addStore({url: this._getActionsUrl});
+                phpr.DataStore.requestData({url: this._getActionsUrl, processData: dojo.hitch(this, "_getGridData")});
             })
         });
     },
 
-    setUrl:function() {
+    updateData:function() {
         // Summary:
-        //    Set the url for getting the data
+        //    Delete the cache for this grid.
+        this._cached[this._id] = false;
+        phpr.DataStore.deleteData({url: this._url});
+        phpr.DataStore.deleteData({url: this.tagUrl});
+    },
+
+    /************* Private functions *************/
+
+    _constructor:function(module) {
+        // Summary:
+        //    Construct the grid only one time.
         // Description:
-        //    Set the url for getting the data
-        this.url = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonList/nodeId/' + this.id;
+        //    Use this.inherited(arguments) in constructor function produce a dojo error,
+        //    so this function can be easy overwritted whithout that problem.
+
+        // phpr.module is the current module and is used for all the URL.
+        // this._module can be any string that represent the module and is used for all the widgetIds.
+        this._module = module
     },
 
-    getNodeId:function() {
+    _setGetExtraActionsUrl:function() {
         // Summary:
-        //    Set the node Id where put the grid
-        return "gridBox-" + phpr.module;
+        //    Sets the url where to get the grid actions data from.
+        this._getActionsUrl = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonGetExtraActions';
     },
 
-    setNode:function() {
+    _setUpdateUrl:function() {
         // Summary:
-        //    Set the node to put the grid
+        //    Sets the url for save the changes.
+        this._updateUrl = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSaveMultiple/nodeId/'
+            + phpr.currentProjectId;
+    },
+
+    /*
+    _setFilterQuery:function(filters) {
+        // Summary:
+        //    Make the POST values of the filters
         // Description:
-        //    Set the node to put the grid
-        this.node = dijit.byId(this.getNodeId());
-    },
+        //    Make the POST values of the filters if there are any
+        //    Save the used filters in the cookie
+        this._setUrl();
 
-    showTags:function() {
-        // Summary:
-        //    Draw the tags
-        // Description:
-        //    Draw the tags
-        // Get the module tags
-        this.tagUrl = phpr.webpath + 'index.php/Default/Tag/jsonGetTags';
-        phpr.DataStore.addStore({url: this.tagUrl});
-        phpr.DataStore.requestData({url: this.tagUrl, processData: dojo.hitch(this, function() {
-            this.publish("drawTagsBox", [phpr.DataStore.getData({url: this.tagUrl})]);
-          })
-        });
-    },
-
-    useIdInGrid:function() {
-        // Summary:
-        //    Draw the ID on the grid
-        // Description:
-        //    Draw the ID on the grid
-        return true;
-    },
-
-    usePencilForEdit:function() {
-        // Summary:
-        //    Draw the pencil icon for edit the row
-        // Description:
-        //    Draw the pencil icon for edit the row
-        return false;
-    },
-
-    useCheckbox:function() {
-        // Summary:
-        //    Whether to show or not the checkbox in the grid list
-        return true;
-    },
-
-    setGridLayout:function(meta) {
-        // Summary:
-        //    Create the layout using the different field types
-        // Description:
-        //    Create the layout using the different field types
-        //    Also create the filter fields
-        this.gridLayout  = new Array();
-        this.filterField = new Array();
-
-        // Checkbox column
-        if (this.useCheckbox()) {
-            this.gridLayout.push({
-                name:     " ",
-                field:    "gridComboBox",
-                width:    "20px",
-                type:     dojox.grid.cells.Cell,//dojox.grid.cells.Bool,
-                editable: true
-            });
+        // Fix id
+        this._filterData = new Array();
+        for (var f in filters) {
+            this._filterData.push(filters[f].replace('_fixedId', 'id'));
         }
 
-        // Pencil column
-        if (this.usePencilForEdit()) {
-            this.gridLayout.push({
-                name:      " ",
-                field:     "gridEdit",
-                width:     "20px",
-                type:      dojox.grid.cells.Cell,
-                editable:  false,
-                styles:    "vertical-align: middle;",
-                formatter: phpr.grid.formatIcon
-            });
+        var currentCookie = dojo.cookie(this._filterCookie);
+        if (typeof(currentCookie) == 'undefined') {
+            // New cookie
+            if (filters.length > 0) {
+                dojo.cookie(this._filterCookie, filters, {expires: 365});
+            }
+        } else {
+            // Existing cookie
+            if (filters != currentCookie) {
+                if (filters.length > 0) {
+                    dojo.cookie(this._filterCookie, filters, {expires: 365});
+                } else {
+                    dojo.cookie(this._filterCookie, filters);
+                }
+            }
         }
+    },
 
-        // Id column
-        if (this.useIdInGrid()) {
-            this.gridLayout.push({
-                name:     "ID",
-                field:    "id",
-                width:    "40px",
-                type:      dojox.grid.cells.Cell,
-                editable: false,
-                styles:   "text-align: right;"
-            });
-            this.filterField.push({
-                key:   '_fixedId',
-                label: 'ID',
-                type:  'text'
-            });
-        }
-
-        // Module columns
-        for (var i = 0; i < meta.length; i++) {
-            switch(meta[i]["type"]) {
-                case 'selectbox':
-                    var range     = meta[i]["range"];
-                    var opts      = new Array();
-                    var vals      = new Array();
-                    var maxLength = meta[i]["key"].length;
-                    for (var j in range){
-                        vals.push(range[j]["id"]);
-                        opts.push(range[j]["name"]);
-                        if (range[j]["name"].length > maxLength) {
-                            maxLength = range[j]["name"].length;
-                        }
-                    }
-                    this.gridLayout.push({
-                        name:     meta[i]["label"],
-                        field:    meta[i]["key"],
-                        styles:   "text-align: center;",
-                        type:     phpr.grid.cells.Select,
-                        width:    (maxLength * 8) + 'px',
-                        options:  opts,
-                        values:   vals,
-                        editable: meta[i]['readOnly'] ? false : true
-                    });
-                    this.filterField.push({
-                        key:     meta[i]["key"],
-                        label:   meta[i]["label"],
-                        type:    'selectbox',
-                        options: range
-                    });
-                    break;
-
-                case 'date':
-                    this.gridLayout.push({
-                        width:         '90px',
-                        name:          meta[i]["label"],
-                        field:         meta[i]["key"],
-                        styles:        "text-align: center;",
-                        type:          phpr.grid.cells.DateTextBox,
-                        promptMessage: 'yyyy-MM-dd',
-                        constraint:    {formatLength: 'short', selector: "date", datePattern:'yyyy-MM-dd'},
-                        editable:      meta[i]['readOnly'] ? false : true
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"],
-                        label: meta[i]["label"],
-                        type:  'date'
-                    });
-                    break;
-
-                case 'datetime':
-                    this.gridLayout.push({
-                        width:         '90px',
-                        name:          meta[i]["label"] + ' (' + phpr.nls.get('Date') + ')',
-                        field:         meta[i]["key"] + '_forDate',
-                        styles:        "text-align: center;",
-                        type:          phpr.grid.cells.DateTextBox,
-                        promptMessage: 'yyyy-MM-dd',
-                        constraint:    {formatLength: 'short', selector: "date", datePattern:'yyyy-MM-dd'},
-                        editable:      meta[i]['readOnly'] ? false : true
-                    });
-                    this.gridLayout.push({
-                        width:    '90px',
-                        name:     meta[i]["label"] + ' (' + phpr.nls.get('Hour') + ')',
-                        field:    meta[i]["key"] + '_forTime',
-                        styles:   "text-align: center;",
-                        type:     phpr.grid.cells.Time,
-                        editable: meta[i]['readOnly'] ? false : true
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"] + '_forDate',
-                        label: meta[i]["label"] + ' (' + phpr.nls.get('Date') + ')',
-                        type:  'date'
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"] + '_forTime',
-                        label: meta[i]["label"] + ' (' + phpr.nls.get('Hour') + ')',
-                        type:  'time'
-                    });
-                    break;
-
-                case 'percentage':
-                    this.gridLayout.push({
-                        width:    '90px',
-                        name:     meta[i]["label"],
-                        field:    meta[i]["key"],
-                        styles:   "text-align: center;",
-                        type:     phpr.grid.cells.Percentage,
-                        editable: meta[i]['readOnly'] ? false : true
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"],
-                        label: meta[i]["label"],
-                        type:  'text'
-                    });
-                    break;
-
-                case 'time':
-                    this.gridLayout.push({
-                        width:    '60px',
-                        name:     meta[i]["label"],
-                        field:    meta[i]["key"],
-                        styles:   "text-align: center;",
-                        type:     phpr.grid.cells.Time,
-                        editable: meta[i]['readOnly'] ? false : true
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"],
-                        label: meta[i]["label"],
-                        type:  'time'
-                    });
-                    break;
-
-                case 'upload':
-                    this.gridLayout.push({
-                        width:     'auto',
-                        name:      meta[i]["label"],
-                        field:     meta[i]["key"],
-                        styles:    "text-align: center;",
-                        type:      dojox.grid.cells._Widget,
-                        formatter: phpr.grid.formatUpload,
-                        editable:  false
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"],
-                        label: meta[i]["label"],
-                        type:  'text'
-                    });
-                    break;
-
-                case 'display':
-                    var range = meta[i]["range"];
-                    // Has it values for translating an Id into a descriptive String?
-                    if (range[0] != undefined) {
-                        // Yes
-                        var opts      = new Array();
-                        var vals      = new Array();
-                        var maxLength = meta[i]["key"].length;
-                        for (var j in range){
-                            vals.push(range[j]["id"]);
-                            opts.push(range[j]["name"]);
-                            if (range[j]["name"].length > maxLength) {
-                                maxLength = range[j]["name"].length;
-                            }
-                        }
-                        this.gridLayout.push({
-                            name:     meta[i]["label"],
-                            field:    meta[i]["key"],
-                            styles:   "text-align: center;",
-                            type:     phpr.grid.cells.Select,
-                            width:    (maxLength * 8) + 'px',
-                            options:  opts,
-                            values:   vals,
-                            editable: false
-                        });
-                        this.filterField.push({
-                            key:     meta[i]["key"],
-                            label:   meta[i]["label"],
-                            type:    'selectbox',
-                            options: range
-                        });
-                    } else {
-                        // No
-                        this.gridLayout.push({
-                            width:    'auto',
-                            name:     meta[i]["label"],
-                            field:    meta[i]["key"],
-                            type:     phpr.grid.cells.Text,
-                            styles:   "text-align: center;",
-                            editable: false
-                        });
-                        this.filterField.push({
-                            key:   meta[i]["key"],
-                            label: meta[i]["label"],
-                            type: 'text'
-                        });
-                    }
-                    break;
-
-                case 'text':
-                    this.gridLayout.push({
-                        width:    'auto',
-                        name:     meta[i]["label"],
-                        field:    meta[i]["key"],
-                        type:     phpr.grid.cells.Text,
-                        styles:   "",
-                        editable: meta[i]['readOnly'] ? false : true
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"],
-                        label: meta[i]["label"],
-                        type:  'text'
-                    });
-                    break;
-
-                case 'textarea':
-                    this.gridLayout.push({
-                        width:    'auto',
-                        name:     meta[i]["label"],
-                        field:    meta[i]["key"],
-                        type:     phpr.grid.cells.Textarea,
-                        styles:   "",
-                        editable: false
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"],
-                        label: meta[i]["label"],
-                        type: 'text'
-                    });
-                    break;
-
-                case 'rating':
-                    var max       = parseInt(meta[i]["range"]["id"]);
-                    var opts      = new Array();
-                    var vals      = new Array();
-                    var maxLength = meta[i]["key"].length;
-                    for (var j = 1; j <= max; j++){
-                        vals.push(j);
-                        opts.push(j);
-                    }
-                    this.gridLayout.push({
-                        name:     meta[i]["label"],
-                        field:    meta[i]["key"],
-                        styles:   "text-align: center;",
-                        type:     phpr.grid.cells.Select,
-                        width:    (maxLength * 8) + 'px',
-                        options:  opts,
-                        values:   vals,
-                        editable: meta[i]['readOnly'] ? false : true
-                    });
-                    this.filterField.push({
-                        key:     meta[i]["key"],
-                        label:   meta[i]["label"],
-                        type:    'rating',
-                        max:     max
-                    });
-                    break;
-                default:
-                    this.gridLayout.push({
-                        width:    'auto',
-                        name:     meta[i]["label"],
-                        field:    meta[i]["key"],
-                        type:     dojox.grid.cells.Cell,//phpr.grid.cells.Text,
-                        styles:   "",
-                        editable: meta[i]['readOnly'] ? false : true
-                    });
-                    this.filterField.push({
-                        key:   meta[i]["key"],
-                        label: meta[i]["label"],
-                        type:  'text'
-                    });
-                    break;
+    _getFilters:function() {
+        // Summary:
+        //    Returns the filters saved in the cookie
+        // Description:
+        //    Returns the filters saved in the cookie,
+        //    clean the array for return only valid filters
+        var filters = dojo.cookie(this._filterCookie);
+        if (filters == undefined) {
+            filters = new Array();
+        } else {
+            filters = filters.split(",");
+            for (var i in filters) {
+                var data  = filters[i].split(this._filterSeparator, 4);
+                if (!data[0] || !data[1] || !data[2] || !data[3]) {
+                    filters.splice(i, 1);
+                }
             }
         }
 
-        if (this.extraColumns.length > 0) {
-            this.firstExtraCol = this.gridLayout.length;
+        return filters;
+    },
+    */
+
+    _setUrl:function() {
+        // Summary:
+        //    Set the url for getting the data.
+        this._url = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonList/nodeId/' + this._id;
+    },
+
+    _getGridData:function() {
+        // Summary:
+        //    Renders the grid data according to the database manager settings.
+        // Description:
+        //    Processes the grid data and render a dojox.grid and the filters.
+        // Layout of the grid
+        var meta = phpr.DataStore.getMetaData({url: this._url});
+        if (meta.length == 0) {
+            alert('NO DATA');
+            /*
+            // Create an "ADD" button
+            this.node.set('content', phpr.drawEmptyMessage('There are no entries on this level'));
+            var buttonAdd = dojo.byId('newEntry');
+            if (buttonAdd && buttonAdd.style.display != 'none') {
+                // There is an 'add' button, so the user have create access
+                var params = {
+                    id:        'gridNewEntry',
+                    label:     phpr.nls.get('Add a new item'),
+                    showLabel: true,
+                    baseClass: "positive",
+                    iconClass: 'add'
+                };
+                var button = new dijit.form.Button(params);
+                this.connect.push(dojo.connect(button, "onClick", dojo.hitch(this, function() {
+                    this.main.newEntry();
+                })));
+                this.node.domNode.appendChild(button.domNode);
+                dojo.addClass(this.node.domNode, 'addButtonText');
+            }
+            */
+        } else {
+            // Data of the grid
+            if (!this._grid) {
+                //dojo.removeClass(this.node.domNode, 'addButtonText');
+                this._processActions();
+
+                // Get datetime keys
+                this._splitFields = [];
+                for (var i = 0; i < meta.length; i++) {
+                    if (meta[i]['type'] == 'datetime') {
+                        if (!this._splitFields['datetime']) {
+                            this._splitFields['datetime'] = [];
+                        }
+                        this._splitFields['datetime'].push(meta[i]['key']);
+                    }
+                }
+
+                var gridData = this._processData();
+
+                // Store
+                var store = new dojo.data.ItemFileWriteStore({
+                    data:         gridData,
+                    clearOnClose: true
+                });
+
+                // Set grid layout
+                var gridLayout = this._setGridLayout(meta);
+
+                console.debug(gridLayout);
+                var type   = this._useCheckbox() ? "phpr.grid._View" : "dojox.grid._View";
+                this._grid = new dojox.grid.DataGrid({
+                    store:     store,
+                    structure: [{type:        type,
+                                 rows:        gridLayout,
+                                 defaultCell: {
+                                    editable: true,
+                                    type:     phpr.grid.cells.Text,
+                                    styles:   'text-align: left;'
+                                }}]
+                });
+
+                this._setClickEdit();
+
+                dojo.connect(this._grid, "onCellClick", dojo.hitch(this, "_cellClick"));
+                /*
+                this.connect.push(dojo.connect(this._grid, "onApplyCellEdit", dojo.hitch(this, "cellEdited")));
+                this.connect.push(dojo.connect(this._grid, "onStartEdit", dojo.hitch(this, "checkCanEdit")));
+                this.connect.push(dojo.connect(this._grid, "onHeaderCellClick", this, "saveGridSorting"));
+                this.connect.push(dojo.connect(this._grid.views.views[0].scrollboxNode, "onscroll", this, "saveGridScroll"));
+                this.connect.push(dojo.connect(this._grid, "onCellMouseOver", dojo.hitch(this, "showTooltip")));
+                this.connect.push(dojo.connect(this._grid, "onCellMouseOut", dojo.hitch(this, "hideTooltip")));
+                */
+
+                /*
+                if (this._useCheckbox()) {
+                    this.render(["phpr.Default.template", "gridActions.html"], this._grid.views.views[0].gridActions, {
+                        module:        phpr.module,
+                        actions:       this._comboActions,
+                        checkAllTxt:   phpr.nls.get('Check All'),
+                        uncheckAllTxt: phpr.nls.get('Uncheck All')
+                    });
+
+                    this.connect.push(dojo.connect(dojo.byId("gridComboAction"), "onchange", this, "doComboAction"));
+                }
+                */
+
+                console.debug(this._getNodeId());
+        		dojo.byId(this._getNodeId()).appendChild(this._grid.domNode);
+                this._grid.startup();
+                console.debug('aa');
+                //this.loadGridSorting();
+                //this.loadGridScroll();
+            } else {
+                // Update the store if the last project is different than the current one
+                // or if the data was updated with "updateData()"
+                if (this._id != this._lastId || !this._cached[this._id]) {
+                    var gridData = this._processData();
+
+                    // Store
+                    var store = new dojo.data.ItemFileWriteStore({
+                        data:         gridData,
+                        clearOnClose: true
+                    });
+
+                    //this._grid.store.close();
+                    this._grid.setStore(store);
+                }
+            }
+
+            // Set the last id used and _cached to false
+            this._lastId           = this._id;
+            this._cached[this._id] = true;
+        }
+
+        // Render export Button
+        this._setExportButton(meta);
+
+
+        // Filters
+        //this.setFilterButton(meta);
+        //this.manageFilters();
+
+        // Draw the tags
+        //this.showTags();
+    },
+
+    _processActions:function() {
+        // Summary:
+        //    Processes the info of the grid actions and fills the appropriate arrays.
+        if (this._comboActions.length == 0 && this._extraColumns.length == 0) {
+            console.debug('_processActions');
+            var actions = phpr.DataStore.getData({url: this._getActionsUrl});
+
+            this._comboActions[0]          = [];
+            this._comboActions[0]['key']   = null;
+            this._comboActions[0]['label'] = phpr.nls.get('With selected');
+            this._comboActions[0]['class'] = null;
+
+            for (var i = 0; i < actions.length; i ++) {
+                var actionData      = [];
+                actionData['key']   = actions[i]['action'] + '|' + actions[i]['mode'];
+                actionData['label'] = actions[i]['label'];
+                actionData['class'] = actions[i]['class'];
+                switch (actions[i]['target']) {
+                    case this.TARGET_SINGLE:
+                    default:
+                        var next                 = this._extraColumns.length;
+                        this._extraColumns[next] = actionData;
+                        break;
+                    case this.TARGET_MULTIPLE:
+                        var next                 = this._comboActions.length;
+                        this._comboActions[next] = actionData;
+                        break;
+                }
+            }
+        }
+    },
+
+    _processData:function() {
+        // Set a new data set for this id
+        var gridData = {items: []};
+        var content  = phpr.clone(phpr.DataStore.getData({url: this._url}));
+        for (var i in content) {
+            if (this._usePencilForEdit()) {
+                content[i]['gridEdit'] = 'editButton || '
+                    + phpr.nls.get('Open this item in the form to edit it');
+            }
+
+            // Split a value in two values
+            for (var index in content[i]) {
+                // For datetime values
+                if (phpr.inArray(index, this._splitFields['datetime'])) {
+                    var key         = index + '_forDate';
+                    var value       = content[i][index].substr(0, 10);
+                    content[i][key] = value;
+
+                    var key         = index + '_forTime';
+                    var value       = content[i][index].substr(11, 5);
+                    content[i][key] = value;
+                }
+            }
+
+            // Extra Columns for current module
+            for (var indexCol in this._extraColumns) {
+                var key         = this._extraColumns[indexCol]['key'];
+                var divClass    = this._extraColumns[indexCol]['class'];
+                var label       = this._extraColumns[indexCol]['label'];
+                content[i][key] = divClass + ' || ' + phpr.nls.get(label);
+            };
+
+            gridData.items.push(content[i]);
+        }
+
+        return gridData;
+    },
+
+    _usePencilForEdit:function() {
+        // Summary:
+        //    Draw the pencil icon for edit the row.
+        return false;
+    },
+
+    _setGridLayout:function(meta) {
+        // Summary:
+        //    Create the layout using the different field types and set the _filterField.
+        var layout = new phpr.Default.GridLayout();
+
+        // Checkbox column
+        if (this._useCheckbox()) {
+            layout.addCheckField();
+        }
+
+        // Pencil column
+        if (this._usePencilForEdit()) {
+            layout.addEditField();
+        }
+
+        // Id column
+        if (this._useIdInGrid()) {
+            layout.addIdField();
+        }
+
+        // Module columns
+        layout.addModuleFields(meta);
+
+        if (this._extraColumns.length > 0) {
+            this._firstExtraCol = layout.gridLayout.length;
         }
 
         // Extra Columns for current module
-        for (var i in this.extraColumns) {
-            this.gridLayout.push({
-                name:      " ",
-                field:     this.extraColumns[i]['key'],
-                width:     "20px",
-                type:      dojox.grid.cells.Cell,
-                editable:  false,
-                styles:    "vertical-align: middle;"
-                //formatter: phpr.grid.formatIcon
-            });
+        for (var i in this._extraColumns) {
+            layout.addExtraField(this._extraColumns[i]['key']);
         }
 
-        this.customGridLayout(meta);
+        var tmpData = layout.gridLayout;
+        // Custom layout?
+        this._customGridLayout(tmpData);
+
+        // Return only the values, remove the keys
+        var gridLayout = [];
+        for (var i in tmpData) {
+            gridLayout.push(tmpData[i]);
+            // Set _filterField array
+            this._filterField[i] = {
+                key:     tmpData[i].filterkey,
+                label:   tmpData[i].filterLabel,
+                type:    tmpData[i].filterType,
+                options: tmpData[i].filterOptions
+            };
+        }
+
+        layout  = null;
+        tmpData = [];
+
+        return gridLayout;
     },
 
-    customGridLayout:function(meta) {
+    _useCheckbox:function() {
         // Summary:
-        //    Custom functions for the layout
-        // Description:
-        //    Custom functions for the layout
+        //    Whether to show or not the checkbox in the grid list.
+        return true;
     },
 
-    setClickEdit:function() {
+    _useIdInGrid:function() {
         // Summary:
-        //    Set the edit type
-        // Description:
-        //    Set if each field is ediatable with one or two clicks
-        this.grid.singleClickEdit = false;
+        //    Draw the ID on the grid.
+        return true;
     },
 
-    setExportButton:function(meta) {
+    _customGridLayout:function(gridLayout) {
         // Summary:
-        //    Set the export button
-        // Description:
-        //    If there is any row, render export Button
+        //    Custom functions for the layout.
+    },
+
+    _setClickEdit:function() {
+        // Summary:
+        //    Set if each field is ediatable with one or two clicks.
+        this._grid.singleClickEdit = false;
+    },
+
+    _getNodeId:function() {
+        // Summary:
+        //    Set the node Id where put the grid.
+        return "gridBox-" + this._module;
+    },
+
+    _setExportButton:function(meta) {
+        // Summary:
+        //    If there is any row, render an export Button.
         if (meta.length > 0) {
             var button = dijit.byId('exportCsvButton');
             if (!button) {
@@ -541,6 +549,179 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
             this.connect.push(dojo.connect(button, "onClick", dojo.hitch(this, "exportData")));
         }
     },
+
+    _cellClick:function(e) {
+        // Summary:
+        //    This function process a click on a 'row'.
+        // Description:
+        //    As soon as a Pencil icon or an extra action cell is clicked the corresponding action is processed.
+        //    If the click is on other cell, just open the form.
+        var useCheckBox      = this._useCheckbox();
+        var usePencilForEdit = this._usePencilForEdit();
+        var index            = e.cellIndex;
+        var openForm         = false;
+        if ((useCheckBox && usePencilForEdit && index == 1) ||
+            (!useCheckBox && usePencilForEdit && index == 0) ||
+            (this._firstExtraCol && index >= this._firstExtraCol)) {
+            if ((useCheckBox && index == 1) || (!useCheckBox && index == 0)) {
+                // Click on the pencil
+                openForm = true;
+            } else {
+                var key    = e['cell']['field'];
+                var temp   = key.split('|');
+                var action = temp[0];
+                var mode   = parseInt(temp[1]);
+                var item   = this._grid.getItem(e.rowIndex);
+                var rowId  = this._grid.store.getValue(item, 'id');
+                // Click on an extra action button
+                this._doAction(action, rowId, mode, this.TARGET_SINGLE);
+            }
+        } else if (useCheckBox && index == 0) {
+            // Click on the checkbox, do nothing
+        } else {
+            // Click on the row
+            openForm = true;
+        }
+
+        // Open the form
+        if (openForm) {
+            var item  = this._grid.getItem(e.rowIndex);
+            var rowId = this._grid.store.getValue(item, 'id');
+            this._getLinkForEdit(rowId);
+        }
+    },
+
+    _doAction:function(action, ids, mode, target) {
+        // Summary:
+        //    Performs an specific action with one or more items of the module,
+        //    called by an extra grid icon or the combo.
+        if (target == this.TARGET_SINGLE) {
+            var idUrl = 'id';
+        } else if (target == this.TARGET_MULTIPLE) {
+            var idUrl = 'ids';
+        }
+
+        var actionUrl = this._getDoActionUrl(action, idUrl, ids);
+
+        if (mode == this.MODE_XHR) {
+            // Call the requested action with the selected ids and wait for a response
+            phpr.send({
+                url:       actionUrl,
+                onSuccess: dojo.hitch(this, function(data) {
+                    new phpr.handleResponse('serverFeedback', data);
+                    if (data.type == 'success') {
+                        if (target == this.TARGET_MULTIPLE) {
+                            dojo.publish(phpr.module + '.updateCacheData');
+                            dojo.publish(phpr.module + '.reload');
+                        }
+                    }
+                })
+            });
+        } else if (mode == this.MODE_WINDOW) {
+            // Call the requested action with the selected ids in a new windows
+            window.open(actionUrl + '/csrfToken/' + phpr.csrfToken);
+        } else if (mode == this.MODE_CLIENT) {
+            // Call the requested action with the selected ids in the main
+            //eval("this.main." + action + "('" + ids + "')");
+        }
+
+        if (this._useCheckbox()) {
+            dojo.byId("gridComboAction").selectedIndex = 0;
+        }
+    },
+
+    _getDoActionUrl:function(action, idUrl, ids) {
+        // Summary:
+        //    Isolated code for easy customization,
+        //    this function returns the URL to be called for the requested action.
+        return phpr.webpath + 'index.php/' + phpr.module + '/index/' + action + '/nodeId/' + phpr.currentProjectId
+            + '/' + idUrl + '/' + ids;
+    },
+
+    _getLinkForEdit:function(id) {
+        // Summary:
+        //    Return the link for open the form.
+        dojo.publish(phpr.module + '.setUrlHash', [phpr.module, id]);
+    },
+
+/*********************/
+
+
+    lllconstructor:function(/*String*/updateUrl, /*Object*/main, /*Int*/id) {
+        // Summary:
+        //    Render the grid on construction
+        // Description:
+        //    this function receives the list data from the server and renders the corresponding grid
+        alert('start CONST');
+        this.main          = main;
+        //this.id            = id;
+        this.updateUrl     = updateUrl;
+        this._newRowValues = {};
+        this._oldRowValues = {};
+        this.gridData      = {};
+
+
+        this._extraColumns  = new Array();
+        this._comboActions  = new Array();
+
+        // Set cookies urls
+        if (phpr.isGlobalModule(phpr.module)) {
+            var getHashForCookie = phpr.module;
+        } else {
+            var getHashForCookie = phpr.module + '.' + phpr.currentProjectId;
+        }
+        this._filterCookie     = getHashForCookie + '.filters';
+        this._sortColumnCookie = getHashForCookie + ".grid.sortColumn";
+        this._sortAscCookie    = getHashForCookie + ".grid.sortAsc";
+        this._scrollTopCookie  = getHashForCookie + ".grid.scroll";
+
+        this.gridLayout  = new Array();
+        this._filterField = new Array();
+
+        //_this.setFilterQuery(this.getFilters());
+        this._setGetExtraActionsUrl();
+        this.setNode();
+
+        this._setUrl();
+
+        phpr.DataStore.addStore({url: this._url});
+            //phpr.DataStore.requestData({url: this._url, serverQuery: {'filters[]': this._filterData},
+        phpr.DataStore.requestData({url: this._url,
+            processData: dojo.hitch(this, function() {
+                phpr.DataStore.addStore({url: this._getActionsUrl});
+                phpr.DataStore.requestData({url: this._getActionsUrl, processData: dojo.hitch(this, "_getGridData")});
+            })
+        });
+    },
+
+
+    /*
+    setNode:function() {
+        // Summary:
+        //    Set the node to put the grid
+        // Description:
+        //    Set the node to put the grid
+        this.node = dijit.byId(this.getNodeId());
+    },
+    */
+
+    showTags:function() {
+        // Summary:
+        //    Draw the tags
+        // Description:
+        //    Draw the tags
+        // Get the module tags
+        this.tagUrl = phpr.webpath + 'index.php/Default/Tag/jsonGetTags';
+        phpr.DataStore.addStore({url: this.tagUrl});
+        phpr.DataStore.requestData({url: this.tagUrl, processData: dojo.hitch(this, function() {
+            this.publish("drawTagsBox", [phpr.DataStore.getData({url: this.tagUrl})]);
+          })
+        });
+    },
+
+
+
+
 
     setFilterButton:function(meta) {
         // Summary:
@@ -623,14 +804,14 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         //    Change the rule and value fields depend on the selected field type
         var rulesOptions  = new Array();
 
-        for (var i in this.filterField) {
-            if (this.filterField[i].key == field) {
-                switch(this.filterField[i].type) {
+        for (var i in this._filterField) {
+            if (this._filterField[i].key == field) {
+                switch(this._filterField[i].type) {
                     case 'selectbox':
                         var input = '<select name="filterValue" dojoType="phpr.form.FilteringSelect" autocomplete="false">';
-                        for (var j in this.filterField[i].options) {
-                            input += '<option value="' + this.filterField[i].options[j].id + '">'
-                                + this.filterField[i].options[j].name + '</option>';
+                        for (var j in this._filterField[i].options) {
+                            input += '<option value="' + this._filterField[i].options[j].id + '">'
+                                + this._filterField[i].options[j].name + '</option>';
                         }
                         input       += '</select>';
                         rulesOptions = new Array('equal', 'notEqual');
@@ -647,7 +828,7 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
                         break;
                     case 'rating':
                         var input = '<select name="filterValue" dojoType="phpr.form.FilteringSelect" autocomplete="false">';
-                        for (var j = 1; j <= this.filterField[i].max; j++) {
+                        for (var j = 1; j <= this._filterField[i].max; j++) {
                             input += '<option value="' + j + '">' + j + '</option>';
                         }
                         input       += '</select>';
@@ -701,9 +882,9 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         } else {
             // Check for other date or times values
             var type = null;
-            for (var i in this.filterField) {
-                if (this.filterField[i].key == sendData['filterField']) {
-                    type = this.filterField[i].type;
+            for (var i in this._filterField) {
+                if (this._filterField[i].key == sendData['filterField']) {
+                    type = this._filterField[i].type;
                     break;
                 }
             }
@@ -751,72 +932,22 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         this.sendFilterRequest(filters);
     },
 
-    setFilterQuery:function(filters) {
-        // Summary:
-        //    Make the POST values of the filters
-        // Description:
-        //    Make the POST values of the filters if there are any
-        //    Save the used filters in the cookie
-        this.setUrl();
 
-        // Fix id
-        this._filterData = new Array();
-        for (var f in filters) {
-            this._filterData.push(filters[f].replace('_fixedId', 'id'));
-        }
-
-        var currentCookie = dojo.cookie(this._filterCookie);
-        if (typeof(currentCookie) == 'undefined') {
-            // New cookie
-            if (filters.length > 0) {
-                dojo.cookie(this._filterCookie, filters, {expires: 365});
-            }
-        } else {
-            // Existing cookie
-            if (filters != currentCookie) {
-                if (filters.length > 0) {
-                    dojo.cookie(this._filterCookie, filters, {expires: 365});
-                } else {
-                    dojo.cookie(this._filterCookie, filters);
-                }
-            }
-        }
-    },
 
     sendFilterRequest:function(filters) {
         // Summary:
         //    Make the request to the server
         // Description:
         //    Make the request to the server
-        this.setFilterQuery(filters);
+        this._setFilterQuery(filters);
 
-        phpr.DataStore.deleteData({url: this.url});
-        phpr.DataStore.addStore({url: this.url});
-        phpr.DataStore.requestData({url: this.url, serverQuery: {'filters[]': this._filterData},
-            processData: dojo.hitch(this, "onLoaded")});
+        phpr.DataStore.deleteData({url: this._url});
+        phpr.DataStore.addStore({url: this._url});
+        phpr.DataStore.requestData({url: this._url, serverQuery: {'filters[]': this._filterData},
+            processData: dojo.hitch(this, "_getGridData")});
     },
 
-    getFilters:function() {
-        // Summary:
-        //    Returns the filters saved in the cookie
-        // Description:
-        //    Returns the filters saved in the cookie,
-        //    clean the array for return only valid filters
-        var filters = dojo.cookie(this._filterCookie);
-        if (filters == undefined) {
-            filters = new Array();
-        } else {
-            filters = filters.split(",");
-            for (var i in filters) {
-                var data  = filters[i].split(this._filterSeparator, 4);
-                if (!data[0] || !data[1] || !data[2] || !data[3]) {
-                    filters.splice(i, 1);
-                }
-            }
-        }
 
-        return filters;
-    },
 
     drawFilters:function(filters) {
         // Summary:
@@ -829,7 +960,7 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
 
         // Message
         if (dijit.byId('filterLabelDiv')) {
-            if (this.filterField.length > 0) {
+            if (this._filterField.length > 0) {
                 dijit.byId('filterLabelDiv').set('content', phpr.nls.get("Add a filter"));
             } else {
                 dijit.byId('filterLabelDiv').set('content',
@@ -841,14 +972,14 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         var fieldDiv = null;
         if (fieldDiv = dojo.byId('filterFieldDiv')) {
             if (fieldDiv.style.display == 'none') {
-                if (this.filterField.length > 0) {
+                if (this._filterField.length > 0) {
                     var fieldSelect = '<select name="filterField" dojoType="phpr.form.FilteringSelect" '
                         + 'autocomplete="false" onchange="dojo.publish(\'' + phpr.module + '.gridProxy\', '
                         + '[\'changeInputFilter\', this.value]); return false;">';
                     fieldSelect += '<option value=""></option>';
-                    for (var i in this.filterField) {
-                        fieldSelect += '<option value="' + this.filterField[i].key + '">'
-                            + this.filterField[i].label + '</option>';
+                    for (var i in this._filterField) {
+                        fieldSelect += '<option value="' + this._filterField[i].key + '">'
+                            + this._filterField[i].label + '</option>';
                     }
                     fieldSelect += '</select>';
                     dojo.style(fieldDiv, 'display', 'inline');
@@ -869,7 +1000,7 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
                 if (first) {
                     var operator = false;
                     first        = 0;
-                    if (this.filterField.length > 0 && dojo.byId('filterOperatorDiv')) {
+                    if (this._filterField.length > 0 && dojo.byId('filterOperatorDiv')) {
                         dojo.style(dojo.byId('filterOperatorDiv'), 'display', 'inline');
                     }
                 } else {
@@ -879,14 +1010,14 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
                 // Label and value
                 var label = data[1];
                 var value = data[3];
-                for (var j in this.filterField) {
-                    if (this.filterField[j].key == data[1]) {
-                        label = this.filterField[j].label;
-                        switch(this.filterField[j].type) {
+                for (var j in this._filterField) {
+                    if (this._filterField[j].key == data[1]) {
+                        label = this._filterField[j].label;
+                        switch(this._filterField[j].type) {
                             case 'selectbox':
-                                for (var o in this.filterField[j].options) {
-                                    if (this.filterField[j].options[o].id == data[3]) {
-                                        value = this.filterField[j].options[o].name;
+                                for (var o in this._filterField[j].options) {
+                                    if (this._filterField[j].options[o].id == data[3]) {
+                                        value = this._filterField[j].options[o].name;
                                         break;
                                     }
                                 }
@@ -937,150 +1068,12 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         }
     },
 
-    onLoaded:function(dataContent) {
-        // Summary:
-        //    This function is called when the grid is loaded
-        // Description:
-        //    It takes care of setting the grid headers to the right format, displays the contextmenu
-        //    and renders the filter for the grid
-        alert('end cons');
-        // Layout of the grid
-        var meta = phpr.DataStore.getMetaData({url: this.url});
-        if (meta.length == 0) {
-            // Create an "ADD" button
-            this.node.set('content', phpr.drawEmptyMessage('There are no entries on this level'));
-            var buttonAdd = dojo.byId('newEntry');
-            if (buttonAdd && buttonAdd.style.display != 'none') {
-                // There is an 'add' button, so the user have create access
-                var params = {
-                    id:        'gridNewEntry',
-                    label:     phpr.nls.get('Add a new item'),
-                    showLabel: true,
-                    baseClass: "positive",
-                    iconClass: 'add'
-                };
-                var button = new dijit.form.Button(params);
-                this.connect.push(dojo.connect(button, "onClick", dojo.hitch(this, function() {
-                    this.main.newEntry();
-                })));
-                this.node.domNode.appendChild(button.domNode);
-                dojo.addClass(this.node.domNode, 'addButtonText');
-            }
-        } else {
-            //dojo.removeClass(this.node.domNode, 'addButtonText');
-            this.processActions();
-
-            // Get datetime keys
-            this.splitFields = new Array();
-            for (var i = 0; i < meta.length; i++) {
-                if (meta[i]['type'] == 'datetime') {
-                    if (!this.splitFields['datetime']) {
-                        this.splitFields['datetime'] = new Array();
-                    }
-                    this.splitFields['datetime'].push(meta[i]['key']);
-                }
-            }
-
-            // Data of the grid
-            this.gridData = {
-                items: []
-            };
-            var content = phpr.clone(phpr.DataStore.getData({url: this.url}));
-            for (var i in content) {
-                if (this.usePencilForEdit()) {
-                    content[i]['gridEdit'] = 'editButton || ' + phpr.nls.get('Open this item in the form to edit it');
-                }
-
-                // Split a value in two values
-                for (var index in content[i]) {
-                    // For datetime values
-                    if (phpr.inArray(index, this.splitFields['datetime'])) {
-                        var key         = index + '_forDate';
-                        var value       = content[i][index].substr(0, 10);
-                        content[i][key] = value;
-
-                        var key         = index + '_forTime';
-                        var value       = content[i][index].substr(11, 5);
-                        content[i][key] = value;
-                    }
-                }
-
-                // Extra Columns for current module
-                for (var indexCol in this.extraColumns) {
-                    var key         = this.extraColumns[indexCol]['key'];
-                    var divClass    = this.extraColumns[indexCol]['class'];
-                    var label       = this.extraColumns[indexCol]['label'];
-                    content[i][key] = divClass + ' || ' + phpr.nls.get(label);
-                };
-                this.gridData.items.push(content[i]);
-            }
-
-            alert('start store');
-            // Store
-            this.store = new dojo.data.ItemFileWriteStore({data: this.gridData});
-            this.store.clearOnClose = true;
-
-            // Render export Button
-            this.setExportButton(meta);
-
-            // Set grid layout
-            this.setGridLayout(meta);
-
-            var type  = this.useCheckbox() ? "phpr.grid._View" : "dojox.grid._View";
-            this.grid = new dojox.grid.DataGrid({
-                store:     this.store,
-                structure: [{type: type,
-                            defaultCell: {
-                                editable: true,
-                                type:     phpr.grid.cells.Text,
-                                styles:   'text-align: left;'
-                            },
-                            rows: this.gridLayout
-                }]
-            });
-
-            this.setClickEdit();
-
-            this.connect.push(dojo.connect(this.grid, "onCellClick", dojo.hitch(this, "cellClick")));
-            /*
-            this.connect.push(dojo.connect(this.grid, "onApplyCellEdit", dojo.hitch(this, "cellEdited")));
-            this.connect.push(dojo.connect(this.grid, "onStartEdit", dojo.hitch(this, "checkCanEdit")));
-            this.connect.push(dojo.connect(this.grid, "onHeaderCellClick", this, "saveGridSorting"));
-            this.connect.push(dojo.connect(this.grid.views.views[0].scrollboxNode, "onscroll", this, "saveGridScroll"));
-            this.connect.push(dojo.connect(this.grid, "onCellMouseOver", dojo.hitch(this, "showTooltip")));
-            this.connect.push(dojo.connect(this.grid, "onCellMouseOut", dojo.hitch(this, "hideTooltip")));
-            */
-
-            if (this.useCheckbox()) {
-                this.render(["phpr.Default.template", "gridActions.html"], this.grid.views.views[0].gridActions, {
-                    module:        phpr.module,
-                    actions:       this.comboActions,
-                    checkAllTxt:   phpr.nls.get('Check All'),
-                    uncheckAllTxt: phpr.nls.get('Uncheck All')
-                });
-
-                this.connect.push(dojo.connect(dojo.byId("gridComboAction"), "onchange", this, "doComboAction"));
-            }
-
-    		dojo.byId(this.getNodeId()).appendChild(this.grid.domNode);
-            this.grid.startup();
-            this.loadGridSorting();
-            this.loadGridScroll();
-        }
-
-        // Filters
-        this.setFilterButton(meta);
-        //this.manageFilters();
-
-        // Draw the tags
-        this.showTags();
-    },
 
     saveGridScroll:function() {
         // Summary:
         //    Stores in cookies the new scroll position for the current grid
         //    Use the hash for identify the cookie
-        dojo.cookie(this._scrollTopCookie, this.grid.scrollTop, {expires: 365});
+        dojo.cookie(this._scrollTopCookie, this._grid.scrollTop, {expires: 365});
     },
 
     loadGridScroll:function() {
@@ -1089,7 +1082,7 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         //    Use the hash for identify the module grid
         var scrollTop = dojo.cookie(this._scrollTopCookie);
         if (scrollTop != undefined) {
-            this.grid.scrollTop = scrollTop;
+            this._grid.scrollTop = scrollTop;
         }
     },
 
@@ -1097,8 +1090,8 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         // Summary:
         //    Stores in cookies the new sorting criterion for the current grid
         //    Use the hash for identify the cookie
-        var sortColumn = this.grid.getSortIndex();
-        var sortAsc    = this.grid.getSortAsc();
+        var sortColumn = this._grid.getSortIndex();
+        var sortAsc    = this._grid.getSortAsc();
 
         dojo.cookie(this._sortColumnCookie, sortColumn, {expires: 365});
         dojo.cookie(this._sortAscCookie, sortAsc, {expires: 365});
@@ -1111,7 +1104,7 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         var sortColumn = dojo.cookie(this._sortColumnCookie);
         var sortAsc    = dojo.cookie(this._sortAscCookie);
         if (sortColumn != undefined && sortAsc != undefined) {
-            this.grid.setSortIndex(parseInt(sortColumn), eval(sortAsc));
+            this._grid.setSortIndex(parseInt(sortColumn), eval(sortAsc));
         }
     },
 
@@ -1127,11 +1120,11 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         }
         var date = new Date();
 
-        if (this.grid.edit.isEditing()) {
-            if (!this.grid.edit.isEditCell(e.rowIndex, e.cellIndex)) {
+        if (this._grid.edit.isEditing()) {
+            if (!this._grid.edit.isEditCell(e.rowIndex, e.cellIndex)) {
                 // Click outside the current edit widget
                 // Just apply the changes, and do not process it as rowClick (open a form)
-                this.grid.edit.apply();
+                this._grid.edit.apply();
                 if (dojo.isIE) {
                     this._lastTime = null;
                 } else {
@@ -1146,8 +1139,8 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
             }
 
             // Disable edit for checkbox
-            if (this.useCheckbox() && e.cellIndex == 0) {
-                this.grid.edit.cancel();
+            if (this._useCheckbox() && e.cellIndex == 0) {
+                this._grid.edit.cancel();
             }
 
             return;
@@ -1186,10 +1179,10 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
                 // Works for FF
                 // Process a double click
                 if (e.cellNode) {
-                    this.grid.edit.setEditCell(e.cell, e.rowIndex);
-                    this.grid.onRowDblClick(e);
+                    this._grid.edit.setEditCell(e.cell, e.rowIndex);
+                    this._grid.onRowDblClick(e);
                 } else {
-                    this.grid.onRowDblClick(e);
+                    this._grid.onRowDblClick(e);
                 }
             }
         } else {
@@ -1202,9 +1195,9 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
             }
             // Process a single click
             if (e.cellNode) {
-                this.grid.onCellClick(e);
+                this._grid.onCellClick(e);
             } else {
-                this.grid.onRowClick(e);
+                this._grid.onRowClick(e);
             }
         }
     },
@@ -1216,62 +1209,16 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
             this._doubleClick = true;
             // Process a double click
             if (e.cellNode) {
-                this.grid.edit.setEditCell(e.cell, e.rowIndex);
-                this.grid.onRowDblClick(e);
+                this._grid.edit.setEditCell(e.cell, e.rowIndex);
+                this._grid.onRowDblClick(e);
             } else {
-                this.grid.onRowDblClick(e);
+                this._grid.onRowDblClick(e);
             }
         }
     },
 
-    cellClick:function(e) {
-        // Summary:
-        //    This function process a 'row' action
-        // Description:
-        //    As soon as a Pencil icon or an extra action cell is clicked the corresponding action is processed
-        //    If the click is on other cell, just open the form
-        var useCheckBox      = this.useCheckbox();
-        var usePencilForEdit = this.usePencilForEdit();
-        var index            = e.cellIndex;
-        var openForm         = false;
-        if ((useCheckBox && usePencilForEdit && index == 1) ||
-            (!useCheckBox && usePencilForEdit && index == 0) ||
-            (this.firstExtraCol && index >= this.firstExtraCol)) {
-            if ((useCheckBox && index == 1) || (!useCheckBox && index == 0)) {
-                // Click on the pencil
-                openForm = true;
-            } else {
-                var key    = e['cell']['field'];
-                var temp   = key.split('|');
-                var action = temp[0];
-                var mode   = parseInt(temp[1]);
-                var item   = this.grid.getItem(e.rowIndex);
-                var rowId  = this.grid.store.getValue(item, 'id');
-                // Click on an extra action button
-                this.doAction(action, rowId, mode, this.TARGET_SINGLE);
-            }
-        } else if (useCheckBox && index == 0) {
-            // Click on the checkbox, do nothing
-        } else {
-            // Click on the row
-            openForm = true;
-        }
 
-        // Open the form
-        if (openForm) {
-            var item  = this.grid.getItem(e.rowIndex);
-            var rowId = this.grid.store.getValue(item, 'id');
-            this.getLinkForEdit(rowId);
-        }
-    },
 
-    getLinkForEdit:function(id) {
-        // Summary:
-        //    Return the link for open the form
-        // Description:
-        //    Return the link for open the form
-        this.main.setUrlHash(phpr.module, id);
-    },
 
     checkCanEdit:function(inCell, inRowIndex) {
         // Summary:
@@ -1283,8 +1230,8 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         if (!this._oldRowValues[inRowIndex]) {
             this._oldRowValues[inRowIndex] = {};
         }
-        var item  = this.grid.getItem(inRowIndex);
-        var value = this.grid.store.getValue(item, inCell.field);
+        var item  = this._grid.getItem(inRowIndex);
+        var value = this._grid.store.getValue(item, inCell.field);
         this._oldRowValues[inRowIndex][inCell.field] = value;
     },
 
@@ -1319,9 +1266,9 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         }
 
         if (!this.canEdit(inRowIndex)) {
-            var item  = this.grid.getItem(inRowIndex);
+            var item  = this._grid.getItem(inRowIndex);
             var value = this._oldRowValues[inRowIndex][inFieldIndex];
-            this.grid.store.setValue(item, inFieldIndex, value);
+            this._grid.store.setValue(item, inFieldIndex, value);
             var result     = Array();
             result.type    = 'error';
             result.message = phpr.nls.get('You do not have access to edit this item');
@@ -1333,20 +1280,20 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
 
             if (inFieldIndex.indexOf('_forDate') > 0) {
                 // Convert date to datetime
-                var item             = this.grid.getItem(inRowIndex);
+                var item             = this._grid.getItem(inRowIndex);
                 var key              = inFieldIndex.replace('_forDate', '');
                 inFieldIndexConvined = key + '_forTime';
-                inValue              = inValue + ' ' + this.grid.store.getValue(item, inFieldIndexConvined);
+                inValue              = inValue + ' ' + this._grid.store.getValue(item, inFieldIndexConvined);
 
                 if (inValue != this._oldRowValues[inRowIndex][key]) {
                     this._newRowValues[inRowIndex][key] = inValue;
                 }
             } else if (inFieldIndex.indexOf('_forTime') > 0) {
                 // Convert time to datetime
-                var item             = this.grid.getItem(inRowIndex);
+                var item             = this._grid.getItem(inRowIndex);
                 var key              = inFieldIndex.replace('_forTime', '');
                 inFieldIndexConvined = key + '_forDate';
-                inValue              = inValue + ' ' + this.grid.store.getValue(item, inFieldIndexConvined);
+                inValue              = inValue + ' ' + this._grid.store.getValue(item, inFieldIndexConvined);
 
                 if (inValue != this._oldRowValues[inRowIndex][key]) {
                     this._newRowValues[inRowIndex][key] = inValue;
@@ -1388,8 +1335,8 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         var content = new Array();
         var ids     = new Array();
         for (var i in this._newRowValues) {
-            var item  = this.grid.getItem(i);
-            var curId = this.grid.store.getValue(item, 'id');
+            var item  = this._grid.getItem(i);
+            var curId = this._grid.store.getValue(item, 'id');
             for (var j in this._newRowValues[i]) {
                 changed = true;
                 content['data[' + curId + '][' + j + ']'] = this._newRowValues[i][j];
@@ -1401,7 +1348,7 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         // Only if there are changes
         if (changed) {
             phpr.send({
-                url:       this.updateUrl,
+                url:       this._updateUrl,
                 content:   content,
                 onSuccess: dojo.hitch(this, function(response) {
                     this._active = false;
@@ -1433,24 +1380,9 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         //    Open a new window in CSV mode
         // Description:
         //    Open a new window in CSV mode
-        window.open(phpr.webpath + 'index.php/' + phpr.module + '/index/csvList/nodeId/' + this.id
+        window.open(phpr.webpath + 'index.php/' + phpr.module + '/index/csvList/nodeId/' + this._id
             + '/csrfToken/' + phpr.csrfToken);
         return false;
-    },
-
-    updateData:function() {
-        // Summary:
-        //    Delete the cache for this grid
-        // Description:
-        //    Delete the cache for this grid
-        phpr.DataStore.deleteData({url: this.url});
-        phpr.DataStore.deleteData({url: this.tagUrl});
-    },
-
-    setGetExtraActionsUrl:function() {
-        // Summary:
-        //    Sets the url where to get the grid actions data from
-        this.getActionsUrl = phpr.webpath + 'index.php/' + phpr.module + '/index/jsonGetExtraActions';
     },
 
     itemsCheck:function(state) {
@@ -1459,51 +1391,20 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         if (state == 'false') {
             state = false;
         }
-        for (var row = 0; row < this.grid.rowCount; row ++) {
-            this.grid.store.setValue(this.grid.getItem(row), 'gridComboBox', state);
-        }
-    },
-
-    processActions:function() {
-        // Summary:
-        //    Processes the info of the grid actions and fills the appropriate arrays
-        var actions = phpr.DataStore.getData({url: this.getActionsUrl});
-
-        if (this.comboActions.length == 0 && this.extraColumns.length == 0) {
-            this.comboActions[0]          = new Array();
-            this.comboActions[0]['key']   = '';
-            this.comboActions[0]['label'] = phpr.nls.get('With selected');
-            this.comboActions[0]['class'] = '';
-
-            for (var i = 0; i < actions.length; i ++) {
-                var actionData      = new Array();
-                actionData['key']   = actions[i]['action'] + '|' + actions[i]['mode'];
-                actionData['label'] = actions[i]['label'];
-                actionData['class'] = actions[i]['class'];
-                switch (actions[i]['target']) {
-                    case this.TARGET_SINGLE:
-                    default:
-                        var next                = this.extraColumns.length;
-                        this.extraColumns[next] = actionData;
-                        break;
-                    case this.TARGET_MULTIPLE:
-                        var next                = this.comboActions.length;
-                        this.comboActions[next] = actionData;
-                        break;
-                }
-            }
+        for (var row = 0; row < this._grid.rowCount; row ++) {
+            this._grid.store.setValue(this._grid.getItem(row), 'gridComboBox', state);
         }
     },
 
     doComboAction:function() {
         // Summary:
         //    Process the action selected in the combo, for the checked Ids. Calls 'doAction' function
-        if (this.useCheckbox()) {
+        if (this._useCheckbox()) {
             var ids = new Array();
-            for (row = 0; row < this.grid.rowCount; row ++) {
-                var checked = this.grid.store.getValue(this.grid.getItem(row), 'gridComboBox');
+            for (row = 0; row < this._grid.rowCount; row ++) {
+                var checked = this._grid.store.getValue(this._grid.getItem(row), 'gridComboBox');
                 if (checked) {
-                    ids[ids.length] = this.grid.store.getValue(this.grid.getItem(row), 'id');
+                    ids[ids.length] = this._grid.store.getValue(this._grid.getItem(row), 'id');
                 }
             }
             if (ids.length > 0) {
@@ -1529,60 +1430,18 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         }
     },
 
-    doAction:function(action, ids, mode, target) {
-        // Summary:
-        //    Performs a specific action with one or more items of the module,
-        //    called by an extra grid icon or the combo
-        if (target == this.TARGET_SINGLE) {
-            var idUrl = 'id';
-        } else if (target == this.TARGET_MULTIPLE) {
-            var idUrl = 'ids';
-        }
 
-        var actionUrl = this.getDoActionUrl(action, idUrl, ids);
 
-        if (mode == this.MODE_XHR) {
-            // Call the requested action with the selected ids and wait for a response
-            phpr.send({
-                url:       actionUrl,
-                onSuccess: dojo.hitch(this, function(data) {
-                    new phpr.handleResponse('serverFeedback', data);
-                    if (data.type == 'success') {
-                        if (target == this.TARGET_MULTIPLE) {
-                            this.publish("updateCacheData");
-                            this.publish("reload");
-                        }
-                    }
-                })
-            });
-        } else if (mode == this.MODE_WINDOW) {
-            // Call the requested action with the selected ids in a new windows
-            window.open(actionUrl + '/csrfToken/' + phpr.csrfToken);
-        } else if (mode == this.MODE_CLIENT) {
-            // Call the requested action with the selected ids in the main
-            eval("this.main." + action + "('" + ids + "')");
-        }
 
-        if (this.useCheckbox()) {
-            dojo.byId("gridComboAction").selectedIndex = 0;
-        }
-    },
 
-    getDoActionUrl:function(action, idUrl, ids) {
-        // Summary:
-        //    Isolated code for easy customization, this function returns the URL to be called for the requested action.
-
-        return phpr.webpath + 'index.php/' + phpr.module + '/index/' + action + '/nodeId/' + phpr.currentProjectId
-            + '/' + idUrl + '/' + ids;
-    },
 
     showTooltip:function(e) {
         // Summary:
         //    This function shows the tooltip
         // Description:
         //    Uses the dijit function 'showTooltip' to show the tooltip.
-        if (!this.grid.edit.isEditing()) {
-            var useCheckBox = this.useCheckbox();
+        if (!this._grid.edit.isEditing()) {
+            var useCheckBox = this._useCheckbox();
             var index       = e.cellIndex;
             if ((!useCheckBox || (useCheckBox && index != 0)) && e.cell.editable) {
                 dijit.showTooltip(phpr.nls.get("Double click to edit"), e.cellNode, 'above');
@@ -1624,14 +1483,14 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
             dojo.style(dijit.byId('exportCsvButton').domNode, 'display', 'inline');
         }
 
-        if (this.grid) {
-            this.grid.destroy();
-            this.grid = null;
+        if (this._grid) {
+            this._grid.destroy();
+            this._grid = null;
         }
 
-        if (this.store) {
-            this.store.close();
-            this.store = null;
+        if (this._store) {
+            this._store.close();
+            this._store = null;
         }
         this.main  = null;
         this.node  = null;
@@ -1639,11 +1498,11 @@ dojo.declare("phpr.Default.Grid", phpr.Component, {
         this._newRowValues = {};
         this._oldRowValues = {};
         this.gridData      = {};
-        this.extraColumns  = {};
-        this.comboActions  = {};
+        this._extraColumns  = {};
+        this._comboActions  = {};
         this.gridLayout    = {};
-        this.splitFields   = {};
-        this.filterField   = {};
+        this._splitFields   = {};
+        this._filterField   = {};
         this._rules        = {};
         this._filterData   = {};
         alert('end destroy');

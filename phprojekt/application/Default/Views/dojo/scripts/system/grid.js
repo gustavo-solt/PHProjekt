@@ -435,3 +435,260 @@ dojo.extend(dojox.grid.DataGrid, {
     onRowClick:function(e) {
     }
 });
+
+dojo.declare("phpr.Default.GridLayout", null, {
+    // Summary:
+    //    Class for set the layout for each field.
+    // Description:
+    //    This class set the diferent settings for each field in the grid.
+    gridLayout: [],
+
+    _maxLength: 0,
+    _opts:      [],
+    _vals:      [],
+    _max:       0,
+
+    constructor:function() {
+        this.gridLayout  = [];
+        this._maxLength  = 0;
+        this._opts       = [];
+        this._vals       = [];
+        this._max        = 0;
+    },
+
+    addCheckField:function() {
+        var meta = {
+            label:    " ",
+            key:      'gridComboBox',
+            readOnly: false
+        }
+        var field       = this._initData(meta);
+        field.type      = dojox.grid.cells.Bool;
+        field.width     = "20px";
+        field.filterkey = null;
+
+        this.gridLayout['gridComboBox'] = field;
+    },
+
+    addEditField:function() {
+        var meta = {
+            label:    " ",
+            key:      'gridEdit',
+            readOnly: true
+        }
+        var field       = this._initData(meta);
+        field.width     = "20px";
+        field.styles    = "vertical-align: middle;";
+        field.formatter = 'phpr.grid.formatIcon';
+        field.filterkey = null;
+
+        this.gridLayout['gridEdit'] = field;
+    },
+
+    addIdField:function() {
+        var meta = {
+            label:    "ID",
+            key:      'id',
+            readOnly: true
+        }
+        var field         = this._initData(meta);
+        field.width       = "40px";
+        field.styles      = "text-align: right;";
+        field.filterKey   = '_fixedId';
+
+        this.gridLayout['gridId'] = field;
+    },
+
+    addModuleFields:function(meta) {
+        for (var i = 0; i < meta.length; i++) {
+            var data = this._initData(meta[i]);
+            switch(meta[i]["type"]) {
+                case 'selectbox':
+                    this._setRangeValues(meta[i]);
+                    data.styles        = "text-align: center;";
+                    data.type          = phpr.grid.cells.Select;
+                    data.width         = (this._maxLength * 8) + 'px';
+                    data.options       = this._opts;
+                    data.values        = this._vals;
+                    data.filterType    = 'selectbox';
+                    data.filterOptions = meta[i]['range'];
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                case 'date':
+                    data.width         = '90px';
+                    data.styles        = "text-align: center;";
+                    data.type          = phpr.grid.cells.DateTextBox;
+                    data.promptMessage = 'yyyy-MM-dd';
+                    data.constraint    = {formatLength: 'short', selector: "date", datePattern:'yyyy-MM-dd'};
+                    data.filterType    = 'date';
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                case 'datetime':
+                    var dateData           = dojo.clone(data);
+                    dateData.name          = dateData.name + ' (' + phpr.nls.get('Date') + ')';
+                    dateData.field         = dateData.field + '_forDate';
+                    dateData.width         = '90px';
+                    dateData.styles        = "text-align: center;";
+                    dateData.type          = phpr.grid.cells.DateTextBox;
+                    dateData.promptMessage = 'yyyy-MM-dd';
+                    dateData.constraint    = {formatLength: 'short', selector: "date", datePattern:'yyyy-MM-dd'};
+                    dateData.filterType    = 'date';
+
+                    this.gridLayout[dateData.field] = dateData;
+
+                    var timeData        = dojo.clone(data);
+                    timeData.name       = timeData.name + ' (' + phpr.nls.get('Hour') + ')';
+                    timeData.field      = timeData.field + '_forTime';
+                    timeData.width      = '60px';
+                    timeData.styles     = 'text-align: center;';
+                    timeData.type       = phpr.grid.cells.Time;
+                    timeData.filterType = 'time';
+
+                    this.gridLayout[timeData.field] = timeData;
+                    break;
+
+                case 'percentage':
+                    data.width  = '90px';
+                    data.styles = 'text-align: center;';
+                    data.type   = phpr.grid.cells.Percentage;
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                case 'time':
+                    date.width      = '60px';
+                    data.styles     = 'text-align: center;';
+                    data.type       = phpr.grid.cells.Time;
+                    data.filterType = 'time';
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                case 'upload':
+                    data.styles    = 'text-align: center;';
+                    data.type      = dojox.grid.cells._Widget;
+                    data.formatter = phpr.grid.formatUpload;
+                    data.editable  = false;
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                case 'display':
+                    // Has it values for translating an Id into a descriptive String?
+                    if (meta[i]['range'][0] != undefined) {
+                        this._setRangeValues(meta[i]);
+                        data.styles        = "text-align: center;";
+                        data.type          = phpr.grid.cells.Select;
+                        data.width         = (this._maxLength * 8) + 'px';
+                        data.options       = this._opts;
+                        data.values        = this._vals;
+                        data.filterType    = 'selectbox';
+                        data.filterOptions = meta[i]['range'];
+                        data.editable      = false;
+                    } else {
+                        data.styles        = "text-align: center;";
+                        data.type          = phpr.grid.cells.Text;
+                        data.editable      = false;
+                    }
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                case 'text':
+                    data.type = phpr.grid.cells.Text;
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                case 'textarea':
+                    data.type     = phpr.grid.cells.Textarea;
+                    data.editable = false;
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                case 'rating':
+                    this._setRatingValues(meta[i]);
+                    data.styles        = "text-align: center;";
+                    data.type          = phpr.grid.cells.Select;
+                    data.width         = (this._maxLength * 8) + 'px';
+                    data.options       = this._opts;
+                    data.values        = this._vals;
+                    data.filterType    = 'rating';
+                    data.filterOptions = meta[i]['range'];
+                    data.editable      = false;
+                    data.filterOptions = this._max;
+
+                    this.gridLayout[data.field] = data;
+                    break;
+
+                default:
+                    this.gridLayout[data.field] = data;
+                    break;
+            }
+        }
+    },
+
+    addExtraField:function(key) {
+        var meta = {
+            label:    " ",
+            key:      key,
+            readOnly: true
+        };
+
+        var field       = this._initData(meta);
+        field.width     = "20px";
+        field.styles    = "vertical-align: middle";
+        field.filterkey = null;
+
+        this.gridLayout[key] = field;
+    },
+
+    _initData:function(meta) {
+        return {
+            name:          meta['label'],
+            field:         meta['key'],
+            styles:        "",
+            type:          dojox.grid.cells.Cell,
+            width:         'auto',
+            options:       null,
+            values:        null,
+            promptMessage: null,
+            constraint:    null,
+            formatter:     null,
+            editable:      (meta['readOnly']) ? false : true,
+            filterkey:     meta['key'],
+            filterLabel:   meta['label'],
+            filterType:    'text',
+            filterOptions: null
+        };
+    },
+
+    _setRangeValues:function(data) {
+        this._opts      = [];
+        this._vals      = [];
+        this._maxLength = data['key'].length;
+        for (var j in data['range']){
+            this._vals.push(data['range'][j]['id']);
+            this._opts.push(data['range'][j]['name']);
+            if (data['range'][j]['name'].length > this._maxLength) {
+                this._maxLength = data['range'][j]["name"].length;
+            }
+        }
+    },
+
+    _setRatingValues:function(data) {
+        this._max       = parseInt(data['range']['id']);
+        this._opts      = [];
+        this._vals      = [];
+        this._maxLength = data['key'].length;
+        for (var j = 1; j <= this._max; j++){
+            this._vals.push(j);
+            this._opts.push(j);
+        }
+    }
+});
