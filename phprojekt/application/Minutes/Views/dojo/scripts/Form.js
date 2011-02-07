@@ -298,7 +298,7 @@ dojo.declare("phpr.Minutes.Form", phpr.Default.Form, {
             container.domNode.appendChild(buttonsDiv.domNode);
 
             var confirmDialog = new dijit.Dialog({
-                id: 'dialogContainer-' + this._module,
+                id:      'dialogContainer-' + this._module,
                 content: container
             });
 

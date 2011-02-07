@@ -22,18 +22,16 @@
 dojo.provide("phpr.Timecard.Form");
 
 dojo.declare("phpr.Timecard.Form", null, {
-    _favoritesUrl:      null,
-    _contentBar:        null,
-    _dateObject:         null,
-    _bookUrl:           null,
-        _date:              null,
-            _id:                 0,
-    _url:                null,
-    _sendData: [],
-      _manFavBoxesHeight: 18,
-
-      _needRangeUpdate: true,
-      _needFavoriteRangeUpdate: true,
+    _id:                      0,
+    _bookUrl:                 null,
+    _contentBar:              null,
+    _date:                    null,
+    _dateObject:              null,
+    _favoritesUrl:            null,
+    _url:                     null,
+    _sendData:                [],
+    _needFavoriteRangeUpdate: true,
+    _needRangeUpdate:         true,
 
     constructor:function() {
         // Summary:
@@ -145,9 +143,10 @@ dojo.declare("phpr.Timecard.Form", null, {
                 }
 
                 // Set/update values
+                var lineHeight = (dojo.isIE) ? '' : 'inherit';
                 if (parseInt(height) <= 4) {
                     if (dojo.isIE && dojo.isIE < 8) {
-                        lineHeight = 0.5;
+                        lineHeight = 1;
                     } else {
                         lineHeight = 0;
                     }
@@ -157,8 +156,6 @@ dojo.declare("phpr.Timecard.Form", null, {
                     } else {
                         lineHeight = 0.5;
                     }
-                } else {
-                    lineHeight = 'inherit';
                 }
                 booking.innerHTML = data[i].display;
                 dojo.style(booking, {
@@ -384,7 +381,7 @@ dojo.declare("phpr.Timecard.Form", null, {
                         id:      'tooltipDialog-Timecard',
                         content: content,
                         orient:  function() {
-                            this.domNode.className = this["class"] + " dijitTooltipABLeft dijitTooltipRight";
+                            this.domNode.className = this['class'] + ' dijitTooltipABLeft dijitTooltipRight';
                         },
                         onBlur: function() {
                             dijit.popup.close(this);
@@ -592,7 +589,6 @@ dojo.declare("phpr.Timecard.Form", null, {
 
                     // Make Dialog
                     this._createFavoritesDialog(allProjects, favoritesList);
-                    this._finishDialog();
                     this._needFavoriteRangeUpdate = false;
                 })});
             })});
@@ -608,17 +604,42 @@ dojo.declare("phpr.Timecard.Form", null, {
             // Create the dialog
             var html = phpr.Render.render(["phpr.Timecard.template", "favoritesDialog.html"], null, {
                 titleTxt:      phpr.nls.get('Drag the projects from left to right'),
-                helpTxt:       phpr.nls.get('Favorite projects appear first in the select box of the form'),
-                allProjects:   allProjects,
-                favoritesList: favoritesList
+                helpTxt:       phpr.nls.get('Favorite projects appear first in the select box of the form')
             });
 
             var dialog = new dijit.Dialog({
                 id:        'manageFavorites-Timecard',
                 title:     phpr.nls.get('Manage project list'),
                 draggable: false,
+                style:     'width: 650px;',
                 content:   html
             });
+
+            this._finishDialog();
+
+            // Fill the source
+            var source = new phpr.Timecard.Favorites('projectFavoritesSource', {
+                creator:    phpr.Timecard.FavoritesCreator,
+                selfAccept: false
+            });
+            var nodes = [];
+            for (var i in allProjects) {
+                nodes.push({data: allProjects[i].name, id: 'favoritesTarget-' + allProjects[i].id });
+            }
+            source.insertNodes(false, nodes);
+
+            // Fill the target
+            var target = new phpr.Timecard.Favorites('projectFavoritesTarget', {
+                creator:    phpr.Timecard.FavoritesCreator,
+                selfAccept: false
+            });
+            var nodes = [];
+            for (var i in favoritesList) {
+                nodes.push({data: favoritesList[i].name, id: 'favoritesSoruce-' + favoritesList[i].id });
+            }
+            target.insertNodes(false, nodes);
+
+            delete nodes;
 
             dojo.connect(dijit.byId('manageFavorites-Timecard'), "hide",  dojo.hitch(this, "_submitFavoritesForm"));
         } else {
@@ -647,21 +668,11 @@ dojo.declare("phpr.Timecard.Form", null, {
 
     _finishDialog:function() {
         // Summary:
-        //    Show the dialog and resize it
-        dijit.popup.close(dijit.byId('tooltipDialog-Timecard'));
+        //    Show the dialog.
+        if (dojo.byId('tooltipDialog-Timecard')) {
+            dijit.popup.close(dijit.byId('tooltipDialog-Timecard'));
+        }
         dijit.byId('manageFavorites-Timecard').show();
-
-        // If there are no projects in any of the boxes, don't let it reduce its height so much
-        if (projectFavoritesSource && projectFavoritesSource.getAllNodes().length == 0) {
-            dojo.style('projectFavoritesSource', 'height', this._manFavBoxesHeight + 'px');
-        } else {
-            dojo.style('projectFavoritesSource', 'height', '');
-        }
-        if (projectFavoritesTarget && projectFavoritesTarget.getAllNodes().length == 0) {
-            dojo.style('projectFavoritesTarget', 'height', this._manFavBoxesHeight + 'px');
-        } else {
-            dojo.style('projectFavoritesTarget', 'height', '');
-        }
     },
 
     _submitFavoritesForm:function() {
@@ -671,7 +682,7 @@ dojo.declare("phpr.Timecard.Form", null, {
         this._sendData['favorites[]'] = []
         var _this                     = this;
 
-        projectFavoritesTarget.getAllNodes().forEach(function(node) {
+        dojo.forEach(dojo.byId('projectFavoritesTarget').children, function(node) {
             var id = node.id.replace(/favoritesTarget-/, "").replace(/favoritesSoruce-/, "");
             _this._sendData['favorites[]'].push(id);
         });
