@@ -6,7 +6,7 @@
         <div id="navigation-container" dojoType="dijit.layout.BorderContainer" region="left" persist="true">
             <div id="tagsbox" dojoType="dojox.layout.ExpandoPane" title="Tags" region="bottom" maxHeight="150"
             style="height: 160px;">
-            <br /><br /><br /><br /><br /><br /><br /><br />
+                <div id="tagsBoxEmpty"></div>
             </div>
             <div dojoType="dijit.layout.ContentPane" region="top" id="subheader" class="block">
                 <div id="navigation-container-title">
@@ -31,11 +31,11 @@
         <form dojoType="dijit.form.Form" id="searchform" name="searchform"
         onsubmit='
         dojo.publish("{{currentModule}}.setUrlHash",
-            ["{{currentModule}}", null, ["Search", dojo.byId("searchfield").value]]);
+            ["{{currentModule}}", null, ["Search", dojo.byId("searchField").value]]);
         return false;'
         style="display: inline">
         <div id="search-bar" class="last right align-right">
-            <input id="searchfield" name="searchfield" dojoType="dijit.form.ValidationTextBox"
+            <input id="searchField" name="searchField" dojoType="dijit.form.ValidationTextBox"
             onmousedown='this.focus(); dojo.publish("{{currentModule}}.showSuggest");' />
             <div id="systemNavigation" dojoType="dijit.Toolbar">
             </div>
@@ -110,14 +110,6 @@
 <div id="searchsuggest"
 style="z-index: 100; display: inline">
 </div>
-<!-- Help -->
-<div dojoType="dijit.Dialog" id="helpDialog" title="" draggable="false"
-style="background-color: white; width: auto; height: auto;">
-    <h1 id="helpTitle"></h1>
-    <div dojoType="dijit.layout.ContentPane" id="helpContainer"
-    style="width: 650px; height: 400px; border: 2px solid #294064;">
-    </div>
-</div>
 <!-- Initial Loadding Page -->
 <div id="initLoading"
 style="position: absolute; top: 45%; left: 45%;">
@@ -129,9 +121,6 @@ style="position: absolute; top: 45%; left: 45%;">
     style="position: absolute; top: 0%; left: 0%; background: #FFF; display: none;">
     <img id="formInitImg" class="left" src="{{webpath}}img/ajax-init-loader.gif" alt="Loadding"
     style="position: relative; top: 45%; left: 45%; "/>
-    <div id="formInitTxt"
-    style="position: relative; top: 45%; padding-left: 45%;"/>
-    </div>
 </div>
 <div id="garbage"
 style="z-index: -100;">

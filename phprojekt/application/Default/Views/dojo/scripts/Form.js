@@ -21,7 +21,7 @@
 
 dojo.provide("phpr.Default.Form");
 
-dojo.declare("phpr.Default.Form", phpr.Component, {
+dojo.declare("phpr.Default.Form", null, {
     // Summary:
     //    Class for displaying a PHProjekt Detail View
     // Description:
@@ -127,41 +127,97 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
         // Summary:
         //    Show a loading image, an error text or and empty div, and hide the form.
         // Description:
-        //    Move the formInit div to the detailBox position and size for hide these div.
-        //    Show the loading images, an error text, or just nothing.
-        //    Hide the detailBox for prevent see it if the user resize the panel.
-        // Show loading image or text
+        //    For error, hide the form and show an error message.
+        //    For none, hide the form and show an empty div.
+        //    For loadind, move the formInit div to the detailBox position and size for hide these div.
         if (type == 'error') {
-            dojo.style('formInitTxt', 'display', 'inline');
+            // Hide form
+            if (this._form) {
+                this._form.domNode.style.display = 'none';
+            }
+
+            // Create error div
+            var emptyNode = dojo.byId('errorForm');
+            if (!emptyNode) {
+                var emptyNode              = document.createElement('div');
+                emptyNode.id               = 'errorForm';
+                emptyNode.style.textAlign  = 'center';
+                emptyNode.style.margin     = '10px 10px 10px 10px';
+                emptyNode.style.fontWeight = 'bold';
+                emptyNode.innerHTML        = '<b>' + phpr.nls.get('The Item was not found') + '</b>';
+            }
+
+            // Show error div
+            dojo.place(emptyNode, dojo.byId(this._getNodeId()));
+
+            // Hide none div
+            if (dojo.byId('noneForm')) {
+                dojo.place('noneForm', 'garbage');
+            }
+
+            // Hide loading div
             dojo.style('formInitImg', 'display', 'none');
-            dojo.byId('formInitTxt').innerHTML = '<b>' + phpr.nls.get('The Item was not found') + '</b>';
+            dojo.style('formInit', {
+                left:    0 + "px",
+                top:     0 + "px",
+                display: 'none',
+                zIndex:  -20
+            });
+        } else if (type == 'none') {
+            // Hide form
+            if (this._form) {
+                this._form.domNode.style.display = 'none';
+            }
+
+            // Create none div
+            var emptyNode = dojo.byId('noneForm');
+            if (!emptyNode) {
+                var emptyNode = document.createElement('div');
+                emptyNode.id  = 'noneForm';
+            }
+
+            // Show none div
+            dojo.place(emptyNode, dojo.byId(this._getNodeId()));
+
+            // Hide error div
+            if (dojo.byId('errorForm')) {
+                dojo.place('errorForm', 'garbage');
+            }
+
+            // Hide loading div
+            dojo.style('formInitImg', 'display', 'none');
+            dojo.style('formInit', {
+                left:    0 + "px",
+                top:     0 + "px",
+                display: 'none',
+                zIndex:  -20
+            });
         } else if (type == 'loading') {
-            dojo.style('formInitTxt', 'display', 'none');
+            // Hide error and none div
+            if (dojo.byId('errorForm')) {
+                dojo.place('errorForm', 'garbage');
+            }
+            if (dojo.byId('noneForm')) {
+                dojo.place('noneForm', 'garbage');
+            }
+
+            // Show form
+            if (this._form) {
+                this._form.domNode.style.display = 'block';
+            }
+
+            // Set the size of "formInit" with the size of the form
+            dojo.marginBox('formInit', dojo.marginBox(this._getNodeId()));
+
+            // Set the position of "formInit" with the position of the form
+            var pos = dojo.position(this._getNodeId());
             dojo.style('formInitImg', 'display', 'inline');
-        } else {
-            dojo.style('formInitTxt', 'display', 'none');
-            dojo.style('formInitImg', 'display', 'none');
-        }
-
-        // Show it for get the size
-        dojo.style('detailsBox-' + this._module, 'display', 'inline');
-
-        // Set the size of "formInit" with the size of the form
-        dojo.marginBox('formInit', dojo.marginBox('detailsBox-' + this._module));
-
-        // Set the position of "formInit" with the position of the form
-        var pos = dojo.position('detailsBox-' + this._module);
-        dojo.style('formInit', {
-            left:    pos.x + "px",
-            top:     pos.y + "px",
-            display: 'inline',
-            zIndex:  1000
-        });
-
-        // Hide the form view for 'error' and 'none',
-        // since for create the form, the div must be visible
-        if (type != 'loading') {
-            dojo.style('detailsBox-' + this._module, 'display', 'none');
+            dojo.style('formInit', {
+                left:    pos.x + "px",
+                top:     pos.y + "px",
+                display: 'inline',
+                zIndex:  20
+            });
         }
     },
 
@@ -396,16 +452,14 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
 
             this._postRenderForm();
 
-            // Hide loading/text and show the form
-            dojo.style('formInitTxt', 'display', 'none');
+            // Hide loading div
             dojo.style('formInitImg', 'display', 'none');
             dojo.style('formInit', {
                 left:    0 + "px",
                 top:     0 + "px",
                 display: 'none',
-                zIndex:  -1000
+                zIndex:  -20
             });
-            dojo.style('detailsBox-' + this._module, 'display', 'inline');
         }
     },
 
@@ -511,7 +565,7 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
         }
 
         // Draw the tags
-        //this.main.drawTagsBox(currentTags);
+        dojo.publish(phpr.module + '.drawTagsBox', [currentTags]);
 
         var fieldValues = {
             type:     'text',
@@ -583,7 +637,6 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
             var formWidget = new dijit.form.Form({
                 id:       formId,
                 name:     formId,
-                onsubmit: "return false;",
                 style:    "height: 100%",
                 onSubmit: function() {
                     return false;
@@ -971,7 +1024,7 @@ dojo.declare("phpr.Default.Form", phpr.Component, {
 
             // Add the fields without the module string
             for (var index in formData) {
-                var newIndex = index.substr(0, index.length - 1 - this._module.length);
+                var newIndex       = index.substr(0, index.length - 1 - this._module.length);
                 sendData[newIndex] = formData[index];
             }
 

@@ -16,37 +16,20 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Todo.Main");
 
 dojo.declare("phpr.Todo.Main", phpr.Default.Main, {
     constructor:function() {
-        //console.debug('TODO constructor');
-        this.module = "Todo";
-        this.loadFunctions(this.module);
-
-        this.gridWidget = phpr.Todo.Grid;
-        this.formWidget = phpr.Todo.Form;
-    },
-
-    openForm:function(id, module) {
         // Summary:
-        //    This function opens a new Detail View
-        //console.debug('TODO openForm');
-        if (!dojo.byId('detailsBox-' + phpr.module)) {
-            this.reload();
-        }
+        //    Create a new instance of the module.
+        this._module = "Todo";
 
-        if (id == undefined || id == 0) {
-            var params          = new Array();
-            params['startDate'] = phpr.Date.getIsoDate(new Date());
-        }
+        this._loadFunctions();
 
-        if (!this.form) {
-            this.form = new this.formWidget(module, this.subModules);
-        }
-        this.form.init(id, params);
+        this._gridWidget = phpr.Todo.Grid;
+        this._formWidget = phpr.Todo.Form;
     }
 });

@@ -72,7 +72,7 @@ dojo.declare("phpr.Calendar.ViewMonthList", phpr.Calendar.DefaultView, {
         this.fillScheduleArrayPart2(content);
 
         // All done, let's render the template
-        this.render(["phpr.Calendar.template", "monthList.html"], dojo.byId('gridBox'), {
+        phpr.Render.render(["phpr.Calendar.template", "monthList.html"], dojo.byId('gridBox'), {
             widthTable: this._widthTable,
             header:     this._header,
             schedule:   this._schedule

@@ -66,7 +66,7 @@ class JsController extends IndexController
         echo file_get_contents(PHPR_CORE_PATH . '/Default/Views/dojo/scripts/system/Form.js');
         echo file_get_contents(PHPR_CORE_PATH . '/Default/Views/dojo/scripts/system/Field.js');
         echo file_get_contents(PHPR_CORE_PATH . '/Default/Views/dojo/scripts/system/Access.js');
-        echo file_get_contents(PHPR_CORE_PATH . '/Default/Views/dojo/scripts/system/grid.js');
+        echo file_get_contents(PHPR_CORE_PATH . '/Default/Views/dojo/scripts/system/Grid.js');
         echo file_get_contents(PHPR_CORE_PATH . '/Default/Views/dojo/scripts/system/Store.js');
         echo file_get_contents(PHPR_CORE_PATH . '/Default/Views/dojo/scripts/system/Date.js');
         echo file_get_contents(PHPR_CORE_PATH . '/Default/Views/dojo/scripts/system/Url.js');

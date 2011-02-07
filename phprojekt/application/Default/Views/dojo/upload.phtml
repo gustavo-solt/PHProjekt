@@ -91,7 +91,7 @@
         // Just resize the iframe if we are inside a form (not in the module designer)
         var id = 'filesIframe_' + '<?php echo $this->field; ?>' + '-' + window.parent.module;
         if (window.parent.document.getElementById(id)) {
-            window.parent.document.getElementById(id).height = <?php echo $iframeSize; ?>;
+            window.parent.document.getElementById(id).height = '<?php echo $iframeSize; ?>px';
         }
     </script>
 </body>

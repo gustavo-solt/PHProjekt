@@ -133,6 +133,8 @@ dojo.declare("phpr.Core.Form", phpr.Default.Form, {
     },
 
     _deleteForm:function() {
+        // Summary:
+        //    Delete an item.
         phpr.send({
             url:       phpr.webpath + 'index.php/Core/' + phpr.module.toLowerCase() + '/jsonDelete/id/' + this._id,
             onSuccess: dojo.hitch(this, function(data) {

@@ -27,21 +27,23 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
     toggled: 0,
 
     constructor:function() {
-        this.module = 'Gantt';
-        this.loadFunctions(this.module);
+        // Summary:
+        //    Create a new instance of the module.
+        this._module = 'Gantt';
 
-        this.gridWidget = phpr.Gantt.Grid;
-        this.formWidget = phpr.Gantt.Form;
-
+        this._loadFunctions();
         dojo.subscribe("Gantt.dialogCallback", this, "dialogCallback");
         dojo.subscribe("Gantt.toggle", this, "toggle");
         dojo.subscribe("Gantt.revertSlider", this, "revertSlider");
+
+        this._gridWidget = phpr.Gantt.Grid;
+        this._formWidget = phpr.Gantt.Form;
     },
 
-    renderTemplate:function() {
+    _renderTemplate:function() {
         // Summary:
         //   Custom renderTemplate for gantt
-        this.render(["phpr.Gantt.template", "mainContent.html"], dojo.byId('centerMainContent'), {
+        phpr.Render.render(["phpr.Gantt.template", "mainContent.html"], dojo.byId('centerMainContent'), {
             webpath:                     phpr.webpath,
             selectedProjectTimelineText: phpr.nls.get('Selected Project Timeline'),
             projectPeriodHelp:           phpr.nls.get('Click on a Project timeline and see and/or change here the '
@@ -59,7 +61,7 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
         phpr.DataStore.requestData({'url': this._url, 'processData': dojo.hitch(this, 'prepareData')});
     },
 
-    setNewEntry:function() {
+    _setNewEntry:function() {
     },
 
     prepareData:function(items, request) {
@@ -123,7 +125,7 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
             }
 
             // Render the projects information
-            this.render(["phpr.Gantt.template", "inner.html"], dojo.byId('projectList'), {
+            phpr.Render.render(["phpr.Gantt.template", "inner.html"], dojo.byId('projectList'), {
                 dataForRender: dataForRender,
                 gantt:         this.gantt,
                 STEPPING:      this.gantt.STEPPING,
@@ -141,7 +143,7 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
             dojo.byId('projectList').innerHTML = phpr.drawEmptyMessage('There are no valid projects');
         }
 
-        this.render(["phpr.Gantt.template", "formbuttons.html"], dojo.byId("bottomContent"), {
+        phpr.Render.render(["phpr.Gantt.template", "formbuttons.html"], dojo.byId("bottomContent"), {
             writePermissions: data["rights"]["currentUser"]["write"],
             saveText:         phpr.nls.get('Save')
         });

@@ -119,7 +119,6 @@ dojo.declare("phpr.FrontendMessage", null, {
 
             // Restore the views
             if (data.module == phpr.module) {
-                //dojo.publish(phpr.module + '.setNavigations');
                 dojo.publish(phpr.module + '.setWidgets');
             }
         }

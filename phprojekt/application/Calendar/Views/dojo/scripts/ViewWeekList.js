@@ -76,7 +76,7 @@ dojo.declare("phpr.Calendar.ViewWeekList", phpr.Calendar.DefaultView, {
         eventsAttr.divIdPre    = this.EVENTS_MAIN_DIV_ID;
 
         // All done, let's render the template
-        this.render(["phpr.Calendar.template", "weekList.html"], dojo.byId('gridBox'), {
+        phpr.Render.render(["phpr.Calendar.template", "weekList.html"], dojo.byId('gridBox'), {
             widthTable:           this._widthTable,
             widthHourColumn:      this._widthHourColumn,
             header:               this._header,

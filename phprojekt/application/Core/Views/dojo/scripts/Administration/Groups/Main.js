@@ -16,15 +16,18 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Groups.Main");
 
 dojo.declare("phpr.Groups.Main", phpr.Core.Main, {
     constructor:function() {
+        // Summary:
+        //    Create a new instance of the module.
         this.module = "Groups";
-        this.loadFunctions(this.module);
+
+        this._loadFunctions();
 
         this.gridWidget = phpr.Groups.Grid;
         this.formWidget = phpr.Groups.Form;

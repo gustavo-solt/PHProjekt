@@ -23,7 +23,7 @@ dojo.provide("phpr.Default.SubModule");
 dojo.provide("phpr.Default.SubModule.Grid");
 dojo.provide("phpr.Default.SubModule.Form");
 
-dojo.declare("phpr.Default.SubModule", phpr.Component, {
+dojo.declare("phpr.Default.SubModule", null, {
     // Internal vars
     gridBox:      null,
     //detailsBox:   null,
@@ -40,59 +40,21 @@ dojo.declare("phpr.Default.SubModule", phpr.Component, {
         //    Set some vars to run the sub module.
         // Description:
         //    Define the current module and the widgets to use.
-        this.module     = "DefaultSubModule";
-        this.gridWidget = phpr.Default.SubModule.Grid;
-        this.formWidget = phpr.Default.SubModule.Form;
+        this._module = "DefaultSubModule";
 
-        this.loadFunctions();
+        this._loadFunctions();
+
+        this._gridWidget = phpr.Default.SubModule.Grid;
+        this._formWidget = phpr.Default.SubModule.Form;
     },
 
-    loadFunctions:function() {
+    _loadFunctions:function() {
         // Summary:
         //    Add all the functions for the current module.
-        dojo.subscribe(this.module  + ".updateCacheData", this, "updateCacheData");
+        dojo.subscribe(this._module + '.updateCacheData', this, 'updateCacheData');
+        dojo.subscribe(this._module + '.openForm', this, 'openForm');
+        dojo.subscribe(this._module + ".gridProxy", this, "gridProxy");
     },
-
-    /*
-    getController:function() {
-        // Summary:
-        //    Return the controller to use
-        // Description:
-        //    Return the controller to use
-        return 'index';
-    },
-
-    setUrl:function(type, id) {
-        // Summary:
-        //    Set all the urls
-        // Description:
-        //    Set all the urls
-        var url = phpr.webpath + 'index.php/' + this.module + '/' + this.getController();
-        switch (type) {
-            case 'grid':
-                url += '/jsonList/';
-                break;
-            case 'form':
-                url += '/jsonDetail/';
-                break;
-            case 'save':
-                url += '/jsonSave/';
-                break;
-            case 'delete':
-                url += '/jsonDelete/';
-                break;
-        }
-        if (type != 'delete') {
-            url += 'nodeId/' + phpr.currentProjectId + '/';
-        }
-        if (type != 'grid') {
-            url += 'id/' + id + '/';
-        }
-        url += phpr.module.toLowerCase() + 'Id/' + this.parentId;
-
-        return url;
-    },
-    */
 
     fillTab:function(nodeId) {
         // Summary:
@@ -107,17 +69,18 @@ dojo.declare("phpr.Default.SubModule", phpr.Component, {
             design: 'sidebar'
         }, document.createElement('div'));
 
-        this.gridBox = new dijit.layout.ContentPane({
+        var gridBox = new dijit.layout.ContentPane({
+            id:     'gridBox-' + this._module,
             region: 'center'
         }, document.createElement('div'));
 
         var detailsBox = new dijit.layout.ContentPane({
-            id:     'detailsBox-' + this.module,
+            id:     'detailsBox-' + this._module,
             region: 'right',
             style:  'width: 50%; height: 100%;'
         }, document.createElement('div'));
 
-        borderContainer.addChild(this.gridBox);
+        borderContainer.addChild(gridBox);
         borderContainer.addChild(detailsBox);
         content.set("content", borderContainer.domNode);
 
@@ -129,9 +92,13 @@ dojo.declare("phpr.Default.SubModule", phpr.Component, {
         //    Render the grid and the form widgets.
         this.parentId = parentId;
 
-        //this.subGrid = new this.gridWidget('', this, phpr.currentProjectId);
+        if (!this.subGrid) {
+            this.subGrid = new this._gridWidget(this._module);
+        }
+        this.subGrid.init(this.parentId);
+
         if (!this.subForm) {
-            this.subForm = new this.formWidget(this.module);
+            this.subForm = new this._formWidget(this._module);
         }
         this.subForm.init(0, [], this.parentId);
     },
@@ -146,94 +113,145 @@ dojo.declare("phpr.Default.SubModule", phpr.Component, {
             this.subForm.updateData();
         }
         this.renderSubModule(this.parentId);
+    },
+
+    gridProxy:function(functionName, params) {
+        // Summary:
+        //    Proxy for run grid functions.
+        if (this.subGrid) {
+            dojo.hitch(this.subGrid, functionName).apply(this, [params]);
+        }
+    },
+
+    openForm:function(id) {
+        // Summary:
+        //    Open a form for edit.
+        this.subForm.init(id, [], this.parentId);
     }
 });
 
 dojo.declare("phpr.Default.SubModule.Grid", phpr.Default.Grid, {
-    // Overwrite functions for use with internal vars
-    // This functions can be Rewritten
-    updateData:function() {
-        phpr.DataStore.deleteData({url: this.url});
+    _parentId:  0,
+
+    init:function(id) {
+        // Summary:
+        //    Init the form for a new render.
+        this._parentId = id;
+
+        this.inherited(arguments);
     },
 
-    usePencilForEdit:function() {
+    updateData:function() {
+        // Summary:
+        //    Delete the cache for this grid.
+        this._cached[this._id] = false;
+        phpr.DataStore.deleteData({url: this._url});
+    },
+
+    _setUrl:function() {
+        // Summary:
+        //    Set the url for getting the data.
+        this._url = phpr.webpath + 'index.php/' + this._module + '/' + this._getController();
+        this._url += '/jsonList/';
+        this._url += 'nodeId/' + phpr.currentProjectId + '/';
+        this._url += phpr.module.toLowerCase() + 'Id/' + this._parentId;
+    },
+
+    _getController:function() {
+        // Summary:
+        //    Return the controller to use.
+        return 'index';
+    },
+
+    _processActions:function() {
+        // Summary:
+        //    Processes the info of the grid actions and fills the appropriate arrays.
+    },
+
+    _usePencilForEdit:function() {
+        // Summary:
+        //    Draw the pencil icon for edit the row.
         return false;
     },
 
-    useIdInGrid:function() {
+    _useCheckbox:function() {
+        // Summary:
+        //    Whether to show or not the checkbox in the grid list.
+        return false;
+    },
+
+    _useIdInGrid:function() {
+        // Summary:
+        //    Draw the ID on the grid.
         return true;
     },
 
-    // Overwrite functions for use with internal vars
-    // This functions should not be Rewritten
-
-    setGridLayout:function(meta) {
+    _customGridLayout:function(gridLayout) {
         // Summary:
-        //    Set all the field as not editables
-        // Description:
-        //    Set all the field as not editables
-        this.inherited(arguments);
-        for (cell in this.gridLayout) {
-            if (typeof(this.gridLayout[cell]['editable']) == 'boolean') {
-                this.gridLayout[cell]['editable'] = false;
+        //    Custom functions for the layout.
+        for (cell in gridLayout) {
+            if (typeof(gridLayout[cell]['editable']) == 'boolean') {
+                gridLayout[cell]['editable'] = false;
             } else {
-                for (index in this.gridLayout[cell]) {
-                    if (typeof(this.gridLayout[cell][index]['editable']) == 'boolean') {
-                        this.gridLayout[cell][index]['editable'] = false;
+                for (index in gridLayout[cell]) {
+                    if (typeof(gridLayout[cell][index]['editable']) == 'boolean') {
+                        gridLayout[cell][index]['editable'] = false;
                     }
                 }
             }
         }
+
+        return gridLayout;
     },
 
-    setUrl:function() {
-        this.url = this.main.setUrl('grid');
+    _loadGridSorting:function() {
+        // Summary:
+        //    Retrieves from cookies the sorting criterion for the current grid if any.
+        //    Use the hash for identify the cookie
     },
 
-    getLinkForEdit:function(id) {
-        this.main.subForm = new this.main.formWidget(this.main, id, phpr.module);
+    _loadGridScroll:function() {
+        // Summary:
+        //    Retrieves from cookies the scroll position for the current grid, if there is one.
+        //    Use the hash for identify the module grid
     },
 
-    setNode:function() {
-        this._node = this.main.gridBox;
+    _setExportButton:function(meta) {
+        // Summary:
+        //    If there is any row, render an export Button.
     },
 
-    // Set empty functions for avoid them
-    // This functions should not be Rewritten
-
-    useCheckbox:function() {
-        return false;
+    _setFilterButton:function(meta) {
+        // Summary:
+        //    If there is any row, render a filter Button.
     },
 
-    setFilterQuery:function(filters) {
-        this.setUrl();
+    _renderFilters:function() {
+        // Summary:
+        //    Prepare the filter form.
     },
 
-    processActions:function() {
+    _showTags:function() {
+        // Summary:
+        //    Draw the tags.
     },
 
-    setExportButton:function(meta) {
+    _getLinkForEdit:function(id) {
+        // Summary:
+        //    Return the link for open the form.
+        dojo.publish(this._module + '.openForm', [id]);
     },
 
-    loadGridSorting:function() {
+    _saveGridSorting:function(e) {
+        // Summary:
+        //    Stores in cookies the new sorting criterion for the current grid.
+        //    Use the hash for identify the cookie.
     },
 
-    saveGridSorting:function(e) {
-    },
-
-    loadGridScroll:function() {
-    },
-
-    saveGridScroll:function() {
-    },
-
-    setFilterButton:function(meta) {
-    },
-
-    manageFilters:function() {
-    },
-
-    showTags:function() {
+    _saveGridScroll:function() {
+        // Summary:
+        //    Stores in cookies the new scroll position for the current grid.
+        //    Use the hash for identify the cookie.
     }
 });
 

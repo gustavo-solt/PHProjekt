@@ -131,7 +131,6 @@ dojo.declare("phpr.Default.TableForm", null, {
     removeHighlight:function() {
         // Call the removeHighlight on each field
         dojo.forEach(this._widgets, function(widgetClass) {
-            console.debug(widgetClass.fieldId);
             widgetClass.removeHighlight();
         });
     },
@@ -806,8 +805,8 @@ dojo.declare("phpr.Default.HtmltextareaField", phpr.Default.Field, {
         }, document.createElement('div'));
 
         // Texarea for Text
-        var displayTextDiv = document.createElement('div');
-        displayTextDiv.id  = 'displayText_' + fieldWidgetId;
+        var displayTextDiv           = document.createElement('div');
+        displayTextDiv.id            = 'displayText_' + fieldWidgetId;
         displayTextDiv.style.display = (this._field['disabled']) ? 'inline' : (this.isHtml()) ? 'none' : 'inline';
         var widget = new dijit.form.Textarea({
             id:       fieldWidgetId,
@@ -821,10 +820,10 @@ dojo.declare("phpr.Default.HtmltextareaField", phpr.Default.Field, {
         displayTextDiv.appendChild(widget.domNode);
 
         // Display for Html
-        var displayHtmlDiv           = document.createElement('div');
-        displayHtmlDiv.id            = 'displayHtml_' + fieldWidgetId;
-        displayHtmlDiv.innerHTML     = this._getValue();
-        displayHtmlDiv.style.display = (this._field['disabled']) ? 'none' : (this.isHtml()) ? 'inline' : 'none';
+        var displayHtmlDiv              = document.createElement('div');
+        displayHtmlDiv.id               = 'displayHtml_' + fieldWidgetId;
+        displayHtmlDiv.innerHTML        = this._getValue();
+        displayHtmlDiv.style.display    = (this._field['disabled']) ? 'none' : (this.isHtml()) ? 'inline' : 'none';
         displayHtmlDiv.style.marginLeft = '2px';
 
         // Create the dialog
