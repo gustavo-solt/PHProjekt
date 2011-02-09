@@ -39,10 +39,6 @@
     <div dojoType="dijit.layout.ContentPane"
     style="background-color: #fff; height: 95.62%; width: 48%; float: right; margin: 4px;">
         <div dojoType="dijit.layout.TabContainer" id="moduleDesignerTarget" useMenu="false" useSlider="false">
-            {% for tab in tabs %}
-            <div dojoType="dijit.layout.ContentPane" id="moduleDesignerTargetTab{{tab.nameId}}" title="{{tab.name}}">
-            </div>
-            {% endfor %}
         </div>
     </div>
 </div>

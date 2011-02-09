@@ -141,7 +141,7 @@ dojo.declare("phpr.Core.Form", phpr.Default.Form, {
                 new phpr.handleResponse('serverFeedback', data);
                 if (data.type == 'success') {
                     dojo.publish(phpr.module + ".updateCacheData");
-                    dojo.publish(phpr.module + ".usetUrlHash", [phpr.parentmodule, null, [phpr.module]]);
+                    dojo.publish(phpr.module + ".setUrlHash", [phpr.parentmodule, null, [phpr.module]]);
                 }
             })
         });

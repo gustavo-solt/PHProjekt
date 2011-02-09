@@ -623,7 +623,7 @@ dojo.declare("phpr.Default.DisplayField", phpr.Default.Field, {
                 if (this._field['range'][j]) {
                     if (parseInt(this._field['range'][j].id) == this._field['value']) {
                         this._field['value'] = this._field['range'][j].name;
-                        found               = true;
+                        found                = true;
                         break;
                     }
                 }
@@ -1288,7 +1288,7 @@ dojo.declare("phpr.Default.UploadField", phpr.Default.Field, {
 
     destroy:function() {
         if (dojo.byId('filesIframe_' + this._fieldWidgetId)) {
-            dojo.byId('filesIframe_' + this._fieldWidgetId).destroy();
+            dojo.destroy(dojo.byId('filesIframe_' + this._fieldWidgetId));
         }
         if (dijit.byId(this._fieldWidgetId)) {
             dijit.byId(this._fieldWidgetId).destroy();

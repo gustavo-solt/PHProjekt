@@ -43,6 +43,9 @@ dojo.declare("phpr.Module.DesignerSource", dojo.dnd.AutoSource, {
                     // Display the buttons
                     table.childNodes[2].style.display = 'inline';
 
+                    // Set as new item
+                    dojo.addClass(m.target.anchor, 'newItem');
+
                     // Get the type, and re-draw the field in the source widget
                     var type = table.childNodes[1].childNodes[0].value;
                     phpr.ModuleDesigner.addField(source, type, 'source');
@@ -67,9 +70,17 @@ dojo.declare("phpr.Module.DesignerSource", dojo.dnd.AutoSource, {
 dojo.declare("phpr.ModuleDesigner", null, {
     // Summary:
     //    The class manage the source and target fields.
+    _moduleId:             null,
+    _fieldTemplate:        null,
     _sourceWidget:         null,
     _sourceWidgetPosition: [],
     _targetWidget:         [],
+
+    constructor:function() {
+        // Summary:
+        //    Set the field render on create the class.
+        this._fieldTemplate = new phpr.Default.TableForm('ModuleDesigner');
+    },
 
     createSourceFields:function() {
         // Summary:
@@ -170,16 +181,33 @@ dojo.declare("phpr.ModuleDesigner", null, {
     createTargetFields:function(moduleId, jsonData, tabs) {
         // Summary:
         //    Draw the target fields in the correct tab.
+        this._moduleId = moduleId;
         if (jsonData) {
             var data = dojo.fromJson(jsonData);
             for (var j in tabs) {
+                var tabId     = 'moduleDesignerTargetTab' + tabs[j]['id'];
+                var tabWidget = dijit.byId(tabId);
+                if (!tabWidget) {
+                    var tabWidget = new dijit.layout.ContentPane({
+                        id:      tabId,
+                        title:   phpr.nls.get(tabs[j]['name'])
+                    });
+                    dijit.byId('moduleDesignerTarget').addChild(tabWidget);
+                    // Fix layout
+                    // When add a tab into the dialog, the top lost their value
+                    dijit.byId('moduleDesignerTarget').containerNode.style.top = '22px';
+
+                } else {
+                    tabWidget.set('title', phpr.nls.get(tabs[j]['name']));
+                }
+
                 // Hide all the other modules divs
-                dojo.forEach(dojo.byId('moduleDesignerTargetTab' + tabs[j]['nameId']).children, function(node) {
+                dojo.forEach(dojo.byId(tabId).children, function(node) {
                     node.style.display = 'none';
                 });
 
                 // Create or show a div for this module
-                var targetId = 'moduleDesignerTarget' + tabs[j]['nameId'] + '-' + moduleId;
+                var targetId = 'moduleDesignerTarget' + tabs[j]['id'] + '-' + this._moduleId;
                 if (!dojo.byId(targetId)) {
                     var node = document.createElement('div');
                     node.id  = targetId;
@@ -189,9 +217,9 @@ dojo.declare("phpr.ModuleDesigner", null, {
                         height:          '95%',
                         margin:          '0px'
                     });
-                    dojo.byId('moduleDesignerTargetTab' + tabs[j]['nameId']).appendChild(node);
+                    dojo.byId(tabId).appendChild(node);
                 } else {
-                    dojo.byId(targetId).style.display = 'block';
+                    dojo.byId(targetId).style.display = 'inline';
                 }
 
                 // If no have content, add the help and the fields
@@ -303,20 +331,18 @@ dojo.declare("phpr.ModuleDesigner", null, {
             }
         });
 
-        var fieldTemplate = new phpr.Default.TableForm('ModuleDesigner');
-
         // Table tab
-        var tableTab = this._createTableTab(fieldTemplate, tableField, formType, tableType, tableLength,
+        var tableTab = this._createTableTab(tableField, formType, tableType, tableLength,
             selectType, id, nodeId);
 
         // Form tab
-        var formTab = this._createFormTab(fieldTemplate, formLabel, formType, formRange, defaultValue);
+        var formTab = this._createFormTab(formLabel, formType, formRange, defaultValue);
 
         // List tab
-        var listTab = this._createListTab(fieldTemplate, listPosition);
+        var listTab = this._createListTab(listPosition);
 
         // General tab
-        var generalTab = this._createGeneralTab(fieldTemplate, status, isRequired);
+        var generalTab = this._createGeneralTab(status, isRequired);
 
         var forms = {
             formTable:   {tab: 'moduleDesignerEditorTable',   table: tableTab},
@@ -342,12 +368,13 @@ dojo.declare("phpr.ModuleDesigner", null, {
 
                 // Save
                 dojo.connect(dijit.byId('submitButton-ModuleDesigner-' + i), "onClick", function() {
-                    phpr.ModuleDesigner.save();
+                    phpr.ModuleDesigner.saveField();
                 });
                 // Cancel
                 dojo.connect(dijit.byId('deleteButton-ModuleDesigner-' + i), "onClick", function() {
                     phpr.ModuleDesigner.switchOkButton('save');
                 });
+
                 if (i == 'formForm') {
                     // Connect the change of the Range
                     dojo.connect(dijit.byId('selectType-ModuleDesigner'), 'onChange', function(){
@@ -379,10 +406,33 @@ dojo.declare("phpr.ModuleDesigner", null, {
             }
         }
 
+        // Hide disable rows
+        // tableLength
+        var tr = dojo.byId('tableLength-ModuleDesigner').parentNode.parentNode.parentNode.parentNode;
+        if (dojo.byId('tableLength-ModuleDesigner').disabled) {
+            tr.style.display = 'none';
+        } else {
+            tr.style.display = (dojo.isIE) ? 'block' : 'table-row';
+        }
+        // selectType
+        var tr = dojo.byId('selectType-ModuleDesigner').parentNode.parentNode.parentNode.parentNode;
+        if (dojo.byId('selectType-ModuleDesigner').disabled) {
+            tr.style.display = 'none';
+        } else {
+            tr.style.display = (dojo.isIE) ? 'block' : 'table-row';
+        }
+        // formRange
+        var tr = dojo.byId('formRange-ModuleDesigner').parentNode.parentNode;
+        if (dojo.byId('formRange-ModuleDesigner').disabled) {
+            tr.style.display = 'none';
+        } else {
+            tr.style.display = (dojo.isIE) ? 'block' : 'table-row';
+        }
+
         this.switchOkButton('editor');
     },
 
-    save:function() {
+    saveField:function() {
         // Summary:
         //    Mix the form data and make a new field with the data.
         var params = [];
@@ -400,8 +450,29 @@ dojo.declare("phpr.ModuleDesigner", null, {
 
         this.switchOkButton('save');
 
-        dojo.destroy(dojo.byId(sendData.nodeId).childNodes[0]);
-        dojo.byId(sendData.nodeId).appendChild(this._createTableField(sendData.formType, 'target', sendData));
+        var tr = dojo.byId(sendData.nodeId).childNodes[0].childNodes[1].childNodes[0];
+
+        // Update label
+        tr.childNodes[0].childNodes[0].innerHTML = sendData.formLabel;
+
+        // Update hidden values
+        dojo.query('.hiddenValue', tr).forEach(function(ele) {
+            ele.value = sendData[ele.name];
+        });
+
+        if (sendData.formType == 'selectValues') {
+            // Update range
+            var rangeData = this._getRangeAndDefaultValue(sendData.selectType, sendData.formRange);
+            var range        = rangeData.range;
+            var defaultValue = rangeData.defaultValue;
+            var select       = dijit.byId(tr.childNodes[1].childNodes[1].childNodes[2].childNodes[0].id);
+            select.store = new dojo.data.ItemFileWriteStore({data: {
+                identifier: 'id',
+    			label:      'name',
+    			items:      range
+            }});
+            select.set('value', defaultValue);
+        }
     },
 
     deleteField:function(nodeId) {
@@ -423,8 +494,9 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 }
                 // Remove it from the master map
                 tab.delItem(name);
-                // Remove the node itself
-                dojo.destroy(node);
+                // Hide and mark as deleted the node
+                node.style.display = 'none';
+                node.className     = 'deleted';
             }
         }
 
@@ -545,59 +617,9 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 formLabel = params['formLabel'] || 'Select';
                 labelFor  = 'selectValues';
 
-                if (selectType == 'project') {
-                    var range = [
-                        {id: 1, name: phpr.nls.get('Example Project 1')},
-                        {id: 2, name: phpr.nls.get('Example Project 2')}
-                    ];
-                    var defaultValue = 1;
-                } else if (selectType == 'user') {
-                    var range = [
-                        {id: 1, name: phpr.nls.get('Example User 1')},
-                        {id: 2, name: phpr.nls.get('Example User 2')}
-                    ];
-                    var defaultValue = 1;
-                } else if (selectType == 'contact') {
-                    var range = [
-                        {id: 1, name: phpr.nls.get('Example Contact 1')},
-                        {id: 2, name: phpr.nls.get('Example Contact 2')}
-                    ];
-                    var defaultValue = 1;
-                } else {
-                    if (!formRange) {
-                        formRange = 'id1 # value1 | id2 # value2';
-                    }
-                    var defaultValue = null;
-                    var range        = []
-                    var options      = formRange.split("|");
-                    if (options.length > 1) {
-                        for (var i in options) {
-                            var values = options[i].split("#");
-                            if (values[0] && values[1]) {
-                                if (!defaultValue) {
-                                    defaultValue = values[0];
-                                }
-                                range.push({
-                                    'id':   values[0],
-                                    'name': phpr.nls.get(values[1], dijit.byId('name-Administration-Module').value)
-                                });
-                            }
-                        }
-                    } else {
-                        var values = options[0].split("#");
-                        if (values[1] && values[2]) {
-                            for (var k = 1; k < 3 ; k++) {
-                                if (!defaultValue) {
-                                    defaultValue = values[1];
-                                }
-                                range.push({
-                                    'id':   values[1],
-                                    'name': values[2] + k
-                                });
-                            }
-                        }
-                    }
-                }
+                var rangeData = this._getRangeAndDefaultValue(selectType, formRange);
+                var range        = rangeData.range;
+                var defaultValue = rangeData.defaultValue;
 
                 inputTxt = new phpr.form.FilteringSelect({
                     autoComplete:   false,
@@ -785,12 +807,73 @@ dojo.declare("phpr.ModuleDesigner", null, {
         return table;
     },
 
-    _createTableTab:function(fieldTemplate, tableField, formType, tableType, tableLength, selectType, id, nodeId) {
+    _getRangeAndDefaultValue:function(selectType, formRange) {
+        if (selectType == 'project') {
+            var range = [
+                {id: 1, name: phpr.nls.get('Example Project 1')},
+                {id: 2, name: phpr.nls.get('Example Project 2')}
+            ];
+            var defaultValue = 1;
+        } else if (selectType == 'user') {
+            var range = [
+                {id: 1, name: phpr.nls.get('Example User 1')},
+                {id: 2, name: phpr.nls.get('Example User 2')}
+            ];
+            var defaultValue = 1;
+        } else if (selectType == 'contact') {
+            var range = [
+                {id: 1, name: phpr.nls.get('Example Contact 1')},
+                {id: 2, name: phpr.nls.get('Example Contact 2')}
+            ];
+            var defaultValue = 1;
+        } else {
+            if (!formRange) {
+                formRange = 'id1 # value1 | id2 # value2';
+            }
+            var defaultValue = null;
+            var range        = []
+            var options      = formRange.split("|");
+            if (options.length > 1) {
+                for (var i in options) {
+                    var values = options[i].split("#");
+                    if (values[0] && values[1]) {
+                        if (!defaultValue) {
+                            defaultValue = values[0];
+                        }
+                        range.push({
+                            'id':   values[0],
+                            'name': phpr.nls.get(values[1], dijit.byId('name-Administration-Module').value)
+                        });
+                    }
+                }
+            } else {
+                var values = options[0].split("#");
+                if (values[1] && values[2]) {
+                    for (var k = 1; k < 3 ; k++) {
+                        if (!defaultValue) {
+                            defaultValue = values[1];
+                        }
+                        range.push({
+                            'id':   values[1],
+                            'name': values[2] + k
+                        });
+                    }
+                }
+            }
+        }
+
+        return {
+            range:        range,
+            defaultValue: defaultValue
+        }
+    },
+
+    _createTableTab:function(tableField, formType, tableType, tableLength, selectType, id, nodeId) {
         // Summary:
         //    Create the table tab in the first call, in the second just update the values.
         var tabId = 'table';
-        if (!fieldTemplate.existsTable(tabId)) {
-            fieldTemplate.createTable(tabId);
+        if (!this._fieldTemplate.existsTable(tabId)) {
+            this._fieldTemplate.createTable(tabId);
         }
 
         // tableField
@@ -805,7 +888,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             hint:     '',
             length:   50
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
         // tableType
         var range = [];
@@ -861,10 +944,10 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
         // tableLength
-        if (formType == 'selectValues' || formType == 'checkbox') {
+        if (formType == 'selectValues' || formType == 'checkbox' || formType == 'text') {
             var tableLengthDisable = false;
         } else {
             var tableLengthDisable = true;
@@ -881,7 +964,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             hint:     '',
             length:   3
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
         // selectType
         if (formType == 'selectValues') {
@@ -907,7 +990,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
         // hidden id
         var fieldValues = {
@@ -919,7 +1002,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
         // hidden nodeId
         var fieldValues = {
@@ -931,7 +1014,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
         // hidden formType
         var fieldValues = {
@@ -943,12 +1026,12 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
-        return this._addButtons(fieldTemplate, tabId, 'formTable');
+        return this._addButtons(tabId, 'formTable');
     },
 
-    _addButtons:function(fieldTemplate, tabId, formName) {
+    _addButtons:function(tabId, formName) {
         if (!dojo.byId('buttons-ModuleDesigner-' + formName)) {
             var node = new dijit.layout.ContentPane({
                 id: 'buttons-ModuleDesigner-' + formName
@@ -975,7 +1058,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             container.appendChild(deleteButton.domNode);
             node.set('content', container);
 
-            var table = fieldTemplate.getTable(tabId);
+            var table = this._fieldTemplate.getTable(tabId);
             var row   = table.insertRow(table.rows.length);
             var cell  = row.insertCell(0);
             var cell  = row.insertCell(1);
@@ -986,12 +1069,12 @@ dojo.declare("phpr.ModuleDesigner", null, {
         return table;
     },
 
-    _createFormTab:function(fieldTemplate, formLabel, formType, formRange, defaultValue) {
+    _createFormTab:function(formLabel, formType, formRange, defaultValue) {
         // Summary:
         //    Create the form tab in the first call, in the second just update the values.
         var tabId = 'form';
-        if (!fieldTemplate.existsTable(tabId)) {
-            fieldTemplate.createTable(tabId);
+        if (!this._fieldTemplate.existsTable(tabId)) {
+            this._fieldTemplate.createTable(tabId);
         }
 
         // formLabel
@@ -1006,7 +1089,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             hint:     '',
             length:   255
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
         // formRange
         var hint = '';
@@ -1044,7 +1127,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
         if (dojo.byId('row_formRange-ModuleDesigner')) {
             if (formRangeDisable) {
                 // Hide the tooltips
@@ -1106,17 +1189,17 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
-        return this._addButtons(fieldTemplate, tabId, 'formForm');
+        return this._addButtons(tabId, 'formForm');
     },
 
-    _createListTab:function(fieldTemplate, listPosition) {
+    _createListTab:function(listPosition) {
         // Summary:
         //    Create the list tab in the first call, in the second just update the values.
         var tabId = 'list';
-        if (!fieldTemplate.existsTable(tabId)) {
-            fieldTemplate.createTable(tabId);
+        if (!this._fieldTemplate.existsTable(tabId)) {
+            this._fieldTemplate.createTable(tabId);
         }
 
         // listPosition
@@ -1132,17 +1215,17 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 + '0 for do not show it.'),
             length:   4
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
-        return this._addButtons(fieldTemplate, tabId, 'formList');
+        return this._addButtons(tabId, 'formList');
     },
 
-    _createGeneralTab:function(fieldTemplate, status, isRequired) {
+    _createGeneralTab:function(status, isRequired) {
         // Summary:
         //    Create the general tab in the first call, in the second just update the values.
         var tabId = 'general';
-        if (!fieldTemplate.existsTable(tabId)) {
-            fieldTemplate.createTable(tabId);
+        if (!this._fieldTemplate.existsTable(tabId)) {
+            this._fieldTemplate.createTable(tabId);
         }
 
         // status
@@ -1160,7 +1243,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
         // isRequired
         var range = [];
@@ -1177,8 +1260,8 @@ dojo.declare("phpr.ModuleDesigner", null, {
             tab:      tabId,
             hint:     ''
         };
-        fieldTemplate.addRow(fieldValues);
+        this._fieldTemplate.addRow(fieldValues);
 
-        return this._addButtons(fieldTemplate, tabId, 'formGeneral');
+        return this._addButtons(tabId, 'formGeneral');
     }
 });

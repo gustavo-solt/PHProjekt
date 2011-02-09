@@ -33,7 +33,6 @@ dojo.declare("phpr.Tab.Main", phpr.Core.Main, {
         this._formWidget = phpr.Tab.Form;
     },
 
-
     updateCacheData:function() {
         // Summary:
         //    Forces every widget of the page to update its data, by deleting its cache.

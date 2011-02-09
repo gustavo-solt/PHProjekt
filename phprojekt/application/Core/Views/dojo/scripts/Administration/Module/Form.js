@@ -36,7 +36,19 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         var formPosition = 0;
         var self         = this;
         for (var j in tabs) {
-            var targetId = 'moduleDesignerTarget' + tabs[j]['nameId'] + '-' + this._id;
+            var targetId = 'moduleDesignerTarget' + tabs[j]['id'] + '-' + this._id;
+
+            // Move the deleted items to garbage, for don't show it again
+            dojo.query('.deleted', dojo.byId(targetId)).forEach(function(node) {
+                dojo.place(node, 'garbage');
+            });
+
+            // Remove the newItem class on save
+            dojo.query('.newItem', dojo.byId(targetId)).forEach(function(node) {
+                dojo.removeClass(node, 'newItem');
+            });
+
+            // Process the items
             dojo.query('.dojoDndItem', dojo.byId(targetId)).forEach(function(node) {
                 i++;
                 data[i] = {};
@@ -108,13 +120,18 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
 
     cancelDialogData:function() {
         // Summary:
-        //    Destroy the target fields for cancel the changes.
-        // Description:
-        //    If the div is destroyed, in the next call all the fields will be loaded again.
+        //    Restore the deleted nodes and move to garbage the newItems.
         var tabs = phpr.TabStore.getList();
         for (var j in tabs) {
-            var targetId = 'moduleDesignerTarget' + tabs[j]['nameId'] + '-' + this._id;
-            dojo.destroy(targetId);
+            var targetId = 'moduleDesignerTarget' + tabs[j]['id'] + '-' + this._id;
+            dojo.query('.deleted', dojo.byId(targetId)).forEach(function(node) {
+                node.style.display = 'block';
+                node.className     = 'dojoDndItem';
+            });
+            dojo.query('.newItem', dojo.byId(targetId)).forEach(function(node) {
+                node.style.display = 'none';
+                dojo.place(node, 'garbage');
+            });
         }
     },
 
@@ -253,10 +270,6 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
             dojo.body().appendChild(dialog.domNode);
             dialog.startup();
 
-            var tabs = phpr.TabStore.getList();
-            for (t in tabs) {
-                tabs[t].name = phpr.nls.get(tabs[t].name);
-            }
             phpr.Render.render(["phpr.Core.Module.template", "moduleDesigner.html"], dialog.containerNode, {
                 webpath:     phpr.webpath,
                 tableText:   phpr.nls.get('Database'),
@@ -264,26 +277,21 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
                 listText:    phpr.nls.get('Grid'),
                 generalText: phpr.nls.get('General'),
                 saveText:    phpr.nls.get('Save'),
-                cancelText:  phpr.nls.get('Cancel'),
-                tabs:        tabs
+                cancelText:  phpr.nls.get('Cancel')
             });
 
             phpr.ModuleDesigner.createSourceFields();
+
+            // Select the first tab, since the tabs in the dialog don't work on dojo 1.4
+            dijit.byId('moduleDesignerEditor').startup();
+            var parent = dijit.byId('moduleDesignerEditor');
+            parent._showChild(dijit.byId(parent.containerNode.children[0].id));
         }
 
         dialog.set('title', phpr.nls.get('Module Designer') + ' [' + dijit.byId('label-' + this._module).value + ']');
 
         var moduleData = dijit.byId('designerData-' + this._module).get('value');
         phpr.ModuleDesigner.createTargetFields(this._id, moduleData, phpr.TabStore.getList());
-
-        // Select the first tab, since the tabs in the dialog don't work on dojo 1.4
-        dijit.byId('moduleDesignerEditor').startup();
-        var parent = dijit.byId('moduleDesignerTarget');
-        parent._showChild(dijit.byId(parent.containerNode.children[0].id));
-
-        dijit.byId('moduleDesignerTarget').startup();
-        var parent = dijit.byId('moduleDesignerEditor');
-        parent._showChild(dijit.byId(parent.containerNode.children[0].id));
 
         dialog.show();
         dojo.style(dojo.byId('moduleDesignerEditor'), 'display', 'none');

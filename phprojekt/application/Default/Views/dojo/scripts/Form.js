@@ -600,7 +600,6 @@ dojo.declare("phpr.Default.Form", null, {
             dojo.byId('completeContent').focus();
         }));
 
-
         return tabContainer;
     },
 
