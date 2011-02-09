@@ -125,13 +125,15 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
             if (!this._grids[moduleId]) {
                 this._grids[moduleId] = new this._gridWidget(moduleId);
             }
-            this._grids[moduleId].init(phpr.currentProjectId);
+            this._grid = this._grids[moduleId];
+            this._grid.init(phpr.currentProjectId);
         } else if (module) {
             var moduleId = phpr.module + '-' + phpr.submodule;
             if (!this._forms[moduleId]) {
                 this._forms[moduleId] = new this._formWidget(moduleId, this._subModules);
             }
-            this._forms[moduleId].init(0, [], isSystemModule);
+            this._form = this._forms[moduleId];
+            this._form.init(0, [], isSystemModule);
         }
     },
 
@@ -139,9 +141,9 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         // Summary:
         //     Call the function for open a new form.
         if (this._isSystemModule(this._module)) {
-            this.publish("setUrlHash", [phpr.parentmodule, 0, [phpr.module]]);
+            dojo.publish(this._module + '.setUrlHash', [phpr.parentmodule, 0, [phpr.module]]);
         } else {
-            this.publish("setUrlHash", [phpr.parentmodule, 0]);
+            dojo.publish(this._module + '.setUrlHash', [phpr.parentmodule, 0]);
         }
     },
 
@@ -155,39 +157,18 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
 
         if (!this._forms[moduleId]) {
             this._forms[moduleId] = new this._formWidget(moduleId, this._subModules);
+            this._form            = this._forms[moduleId];
         }
         var isSystemModule = this._isSystemModule(this._module)
-        this._forms[moduleId].init(id, [], isSystemModule);
+        this._form.init(id, [], isSystemModule);
     },
 
     updateCacheData:function() {
         // Summary:
         //    Forces every widget of the page to update its data, by deleting its cache.
         phpr.DataStore.deleteAllCache();
-        if (this._grids[phpr.parentmodule + '-' + this._module]) {
-            this._grids[phpr.parentmodule + '-' + this._module].updateData();
-        }
-        if (this._forms[phpr.module + '-' + phpr.submodule]) {
-            this._forms[phpr.module + '-' + phpr.submodule].updateData();
-        }
-    },
 
-    gridProxy:function(functionName, params) {
-        // Summary:
-        //    Proxy for run grid functions.
-        var moduleId = phpr.parentmodule + '-' + this._module;
-        if (this._grids[moduleId]) {
-            dojo.hitch(this._grids[moduleId], functionName).apply(this, [params]);
-        }
-    },
-
-    formProxy:function(functionName, params) {
-        // Summary:
-        //    Proxy for run form functions.
-        var moduleId = phpr.module + '-' + phpr.submodule;
-        if (this._forms[moduleId]) {
-            dojo.hitch(this._forms[moduleId], functionName).apply(this, [params]);
-        }
+        this.inherited(arguments);
     },
 
     /************* Private functions *************/

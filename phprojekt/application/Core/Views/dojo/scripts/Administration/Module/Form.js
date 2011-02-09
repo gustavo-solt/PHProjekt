@@ -16,39 +16,36 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Module.Form");
 
 dojo.declare("phpr.Module.Form", phpr.Core.Form, {
-    _dialog:            null,
     _moduleDesignerUrl: null,
 
     // Events Buttons
     _eventForDesignerData: null,
 
     processDialogData:function() {
-        // summary:
-        //    Collect all the data from the fields
-        // description:
-        //    Collect all the data from the fields and make a json array for the server
+        // Summary:
+        //    Collect all the data from the fields and make a json array for the server.
         var tabs         = phpr.TabStore.getList();
         var data         = {};
         var i            = -1;
         var formPosition = 0;
         var self         = this;
         for (var j in tabs) {
-            var tab = eval("moduleDesignerTarget" + tabs[j]['nameId']);
-            tab.getAllNodes().forEach(function(node) {
-                var t = tab._normalizedCreator(node);
+            var targetId = 'moduleDesignerTarget' + tabs[j]['nameId'] + '-' + this._id;
+            dojo.query('.dojoDndItem', dojo.byId(targetId)).forEach(function(node) {
                 i++;
-                data[i] = new Object();
+                data[i] = {};
 
-                if (dijit.byId('name').get('value') != '') {
-                    data[i]['tableName'] = dijit.byId('name-' + this._module).get('value');
+                if (dijit.byId('name-' + self._module).get('value') != '') {
+                    data[i]['tableName'] = dijit.byId('name-' + self._module).get('value');
                 } else {
-                    data[i]['tableName'] = self._convertLabelIntoTableName(dijit.byId('label-' + this._module).get('value'));
+                    data[i]['tableName'] =
+                        self._convertLabelIntoTableName(dijit.byId('label-' + self._module).get('value'));
                 }
 
                 formPosition++;
@@ -62,7 +59,7 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
                 data[i]['isInteger']     = 0;
                 data[i]['isUnique']      = 0;
 
-                dojo.query('.hiddenValue', t.node).forEach(function(ele){
+                dojo.query('.hiddenValue', node).forEach(function(ele) {
                     switch (ele.name) {
                         case 'tableField':
                             data[i]['tableField'] = ele.value;
@@ -109,7 +106,28 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         dijit.byId('designerData-' + this._module).set('value', json);
     },
 
+    cancelDialogData:function() {
+        // Summary:
+        //    Destroy the target fields for cancel the changes.
+        // Description:
+        //    If the div is destroyed, in the next call all the fields will be loaded again.
+        var tabs = phpr.TabStore.getList();
+        for (var j in tabs) {
+            var targetId = 'moduleDesignerTarget' + tabs[j]['nameId'] + '-' + this._id;
+            dojo.destroy(targetId);
+        }
+    },
+
     /************* Private functions *************/
+
+    _constructor:function(module, subModules) {
+        // Summary:
+        //    Construct the form only one time.
+        this.inherited(arguments);
+
+        // Create a new global instance of phpr.ModuleDesigner
+        phpr.ModuleDesigner = new phpr.ModuleDesigner();
+    },
 
     _initData:function() {
         // Summary:
@@ -199,6 +217,8 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
     },
 
     _postRenderForm:function() {
+        // Summary:
+        //    User functions after render the form.
         var designerData = phpr.DataStore.getData({url: this._moduleDesignerUrl});
 
         // Hidde Button for open the dialog?
@@ -218,38 +238,43 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
     },
 
     _openDialog:function() {
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // Create the dialog
-        phpr.destroyWidget('moduleManagerDialog');
-        this._dialog = new dijit.Dialog({
-            title:     phpr.nls.get('Module Designer') + ' [' + dijit.byId('label-' + this._module).value + ']',
-            id:        "moduleManagerDialog",
-            style:     "width:95%; height:" + (getMaxHeight() - 28) + "px;",
-            baseClass: 'moduleManagerDialog'
-        });
-        dojo.body().appendChild(this._dialog.domNode);
-        this._dialog.startup();
+        // Summary:
+        //    Create the dialog only one time.
+        // Description:
+        //    Create the dialog and the source fields only one time.
+        //    Create a new target field for this module is not exists.
+        var dialog = dijit.byId('moduleDesignerDialog');
+        if (!dialog) {
+            var dialog = new dijit.Dialog({
+                id:        'moduleDesignerDialog',
+                style:     'width:95%; height:' + (getMaxHeight() - 28) + "px;",
+                baseClass: 'moduleDesignerDialog'
+            });
+            dojo.body().appendChild(dialog.domNode);
+            dialog.startup();
 
-        // Add translations
-        var tabs = phpr.TabStore.getList();
-        for (t in tabs) {
-            tabs[t].name = phpr.nls.get(tabs[t].name);
+            var tabs = phpr.TabStore.getList();
+            for (t in tabs) {
+                tabs[t].name = phpr.nls.get(tabs[t].name);
+            }
+            phpr.Render.render(["phpr.Core.Module.template", "moduleDesigner.html"], dialog.containerNode, {
+                webpath:     phpr.webpath,
+                tableText:   phpr.nls.get('Database'),
+                formText:    phpr.nls.get('Form'),
+                listText:    phpr.nls.get('Grid'),
+                generalText: phpr.nls.get('General'),
+                saveText:    phpr.nls.get('Save'),
+                cancelText:  phpr.nls.get('Cancel'),
+                tabs:        tabs
+            });
+
+            phpr.ModuleDesigner.createSourceFields();
         }
-        phpr.Render.render(["phpr.Core.Module.template", "moduleDesigner.html"], this._dialog.containerNode, {
-            webpath:     phpr.webpath,
-            tableText:   phpr.nls.get('Database'),
-            formText:    phpr.nls.get('Form'),
-            listText:    phpr.nls.get('Grid'),
-            generalText: phpr.nls.get('General'),
-            saveText:    phpr.nls.get('Save'),
-            cancelText:  phpr.nls.get('Cancel'),
-            tabs:        tabs
-        });
-        phpr.makeModuleDesignerSource();
-        phpr.makeModuleDesignerTarget(dijit.byId('designerData-' + this._module).get('value'), phpr.TabStore.getList());
+
+        dialog.set('title', phpr.nls.get('Module Designer') + ' [' + dijit.byId('label-' + this._module).value + ']');
+
+        var moduleData = dijit.byId('designerData-' + this._module).get('value');
+        phpr.ModuleDesigner.createTargetFields(this._id, moduleData, phpr.TabStore.getList());
 
         // Select the first tab, since the tabs in the dialog don't work on dojo 1.4
         dijit.byId('moduleDesignerEditor').startup();
@@ -260,12 +285,12 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         var parent = dijit.byId('moduleDesignerEditor');
         parent._showChild(dijit.byId(parent.containerNode.children[0].id));
 
-        this._dialog.show();
-        dojo.style(dojo.byId('moduleDesignerEditor'), "display", "none");
+        dialog.show();
+        dojo.style(dojo.byId('moduleDesignerEditor'), 'display', 'none');
     },
 
     _convertLabelIntoTableName:function(value) {
-        // summary:
+        // Summary:
         //    Trnasform the label into a valid DB name.
         value     = value.replace(/\W+/g, '');
         value     = value.replace(/[_]/g, '');
@@ -275,9 +300,9 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
     },
 
     _updateDesignerData:function(event) {
-        // summary:
+        // Summary:
         //    Update the field "name" with the value of the name or label.
-        // description:
+        // Description:
         //    Change the value into all the data array.
         var data = dojo.fromJson(dijit.byId('designerData-' + this._module).get('value'));
 
@@ -343,7 +368,7 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
 
     _deleteForm:function() {
         // Summary:
-        //    Delete a moudle.
+        //    Delete a module.
         phpr.send({
             url:       phpr.webpath + 'index.php/Core/' + phpr.module.toLowerCase() + '/jsonDelete/id/' + this._id,
             onSuccess: dojo.hitch(this, function(data) {

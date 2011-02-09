@@ -141,11 +141,11 @@
 }
 
 /* Dialog */
-.phprojekt .moduleManagerDialog {
+.phprojekt .moduleDesignerDialog {
     background: #294064;
 }
 
-.phprojekt .moduleManagerDialog .dijitDialogPaneContent {
+.phprojekt .moduleDesignerDialog .dijitDialogPaneContent {
     background: #294064;
     padding: 0px;
     border: 0px;

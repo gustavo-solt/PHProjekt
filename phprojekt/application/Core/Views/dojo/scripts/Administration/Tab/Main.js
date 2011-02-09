@@ -37,13 +37,8 @@ dojo.declare("phpr.Tab.Main", phpr.Core.Main, {
     updateCacheData:function() {
         // Summary:
         //    Forces every widget of the page to update its data, by deleting its cache.
-        if (this._grids[phpr.parentmodule + '-' + this._module]) {
-            this._grids[phpr.parentmodule + '-' + this._module].updateData();
-        }
-        if (this._forms[phpr.module + '-' + phpr.submodule]) {
-            this._forms[phpr.module + '-' + phpr.submodule].updateData();
-        }
         phpr.TabStore.update();
+        this.inherited(arguments);
     },
 
     /************* Private functions *************/

@@ -1188,10 +1188,10 @@ dojo.declare("phpr.Default.SelectField", phpr.Default.Field, {
             disabled:       this._field['disabled'],
             autoComplete:   false,
             store:          new dojo.data.ItemFileWriteStore({data: {
-                identifier: "id",
-			    label:      "name",
+                identifier: 'id',
+			    label:      'name',
 			    items:      phpr.clone(this._field['range'])}}),
-            searchAttr:     "name",
+            searchAttr:     'name',
             value:          this._getValue(),
             invalidMessage: ''
         });

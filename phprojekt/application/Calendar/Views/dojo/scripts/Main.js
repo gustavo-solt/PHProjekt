@@ -172,7 +172,7 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
     showFormFromList:function(rowID) {
         // Summary:
         //    This function opens an specific item clicked from the views
-        this.publish("openForm", [rowID]);
+        dojo.publish("Calendar.openForm", [rowID]);
     },
 
     listViewClick:function() {

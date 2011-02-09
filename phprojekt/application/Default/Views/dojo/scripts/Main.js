@@ -468,7 +468,7 @@ dojo.declare("phpr.Default.Main", null, {
                 // New tag
                 var tag = document.createElement('a');
                 tag.id  = 'tagFor_' + data[i]['string'];
-                tag.setAttribute('style', 'float: left;');
+                dojo.style(tag, 'float', 'left');
                 tag.setAttribute('href', "javascript:void(0)");
                 dojo.connect(tag, 'onclick',
                     dojo.hitch(this, 'setUrlHash', phpr.module, null, ['Tag', data[i]['string']]));
@@ -831,11 +831,9 @@ dojo.declare("phpr.Default.Main", null, {
         //     Remove the "selected" class for global modules.
         //     Mark as selected the global module if is the current one.
         // Hide the form view
-        if (this._form) {
+        if (this._form && this._form.showLayout) {
             // There is already a form, use it for hidde all the views
-            if (this._form.showLayout) {
-                this._form.showLayout('none');
-            }
+            this._form.showLayout('none');
         } else {
             // If not, just hide the error/loading divs
             dojo.style('formInitImg', 'display', 'none');
