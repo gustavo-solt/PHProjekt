@@ -25,7 +25,7 @@ dojo.declare("phpr.Setting.Main", phpr.Core.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this._module = "Setting";
+        this._module = 'Setting';
 
         this._loadFunctions();
 

@@ -36,7 +36,7 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         var formPosition = 0;
         var self         = this;
         for (var j in tabs) {
-            var targetId = 'moduleDesignerTarget' + tabs[j]['id'] + '-' + this._id;
+            var targetId = 'target-ModuleDesigner-' + tabs[j]['id'] + '-' + this._id;
 
             // Move the deleted items to garbage, for don't show it again
             dojo.query('.deleted', dojo.byId(targetId)).forEach(function(node) {
@@ -123,7 +123,7 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         //    Restore the deleted nodes and move to garbage the newItems.
         var tabs = phpr.TabStore.getList();
         for (var j in tabs) {
-            var targetId = 'moduleDesignerTarget' + tabs[j]['id'] + '-' + this._id;
+            var targetId = 'target-ModuleDesigner-' + tabs[j]['id'] + '-' + this._id;
             dojo.query('.deleted', dojo.byId(targetId)).forEach(function(node) {
                 node.style.display = 'block';
                 node.className     = 'dojoDndItem';
@@ -247,8 +247,8 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
 
         // Add onBlur to the label field for update the tableName
         if (!this._eventForDesignerData) {
-            this._eventForDesignerData = dojo.connect(dijit.byId("label-" + this._module), "onChange",
-                dojo.hitch(this, "_updateDesignerData")
+            this._eventForDesignerData = dojo.connect(dijit.byId('label-' + this._module), 'onChange',
+                dojo.hitch(this, '_updateDesignerData')
             );
             this._events.push('_eventForDesignerData');
         };
@@ -264,13 +264,13 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         if (!dialog) {
             var dialog = new dijit.Dialog({
                 id:        'moduleDesignerDialog',
-                style:     'width:95%; height:' + (getMaxHeight() - 28) + "px;",
+                style:     'width:95%; height:' + (getMaxHeight() - 28) + 'px;',
                 baseClass: 'moduleDesignerDialog'
             });
             dojo.body().appendChild(dialog.domNode);
             dialog.startup();
 
-            phpr.Render.render(["phpr.Core.Module.template", "moduleDesigner.html"], dialog.containerNode, {
+            phpr.Render.render(['phpr.Core.Module.template', 'moduleDesigner.html'], dialog.containerNode, {
                 webpath:     phpr.webpath,
                 tableText:   phpr.nls.get('Database'),
                 formText:    phpr.nls.get('Form'),
@@ -283,8 +283,8 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
             phpr.ModuleDesigner.createSourceFields();
 
             // Select the first tab, since the tabs in the dialog don't work on dojo 1.4
-            dijit.byId('moduleDesignerEditor').startup();
-            var parent = dijit.byId('moduleDesignerEditor');
+            dijit.byId('editor-ModuleDesigner').startup();
+            var parent = dijit.byId('editor-ModuleDesigner');
             parent._showChild(dijit.byId(parent.containerNode.children[0].id));
         }
 
@@ -294,7 +294,7 @@ dojo.declare("phpr.Module.Form", phpr.Core.Form, {
         phpr.ModuleDesigner.createTargetFields(this._id, moduleData, phpr.TabStore.getList());
 
         dialog.show();
-        dojo.style(dojo.byId('moduleDesignerEditor'), 'display', 'none');
+        dojo.style(dojo.byId('editor-ModuleDesigner'), 'display', 'none');
     },
 
     _convertLabelIntoTableName:function(value) {

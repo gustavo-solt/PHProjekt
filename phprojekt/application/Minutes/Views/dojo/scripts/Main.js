@@ -25,7 +25,7 @@ dojo.declare("phpr.Minutes.Main", phpr.Default.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this._module = "Minutes";
+        this._module = 'Minutes';
 
         this._loadFunctions();
 

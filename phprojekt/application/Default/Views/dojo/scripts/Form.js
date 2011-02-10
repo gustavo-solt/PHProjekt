@@ -109,7 +109,7 @@ dojo.declare("phpr.Default.Form", null, {
 
         // Get the new data
         this._setUrl();
-        this._initDataArray.push({'url': this._url, 'processData': dojo.hitch(this, "_getFormData")});
+        this._initDataArray.push({'url': this._url, 'processData': dojo.hitch(this, '_getFormData')});
         this._initDataArray.push({'store': phpr.TabStore});
         this._initData();
         this._getInitData();
@@ -158,8 +158,8 @@ dojo.declare("phpr.Default.Form", null, {
             // Hide loading div
             dojo.style('formInitImg', 'display', 'none');
             dojo.style('formInit', {
-                left:    0 + "px",
-                top:     0 + "px",
+                left:    0 + 'px',
+                top:     0 + 'px',
                 display: 'none',
                 zIndex:  -20
             });
@@ -187,8 +187,8 @@ dojo.declare("phpr.Default.Form", null, {
             // Hide loading div
             dojo.style('formInitImg', 'display', 'none');
             dojo.style('formInit', {
-                left:    0 + "px",
-                top:     0 + "px",
+                left:    0 + 'px',
+                top:     0 + 'px',
                 display: 'none',
                 zIndex:  -20
             });
@@ -213,8 +213,8 @@ dojo.declare("phpr.Default.Form", null, {
             var pos = dojo.position(this._getNodeId());
             dojo.style('formInitImg', 'display', 'inline');
             dojo.style('formInit', {
-                left:    pos.x + "px",
-                top:     pos.y + "px",
+                left:    pos.x + 'px',
+                top:     pos.y + 'px',
                 display: 'inline',
                 zIndex:  20
             });
@@ -293,8 +293,8 @@ dojo.declare("phpr.Default.Form", null, {
         this._module = module
 
         this._subModules    = subModules;
-        this._fieldTemplate = new phpr.Default.TableForm(this._module);
-        this._accessRender  = new phpr.Access(this._module);
+        this._fieldTemplate = new phpr.TableForm(this._module);
+        this._accessRender  = new phpr.Default.Access(this._module);
     },
 
     _setUrl:function() {
@@ -336,7 +336,7 @@ dojo.declare("phpr.Default.Form", null, {
                 params.noCache = false;
             }
             if (!params.processData) {
-                params.processData = dojo.hitch(this, "_getInitData");
+                params.processData = dojo.hitch(this, '_getInitData');
             }
         }
 
@@ -455,8 +455,8 @@ dojo.declare("phpr.Default.Form", null, {
             // Hide loading div
             dojo.style('formInitImg', 'display', 'none');
             dojo.style('formInit', {
-                left:    0 + "px",
-                top:     0 + "px",
+                left:    0 + 'px',
+                top:     0 + 'px',
                 display: 'none',
                 zIndex:  -20
             });
@@ -478,9 +478,9 @@ dojo.declare("phpr.Default.Form", null, {
                 this._deletePermissions = true;
                 this._accessPermissions = false;
             } else {
-                this._writePermissions  = (data[0]["rights"]["currentUser"]["write"]) ? true : false;
-                this._deletePermissions = (data[0]["rights"]["currentUser"]["delete"]) ? true : false;
-                this._accessPermissions = (data[0]["rights"]["currentUser"]["admin"]) ? true : false;
+                this._writePermissions  = (data[0]['rights']['currentUser']['write']) ? true : false;
+                this._deletePermissions = (data[0]['rights']['currentUser']['delete']) ? true : false;
+                this._accessPermissions = (data[0]['rights']['currentUser']['admin']) ? true : false;
             }
         }
     },
@@ -585,7 +585,7 @@ dojo.declare("phpr.Default.Form", null, {
     _getNodeId:function() {
         // Summary:
         //    Set the node where put the form.
-        return "detailsBox-" + this._module;
+        return 'detailsBox-' + this._module;
     },
 
     _setFormContent:function() {
@@ -636,7 +636,7 @@ dojo.declare("phpr.Default.Form", null, {
             var formWidget = new dijit.form.Form({
                 id:       formId,
                 name:     formId,
-                style:    "height: 100%",
+                style:    'height: 100%',
                 onSubmit: function() {
                     return false;
                 }
@@ -656,7 +656,7 @@ dojo.declare("phpr.Default.Form", null, {
             this._form.addChild(tab);
 
             // Keep the formId
-            if (typeof formId != "undefined") {
+            if (typeof formId != 'undefined') {
                 this._formsWidget.push(formWidget);
             }
         } else {
@@ -670,16 +670,16 @@ dojo.declare("phpr.Default.Form", null, {
         //    Connect the buttons to the actions.
         // Save button
         if (!this._eventForSubmit) {
-            this._eventForSubmit = dojo.connect(dijit.byId('submitButton-' + this._module), "onClick",
-                dojo.hitch(this, "_submitForm"));
+            this._eventForSubmit = dojo.connect(dijit.byId('submitButton-' + this._module), 'onClick',
+                dojo.hitch(this, '_submitForm'));
             this._events.push('_eventForSubmit');
         };
 
         // Delete button
         if (!this._eventForDelete) {
-            this._eventForDelete = dojo.connect(dijit.byId("deleteButton-" + this._module), "onClick",
+            this._eventForDelete = dojo.connect(dijit.byId('deleteButton-' + this._module), 'onClick',
                 dojo.hitch(this, function() {
-                    phpr.confirmDialog(dojo.hitch(this, "_deleteForm"),
+                    phpr.confirmDialog(dojo.hitch(this, '_deleteForm'),
                         phpr.nls.get('Are you sure you want to delete?'));
                 })
             );
@@ -705,7 +705,7 @@ dojo.declare("phpr.Default.Form", null, {
         //    Display all the users and the access.
         //    The user with admin righst, can assign to each user different access on the item.
         //    Rights for the current user can't be edited, but are displayed.
-        var currentUser       = data[0]["rights"]["currentUser"]["userId"] || 0;
+        var currentUser       = data[0]['rights']['currentUser']['userId'] || 0;
         this._hiddenAccessTab = true;
 
         var tabId  = 'tabAccess-' + this._module;
@@ -714,7 +714,7 @@ dojo.declare("phpr.Default.Form", null, {
 
         // Create table only when the tab is required
         if (!this._eventForAccessTab) {
-            this._eventForAccessTab = dojo.connect(dijit.byId(tabId), "onShow", dojo.hitch(this, function() {
+            this._eventForAccessTab = dojo.connect(dijit.byId(tabId), 'onShow', dojo.hitch(this, function() {
                 if (this._hiddenAccessTab) {
                     // Do not refresh the data until the module is reloaded
                     this._hiddenAccessTab = false;
@@ -788,7 +788,7 @@ dojo.declare("phpr.Default.Form", null, {
             if (!history) {
                 var history = new dijit.layout.ContentPane({
                     id:    historyId,
-                    style: '"overflow: hidden;'
+                    style: 'overflow: hidden;'
                 }, document.createElement('div'));
             }
 
@@ -797,7 +797,7 @@ dojo.declare("phpr.Default.Form", null, {
 
             // Create table only when the tab is required
             if (!this._eventForHistoryTab) {
-                this._eventForHistoryTab = dojo.connect(dijit.byId(tabId), "onShow", dojo.hitch(this, "_showHistory"));
+                this._eventForHistoryTab = dojo.connect(dijit.byId(tabId), 'onShow', dojo.hitch(this, '_showHistory'));
             }
         }
     },
@@ -816,7 +816,7 @@ dojo.declare("phpr.Default.Form", null, {
             var tableId = 'historyTable-' + this._module;
             var table   = dojo.byId(tableId);
             if (!table) {
-                var table               = dojo.doc.createElement("table");
+                var table               = dojo.doc.createElement('table');
                 table.id                = tableId;
                 table.className         = 'historyTable';
                 table.style.width       = 'auto';
@@ -840,7 +840,7 @@ dojo.declare("phpr.Default.Form", null, {
                     var label = document.createElement('label');
                     var txt   = document.createTextNode(phpr.nls.get(headers[i]));
                     label.appendChild(txt);
-                    var cell = document.createElement("th");
+                    var cell = document.createElement('th');
                     cell.appendChild(label);
                     row.appendChild(cell);
                 }
@@ -880,21 +880,21 @@ dojo.declare("phpr.Default.Form", null, {
 
         for (var i = 0; i < history.length; i++) {
             // Search for the user name
-            if (!userDisplay[history[i]["userId"]]) {
+            if (!userDisplay[history[i]['userId']]) {
                 for (var u in userList) {
-                    if (userList[u].id == history[i]["userId"]) {
-                        userDisplay[history[i]["userId"]] = userList[u].display;
+                    if (userList[u].id == history[i]['userId']) {
+                        userDisplay[history[i]['userId']] = userList[u].display;
                         break;
                     }
                 }
             }
 
             historyData.push([
-                history[i]["datetime"],
-                (userDisplay[history[i]["userId"]]) ? userDisplay[history[i]["userId"]] : '',
-                history[i]["label"] || '',
-                history[i]["oldValue"] || '',
-                history[i]["newValue"] || ''
+                history[i]['datetime'],
+                (userDisplay[history[i]['userId']]) ? userDisplay[history[i]['userId']] : '',
+                history[i]['label'] || '',
+                history[i]['oldValue'] || '',
+                history[i]['newValue'] || ''
             ]);
         }
 
@@ -939,7 +939,7 @@ dojo.declare("phpr.Default.Form", null, {
                     dojo.addClass(tabId, 'subModuleDiv');
                     subModules[index]['class'].fillTab(tabId);
 
-                    this._eventForSubModulesTab[tabId] = dojo.connect(dijit.byId(tabId), "onShow",
+                    this._eventForSubModulesTab[tabId] = dojo.connect(dijit.byId(tabId), 'onShow',
                         dojo.hitch(this, function() {
                             subModules[index]['class'].renderSubModule(this._id);
                         })
@@ -994,8 +994,8 @@ dojo.declare("phpr.Default.Form", null, {
                                 new phpr.handleResponse('serverFeedback', data);
                             }
                             if (data.type == 'success') {
-                                dojo.publish(phpr.module + ".updateCacheData");
-                                dojo.publish(phpr.module + ".setUrlHash", [phpr.module]);
+                                dojo.publish(phpr.module + '.updateCacheData');
+                                dojo.publish(phpr.module + '.setUrlHash', [phpr.module]);
                             }
                         })
                     });
@@ -1054,7 +1054,7 @@ dojo.declare("phpr.Default.Form", null, {
                 for (var k in sendData) {
                     // Allow empty arrays, set the value to an empty string
                     if (sendData[k] && typeof(sendData[k]) == 'object' && sendData[k].length == 0) {
-                        sendData[k] = new Array("");
+                        sendData[k] = new Array('');
                     }
                 }
             }
@@ -1112,8 +1112,8 @@ dojo.declare("phpr.Default.Form", null, {
                         onSuccess: dojo.hitch(this, function(data) {
                             new phpr.handleResponse('serverFeedback', data);
                             if (data.type == 'success') {
-                                dojo.publish(phpr.module + ".updateCacheData");
-                                dojo.publish(phpr.module + ".setUrlHash", [phpr.module]);
+                                dojo.publish(phpr.module + '.updateCacheData');
+                                dojo.publish(phpr.module + '.setUrlHash', [phpr.module]);
                             }
                         })
                     });

@@ -16,40 +16,24 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
-dojo.provide("phpr.Component");
+dojo.provide("phpr.Render");
 
-dojo.declare("phpr.Component", null, {
-    main:   null,
-    module: "",
-
+dojo.declare("phpr.Render", null, {
+    // Summary:
+    //    Render an html template into a node.
     render:function(template, node, content) {
         var context = new dojox.dtl.Context(content);
         // Use the cached template
-        var tplContent = __phpr_templateCache[template[0] + "." + template[1]];
-        if (!__phpr_templateObjectCache[template[0] + "." + template[1]]) {
-            __phpr_templateObjectCache[template[0] + "." + template[1]] = new dojox.dtl.Template(tplContent, true);
+        var tplContent = __phpr_templateCache[template[0] + '.' + template[1]];
+        if (!__phpr_templateObjectCache[template[0] + '.' + template[1]]) {
+            __phpr_templateObjectCache[template[0] + '.' + template[1]] = new dojox.dtl.Template(tplContent, true);
         }
 
-        var html = __phpr_templateObjectCache[template[0] + "." + template[1]].render(context);
+        var html = __phpr_templateObjectCache[template[0] + '.' + template[1]].render(context);
         context  = null;
-
-        /*
-if(dojo.isIE){
-	dojo.addOnWindowUnload(function(){
-		var cache = dijit._Templated._templateCache;
-		for(var key in cache){
-			var value = cache[key];
-			if(typeof value == "object"){ // value is either a string or a DOM node template
-				dojo.destroy(value);
-			}
-			delete cache[key];
-		}
-	});
-}
-        */
 
         if (node) {
             var dojoType = node.getAttribute('dojoType');

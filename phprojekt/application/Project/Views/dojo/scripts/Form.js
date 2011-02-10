@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Project.Form");
@@ -114,7 +114,7 @@ dojo.declare("phpr.Project.Form", phpr.Default.Form, {
 
         // Create table only when the tab is required
         if (!this._eventForModuleTab) {
-            this._eventForModuleTab = dojo.connect(dijit.byId(tabId), "onShow", dojo.hitch(this, function() {
+            this._eventForModuleTab = dojo.connect(dijit.byId(tabId), 'onShow', dojo.hitch(this, function() {
                 if (this._hiddenModuleTab) {
                     // Do not refresh the data until the module is reloaded
                     this._hiddenModuleTab = false;
@@ -146,7 +146,7 @@ dojo.declare("phpr.Project.Form", phpr.Default.Form, {
         // Description:
         //    Display all the user-role relation for this project.
         //    Provide a form for add/edit/delete them.
-        var currentUser     = data[0]["rights"]["currentUser"]["userId"] || 0;
+        var currentUser     = data[0]['rights']['currentUser']['userId'] || 0;
         this._hiddenRoleTab = true;
 
         var tabId  = 'tabRoles-' + this._module;
@@ -155,7 +155,7 @@ dojo.declare("phpr.Project.Form", phpr.Default.Form, {
 
         // Create table only when the tab is required
         if (!this._eventForRoleTab) {
-            this._eventForRoleTab = dojo.connect(dijit.byId(tabId), "onShow", dojo.hitch(this, function() {
+            this._eventForRoleTab = dojo.connect(dijit.byId(tabId), 'onShow', dojo.hitch(this, function() {
                 if (this._hiddenRoleTab) {
                     // Do not refresh the data until the module is reloaded
                     this._hiddenRoleTab = false;

@@ -23,7 +23,7 @@ dojo.provide("phpr.Calendar.DefaultView");
 dojo.provide("phpr.Calendar.Moveable");
 dojo.provide("phpr.Calendar.ResizeHandle");
 
-dojo.declare("phpr.Calendar.DefaultView", phpr.Component, {
+dojo.declare("phpr.Calendar.DefaultView", phpr.Render, {
     // Summary:
     //    Parent class for displaying a Calendar Day Based List. Day based list: it means, not grid but Day List,
     //    Week List, etc. This should be inherited by each respective JS view.

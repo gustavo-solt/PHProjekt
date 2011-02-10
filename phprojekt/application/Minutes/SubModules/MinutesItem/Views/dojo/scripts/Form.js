@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.MinutesItem.Form");
@@ -68,7 +68,7 @@ dojo.declare("phpr.MinutesItem.Form", phpr.Default.SubModule.Form, {
         this._switchItemFormFields(data[0]['topicType']); // defaults
 
         if (!this._eventForParent) {
-            this._eventForParent = dojo.connect(dijit.byId('topicType-' + this._module), "onChange",
+            this._eventForParent = dojo.connect(dijit.byId('topicType-' + this._module), 'onChange',
                 dojo.hitch(this, this._switchItemFormFields)
             );
             this._events.push('_eventForParent');
@@ -87,36 +87,36 @@ dojo.declare("phpr.MinutesItem.Form", phpr.Default.SubModule.Form, {
         var trUser  = dojo.byId('userId-' + this._module).parentNode.parentNode.parentNode.parentNode;
         switch(parseInt(typeValue)) {
             case 3:
-                dojo.style(trUser, "display", display);
-                dojo.style(trDate, "display", display);
-                dijit.byId('userId-' + this._module).set("disabled", false);
-                dijit.byId('topicDate-' + this._module).set("disabled", false);
+                dojo.style(trUser, 'display', display);
+                dojo.style(trDate, 'display', display);
+                dijit.byId('userId-' + this._module).set('disabled', false);
+                dijit.byId('topicDate-' + this._module).set('disabled', false);
                 if (dojo.isIE) {
                     // Fix the display of the selectBox for IE
-                    dojo.style(dojo.byId('userId-' + this._module), "display", "inline");
-                    dojo.style(dojo.byId('topicDate-' + this._module), "display", "inline");
+                    dojo.style(dojo.byId('userId-' + this._module), 'display', 'inline');
+                    dojo.style(dojo.byId('topicDate-' + this._module), 'display', 'inline');
                 }
                 break;
             case 5:
-                dojo.style(trUser, "display", "none");
-                dojo.style(trDate, "display", display);
-                dijit.byId('userId-' + this._module).set("disabled", true);
-                dijit.byId('topicDate-' + this._module).set("disabled", false);
+                dojo.style(trUser, 'display', 'none');
+                dojo.style(trDate, 'display', display);
+                dijit.byId('userId-' + this._module).set('disabled', true);
+                dijit.byId('topicDate-' + this._module).set('disabled', false);
                 if (dojo.isIE) {
                     // Fix the display of the selectBox for IE
-                    dojo.style(dojo.byId('userId-' + this._module), "display", "none");
-                    dojo.style(dojo.byId('topicDate-' + this._module), "display", "inline");
+                    dojo.style(dojo.byId('userId-' + this._module), 'display', 'none');
+                    dojo.style(dojo.byId('topicDate-' + this._module), 'display', 'inline');
                 }
                 break;
             default:
-                dojo.style(trUser, "display", "none");
-                dojo.style(trDate, "display", "none");
-                dijit.byId('userId-' + this._module).set("disabled", true);
-                dijit.byId('topicDate-' + this._module).set("disabled", true);
+                dojo.style(trUser, 'display', 'none');
+                dojo.style(trDate, 'display', 'none');
+                dijit.byId('userId-' + this._module).set('disabled', true);
+                dijit.byId('topicDate-' + this._module).set('disabled', true);
                 if (dojo.isIE) {
                     // Fix the display of the selectBox for IE
-                    dojo.style(dojo.byId('userId-' + this._module), "display", "none");
-                    dojo.style(dojo.byId('topicDate-' + this._module), "display", "none");
+                    dojo.style(dojo.byId('userId-' + this._module), 'display', 'none');
+                    dojo.style(dojo.byId('topicDate-' + this._module), 'display', 'none');
                 }
                 break;
         }

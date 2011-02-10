@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Default.SubModule");
@@ -40,7 +40,7 @@ dojo.declare("phpr.Default.SubModule", null, {
         //    Set some vars to run the sub module.
         // Description:
         //    Define the current module and the widgets to use.
-        this._module = "DefaultSubModule";
+        this._module = 'DefaultSubModule';
 
         this._loadFunctions();
 
@@ -53,7 +53,7 @@ dojo.declare("phpr.Default.SubModule", null, {
         //    Add all the functions for the current module.
         dojo.subscribe(this._module + '.updateCacheData', this, 'updateCacheData');
         dojo.subscribe(this._module + '.openForm', this, 'openForm');
-        dojo.subscribe(this._module + ".gridProxy", this, "gridProxy");
+        dojo.subscribe(this._module + '.gridProxy', this, 'gridProxy');
     },
 
     fillTab:function(nodeId) {
@@ -82,7 +82,7 @@ dojo.declare("phpr.Default.SubModule", null, {
 
         borderContainer.addChild(gridBox);
         borderContainer.addChild(detailsBox);
-        content.set("content", borderContainer.domNode);
+        content.set('content', borderContainer.domNode);
 
         dijit.byId(nodeId).set('content', content);
     },
@@ -328,9 +328,10 @@ dojo.declare("phpr.Default.SubModule.Form", phpr.Default.Form, {
             this._tabNumber++;
         }
 
-        return new Array({"id":     this._tabNumber,
-                          "name":   phpr.nls.get('Basic Data'),
-                          "nameId": 'subModuleTab' + this._tabNumber})
+        return [{
+            id:     this._tabNumber,
+            name:   phpr.nls.get('Basic Data'),
+            nameId: 'subModuleTab' + this._tabNumber}];
     },
 
     _setPermissions:function(data) {
@@ -393,7 +394,7 @@ dojo.declare("phpr.Default.SubModule.Form", phpr.Default.Form, {
         }
 
         if (!this._eventForNew) {
-            this._eventForNew = dojo.connect(newButton, "onClick",
+            this._eventForNew = dojo.connect(newButton, 'onClick',
                 dojo.hitch(this, function() {
                     this.init(0, [], this._parentId);
                 })
@@ -420,7 +421,7 @@ dojo.declare("phpr.Default.SubModule.Form", phpr.Default.Form, {
             onSuccess: dojo.hitch(this, function(data) {
                 new phpr.handleResponse('serverFeedback', data);
                 if (data.type == 'success') {
-                    dojo.publish(this._module + ".updateCacheData");
+                    dojo.publish(this._module + '.updateCacheData');
                 }
             })
         });
@@ -434,7 +435,7 @@ dojo.declare("phpr.Default.SubModule.Form", phpr.Default.Form, {
             onSuccess: dojo.hitch(this, function(data) {
                 new phpr.handleResponse('serverFeedback', data);
                 if (data.type == 'success') {
-                    dojo.publish(this._module + ".updateCacheData");
+                    dojo.publish(this._module + '.updateCacheData');
                 }
             })
         });

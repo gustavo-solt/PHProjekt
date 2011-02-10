@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Role.Form");
@@ -83,7 +83,7 @@ dojo.declare("phpr.Role.Form", phpr.Core.Form, {
             var txt   = document.createTextNode(phpr.nls.get('Access') + ' ');
             label.appendChild(txt);
             var cell = row.insertCell(0);
-            cell.className = "label";
+            cell.className = 'label';
             cell.appendChild(label);
 
             // Table

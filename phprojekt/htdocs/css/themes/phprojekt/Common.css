@@ -33,7 +33,8 @@
     width: 100%;
 }
 
-.phprojekt #bottomContent {
+.phprojekt #bottomContent,
+.phprojekt .bottomContent {
     background: #fff;
     width: 100%;
     height: 32px;

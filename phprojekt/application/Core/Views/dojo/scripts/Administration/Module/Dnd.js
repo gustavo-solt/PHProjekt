@@ -37,7 +37,7 @@ dojo.declare("phpr.Module.DesignerSource", dojo.dnd.AutoSource, {
             this.onDropExternal(source, nodes, copy);
             var m = dojo.dnd.manager();
             if (this.node.id == m.target.node.id) {
-                if (source.node.id == 'moduleDesignerSource') {
+                if (source.node.id == 'source-ModuleDesigner') {
                     var table = m.target.anchor.childNodes[0].childNodes[1].childNodes[0];
 
                     // Display the buttons
@@ -79,13 +79,13 @@ dojo.declare("phpr.ModuleDesigner", null, {
     constructor:function() {
         // Summary:
         //    Set the field render on create the class.
-        this._fieldTemplate = new phpr.Default.TableForm('ModuleDesigner');
+        this._fieldTemplate = new phpr.TableForm('ModuleDesigner');
     },
 
     createSourceFields:function() {
         // Summary:
         //    Draw the source fields.
-        var sourceNode = dojo.byId('moduleDesignerSource');
+        var sourceNode = dojo.byId('source-ModuleDesigner');
 
         // Create a text node for show the help
         var textContent = document.createElement('div');
@@ -110,8 +110,8 @@ dojo.declare("phpr.ModuleDesigner", null, {
 
         var tooltip = new dijit.form.DropDownButton({
             showLabel: false,
-            baseClass: "smallIcon",
-            iconClass: "help",
+            baseClass: 'smallIcon',
+            iconClass: 'help',
             tabindex:  -1,
             dropDown:  dialog
         });
@@ -120,10 +120,10 @@ dojo.declare("phpr.ModuleDesigner", null, {
         sourceNode.appendChild(textContent);
 
         // Create the source widget
-        this._sourceWidget = new phpr.Module.DesignerSource('moduleDesignerSource', {
+        this._sourceWidget = new phpr.Module.DesignerSource('source-ModuleDesigner', {
             copyOnly: false,
             skipForm: true,
-            accept:   ["none"] // Disable drop from target to source
+            accept:   ['none'] // Disable drop from target to source
         });
 
         // Add all the field types
@@ -192,10 +192,10 @@ dojo.declare("phpr.ModuleDesigner", null, {
                         id:      tabId,
                         title:   phpr.nls.get(tabs[j]['name'])
                     });
-                    dijit.byId('moduleDesignerTarget').addChild(tabWidget);
+                    dijit.byId('target-ModuleDesigner').addChild(tabWidget);
                     // Fix layout
                     // When add a tab into the dialog, the top lost their value
-                    dijit.byId('moduleDesignerTarget').containerNode.style.top = '22px';
+                    dijit.byId('target-ModuleDesigner').containerNode.style.top = '22px';
 
                 } else {
                     tabWidget.set('title', phpr.nls.get(tabs[j]['name']));
@@ -207,7 +207,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 });
 
                 // Create or show a div for this module
-                var targetId = 'moduleDesignerTarget' + tabs[j]['id'] + '-' + this._moduleId;
+                var targetId = 'target-ModuleDesigner-' + tabs[j]['id'] + '-' + this._moduleId;
                 if (!dojo.byId(targetId)) {
                     var node = document.createElement('div');
                     node.id  = targetId;
@@ -249,8 +249,8 @@ dojo.declare("phpr.ModuleDesigner", null, {
 
                     var tooltip = new dijit.form.DropDownButton({
                         showLabel: false,
-                        baseClass: "smallIcon",
-                        iconClass: "help",
+                        baseClass: 'smallIcon',
+                        iconClass: 'help',
                         tabindex:  -1,
                         dropDown:  dialog
                     });
@@ -277,7 +277,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
     editField:function(nodeId) {
         // Summary:
         //    Make the edit form.
-        dojo.style(dojo.byId('moduleDesignerEditor'), 'display', 'none');
+        dojo.style(dojo.byId('editor-ModuleDesigner'), 'display', 'none');
         var selectType   = '';
         var tableType    = ''
         var tableLength  = '';
@@ -345,10 +345,10 @@ dojo.declare("phpr.ModuleDesigner", null, {
         var generalTab = this._createGeneralTab(status, isRequired);
 
         var forms = {
-            formTable:   {tab: 'moduleDesignerEditorTable',   table: tableTab},
-            formForm:    {tab: 'moduleDesignerEditorForm',    table: formTab},
-            formList:    {tab: 'moduleDesignerEditorList',    table: listTab},
-            formGeneral: {tab: 'moduleDesignerEditorGeneral', table: generalTab}
+            formTable:   {tab: 'editorTable-ModuleDesigner',   table: tableTab},
+            formForm:    {tab: 'editorForm-ModuleDesigner',    table: formTab},
+            formList:    {tab: 'editorList-ModuleDesigner',    table: listTab},
+            formGeneral: {tab: 'editorGeneral-ModuleDesigner', table: generalTab}
         };
         for (var i in forms) {
             var formWidget = dijit.byId(i);
@@ -357,7 +357,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 var formWidget = new dijit.form.Form({
                     id:       i,
                     name:     i,
-                    style:    "height: 100%",
+                    style:    'height: 100%',
                     onSubmit: function() {
                         return false;
                     }
@@ -367,11 +367,11 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 dijit.byId(forms[i].tab).set('content', formWidget);
 
                 // Save
-                dojo.connect(dijit.byId('submitButton-ModuleDesigner-' + i), "onClick", function() {
+                dojo.connect(dijit.byId('submitButton-ModuleDesigner-' + i), 'onClick', function() {
                     phpr.ModuleDesigner.saveField();
                 });
                 // Cancel
-                dojo.connect(dijit.byId('deleteButton-ModuleDesigner-' + i), "onClick", function() {
+                dojo.connect(dijit.byId('deleteButton-ModuleDesigner-' + i), 'onClick', function() {
                     phpr.ModuleDesigner.switchOkButton('save');
                 });
 
@@ -485,7 +485,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
         var tabId = node.parentNode.id;
 
         // Delete only the target items
-        if (tabId != 'moduleDesignerSource') {
+        if (tabId != 'source-ModuleDesigner') {
             if (node) {
                 var tab = this._targetWidget[tabId];
                 // Make sure it is not the anchor
@@ -506,22 +506,22 @@ dojo.declare("phpr.ModuleDesigner", null, {
     switchOkButton:function(type) {
         // Summary:
         //    Switch between the Save and the Edit Form.
-        dijit.byId('moduleDesignerEditor').selectChild(dijit.byId('moduleDesignerEditorTable'));
+        dijit.byId('editor-ModuleDesigner').selectChild(dijit.byId('editorTable-ModuleDesigner'));
         if (type == 'editor') {
-            var node = dijit.byId('moduleDesignerEditor');
+            var node = dijit.byId('editor-ModuleDesigner');
             dojo.fadeIn({
                 node:        node.domNode,
                 duration:    300,
                 beforeBegin: function() {
-                    node.selectChild(dijit.byId('moduleDesignerEditorTable'));
+                    node.selectChild(dijit.byId('editorTable-ModuleDesigner'));
                     dojo.style(node.domNode, 'opacity', 0);
-                    dojo.style(node.domNode, 'display', "block");
-                    dojo.style(dojo.byId('moduleDesignerSaveButton'), 'display', 'none');
+                    dojo.style(node.domNode, 'display', 'block');
+                    dojo.style(dojo.byId('saveButton-ModuleDesigner'), 'display', 'none');
                 }
             }).play();
         } else {
-            dojo.style(dojo.byId('moduleDesignerEditor'), 'display', 'none');
-            dojo.style(dojo.byId('moduleDesignerSaveButton'), 'display', 'block');
+            dojo.style(dojo.byId('editor-ModuleDesigner'), 'display', 'none');
+            dojo.style(dojo.byId('saveButton-ModuleDesigner'), 'display', 'block');
         }
     },
 
@@ -564,9 +564,9 @@ dojo.declare("phpr.ModuleDesigner", null, {
         var id         = params['id'] || 0;
 
         if (formType == 'selectValues') {
-            var options = formRange.split("|");
+            var options = formRange.split('|');
             for (var i in options) {
-                var values = options[i].split("#");
+                var values = options[i].split('#');
                 if (values[0] && values[1] && !values[2]) {
                     selectType = 'custom';
                     break;
@@ -647,22 +647,22 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 node.appendChild(rulesBottomNode);
 
                 var sliderLabels = new dijit.form.HorizontalRuleLabels({
-                    container:     "topDecoration",
+                    container:     'topDecoration',
                     count:         5,
                     numericMargin: 1,
-                    style:         "height: 1.2em; font-size: 75%; color: gray;"
+                    style:         'height: 1.2em; font-size: 75%; color: gray;'
                 }, rulesLabelNode);
 
                 var sliderTopRule = new dijit.form.HorizontalRule({
-                    container: "topDecoration",
+                    container: 'topDecoration',
                     count:     5,
-                    style:     "height: 5px;"
+                    style:     'height: 5px;'
                 }, rulesTopNode);
 
                 var sliderBottomRule = new dijit.form.HorizontalRule({
-                    container: "bottomDecoration",
+                    container: 'bottomDecoration',
                     count:     11,
-                    style:     "height: 5px;"
+                    style:     'height: 5px;'
                 }, rulesBottomNode);
 
                 // Slider
@@ -673,7 +673,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
                     pageIncrement:       100,
                     showButtons:         false,
                     intermediateChanges: true,
-                    style:               "height: 20px;"
+                    style:               'height: 20px;'
                 }, node);
 
                 inputTxt.startup();
@@ -699,17 +699,17 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 break;
         }
 
-        var table = dojo.doc.createElement("table");
-        table.className = "form";
-        var colgroup = document.createElement("colgroup");
-    	var col1 = document.createElement("col");
-    	col1.className = "col1";
+        var table = dojo.doc.createElement('table');
+        table.className = 'form';
+        var colgroup = document.createElement('colgroup');
+    	var col1 = document.createElement('col');
+    	col1.className = 'col1';
     	colgroup.appendChild(col1);
-    	var col2 = document.createElement("col");
-    	col2.className = "col2";
+    	var col2 = document.createElement('col');
+    	col2.className = 'col2';
     	colgroup.appendChild(col2);
-    	var col3 = document.createElement("col");
-    	col3.className = "col3";
+    	var col3 = document.createElement('col');
+    	col3.className = 'col3';
     	colgroup.appendChild(col3);
     	table.appendChild(colgroup);
 
@@ -718,7 +718,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
 
         // Label
         var cell       = row.insertCell(0);
-        cell.className = "label";
+        cell.className = 'label';
         var label = document.createElement('label');
         label.setAttribute('for', labelFor);
         var txt = document.createTextNode(phpr.nls.get(formLabel, dijit.byId('name-Administration-Module').value));
@@ -832,10 +832,10 @@ dojo.declare("phpr.ModuleDesigner", null, {
             }
             var defaultValue = null;
             var range        = []
-            var options      = formRange.split("|");
+            var options      = formRange.split('|');
             if (options.length > 1) {
                 for (var i in options) {
-                    var values = options[i].split("#");
+                    var values = options[i].split('#');
                     if (values[0] && values[1]) {
                         if (!defaultValue) {
                             defaultValue = values[0];
@@ -847,7 +847,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
                     }
                 }
             } else {
-                var values = options[0].split("#");
+                var values = options[0].split('#');
                 if (values[1] && values[2]) {
                     for (var k = 1; k < 3 ; k++) {
                         if (!defaultValue) {
@@ -1156,8 +1156,8 @@ dojo.declare("phpr.ModuleDesigner", null, {
                     var widget = new dijit.form.DropDownButton({
                         id:        tooltipId,
                         showLabel: false,
-                        baseClass: "smallIcon",
-                        iconClass: "help",
+                        baseClass: 'smallIcon',
+                        iconClass: 'help',
                         dropDown:  dialog
                     });
                     dojo.byId('row_formRange-ModuleDesigner').childNodes[2].appendChild(widget.domNode);

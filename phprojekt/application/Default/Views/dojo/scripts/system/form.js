@@ -84,7 +84,7 @@ dojo.declare("phpr.form.FilteringSelect", dijit.form.FilteringSelect, {
     //    Also change the query options and highlight for work with trees in select.
 
     // Highlight any occurrence
-    highlightMatch: "all",
+    highlightMatch: 'all',
 
     // `${0}*` means "starts with", `*${0}*` means "contains", `${0}` means "is"
     queryExpr: "*${0}*",
@@ -113,14 +113,14 @@ dojo.declare("phpr.form.FilteringSelect", dijit.form.FilteringSelect, {
     _onKeyPress:function(/*Event*/ evt) {
         // Create the popup again if was destroyed
 		if (!this._popupWidget) {
-            var popupId = this.id + "_popup";
+            var popupId = this.id + '_popup';
             this._popupWidget = new dijit.form._ComboBoxMenu({
                 onChange: dojo.hitch(this, this._selectOption),
                 id:       popupId,
                 dir:      this.dir
             });
-            dijit.removeWaiState(this.focusNode, "activedescendant");
-            dijit.setWaiState(this.textbox, "owns", popupId); // associate popup with textbox
+            dijit.removeWaiState(this.focusNode, 'activedescendant');
+            dijit.setWaiState(this.textbox, 'owns', popupId); // associate popup with textbox
 		}
 
 		this.inherited(arguments);
@@ -176,10 +176,10 @@ dojo.declare("phpr.form.FilteringSelect", dijit.form.FilteringSelect, {
                     deep:       true
                 },
                 onComplete: function(result, dataObject) {
-                    dojo.hitch(_this, "_callbackSetLabel")(result, dataObject, priorityChange);
+                    dojo.hitch(_this, '_callbackSetLabel')(result, dataObject, priorityChange);
                 },
                 onError: function(errText) {
-                    dojo.hitch(_this, "_setValue")("", label, false);
+                    dojo.hitch(_this, '_setValue')('', label, false);
                 }
             };
             dojo.mixin(fetch, this.fetchProperties);
@@ -193,7 +193,7 @@ dojo.declare("phpr.form.FilteringSelect", dijit.form.FilteringSelect, {
         //    Change the function for Highlights all the occurences
 
         // Add greedy when this.highlightMatch=="all"
-        var modifiers    = "i" + (this.highlightMatch == "all" ? "g" : "");
+        var modifiers    = 'i' + (this.highlightMatch == 'all' ? 'g' : '');
         var escapedLabel = this._escapeHtml(label);
         find             = dojo.regexp.escapeString(find); // escape regexp special chars
         var ret = escapedLabel.replace(new RegExp("(^|\\s|\\w)("+ find +")", modifiers),
@@ -238,13 +238,13 @@ dojo.declare("phpr.form.Rating", dojox.form.Rating, {
 
     onStarClick:function(evt) {
         if (!this.disabled) {
-            this.inherited("onStarClick", arguments);
+            this.inherited('onStarClick', arguments);
         }
     },
 
     setAttribute:function(key, value){
         this.set('value', value);
-        if (key == "value") {
+        if (key == 'value') {
             this._renderStars(this.value);
             this.onChange(this.value);
         }

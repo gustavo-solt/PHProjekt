@@ -74,7 +74,7 @@ dojo.declare("phpr.FrontendMessage", null, {
         clearInterval(window.interval);
         window.getFrontendMessage();
 
-        var moduleUrl  = "#" + data.module + "," + data.projectId + ",id," + data.itemId;
+        var moduleUrl  = '#' + data.module + ',' + data.projectId + ',id,' + data.itemId;
         var currentUrl = window.location.hash;
 
         console.debug(moduleUrl);
@@ -88,7 +88,7 @@ dojo.declare("phpr.FrontendMessage", null, {
                 }
             }
         } catch (err) {
-            phpr.handleError(this.url, 'silence', "Can not highlight changes. " + err);
+            phpr.handleError(this.url, 'silence', 'Can not highlight changes. ' + err);
         }
 
         // Delete caches
@@ -124,7 +124,7 @@ dojo.declare("phpr.FrontendMessage", null, {
         }
 
         var template = this._templateString(data);
-        dojo.publish("FrontendMessage", [{
+        dojo.publish('FrontendMessage', [{
             message:  template,
             type:     'warning',
             duration: 0
@@ -139,12 +139,12 @@ dojo.declare("phpr.FrontendMessage", null, {
         // Description:
         //    Returns a string with the given data and html tags for the toaster.
         var template = '';
-        var project  = phpr.nls.get("in Project");
+        var project  = phpr.nls.get('in Project');
 
         if (phpr.isGlobalModule(data.module)) {
-            data.projectId = "";
+            data.projectId = '';
         } else {
-            data.projectId = data.projectId + ",";
+            data.projectId = data.projectId + ',';
         }
 
         switch (data.process) {

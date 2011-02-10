@@ -48,9 +48,9 @@ dojo.declare("phpr.Project.Modules", null, {
         this._cellIndex         = 0;
 
         if (!this._table) {
-            this._table                   = dojo.doc.createElement("table");
+            this._table                   = dojo.doc.createElement('table');
             this._table.id                = 'moduleRelationTable-' + this._module;
-            this._table.className         = "form";
+            this._table.className         = 'form';
             this._table.style.width       = 'auto';
             this._table.style.marginLeft  = '35px';
             this._table.style.marginRight = '35px';
@@ -110,7 +110,7 @@ dojo.declare("phpr.Project.Modules", null, {
             value:    (data['inProject']) ? true : false,
             hint:     ''
         };
-        var widgetClass = new phpr.Default.CheckField(fieldValues, this._module);
+        var widgetClass = new phpr.Field.CheckField(fieldValues, this._module);
 
         var row = dojo.byId(rowId);
         if (!row) {
@@ -127,7 +127,7 @@ dojo.declare("phpr.Project.Modules", null, {
             var container = this._createDivNode(dijit.byId(widgetClass.fieldId).domNode);
             this._createCell(row, container);
 
-            dojo.connect(dijit.byId(widgetClass.fieldId), "onClick", function() {
+            dojo.connect(dijit.byId(widgetClass.fieldId), 'onClick', function() {
                 var response      = {};
                 response.type     = 'warning';
                 response.message  = phpr.nls.get('Module edited correctly but not saved yet.');

@@ -28,7 +28,7 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this._module = "Core";
+        this._module = 'Core';
 
         this._loadFunctions();
 
@@ -106,14 +106,14 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
                 if (!dojo.byId('defaultMainContentText-' + phpr.module)) {
                     var node = new dijit.layout.ContentPane({
                         id:      'defaultMainContentText-' + phpr.module,
-                        style:   "padding: 10px;",
+                        style:   'padding: 10px;',
                         content: summaryTxt
                     });
                     dojo.byId('centerMainContent').appendChild(node.domNode);
                 } else {
                     dojo.place('defaultMainContentText-' + phpr.module, 'centerMainContent');
                     dijit.byId('defaultMainContentText-' + phpr.module).set('content', summaryTxt);
-                    dojo.style(dojo.byId('defaultMainContentText-' + phpr.module), "display", "block");
+                    dojo.style(dojo.byId('defaultMainContentText-' + phpr.module), 'display', 'block');
                 }
             }
         }
@@ -179,7 +179,7 @@ dojo.declare("phpr.Core.Main", phpr.Default.Main, {
         // Description:
         //    All this modules will have Grid and Form like normal modules.
         //    Add here other modules if you add them into the Administration section.
-        return new Array("Module", "Tab", "User", "Role");
+        return new Array('Module', 'Tab', 'User', 'Role');
     },
 
     _defineModules:function(module) {

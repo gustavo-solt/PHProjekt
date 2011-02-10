@@ -30,8 +30,8 @@ dojo.declare("phpr.Timecard.Main", phpr.Default.Main, {
         this._module = 'Timecard';
 
         this._loadFunctions();
-        dojo.subscribe("Timecard.changeDate", this, "changeDate");
-        dojo.subscribe("Timecard.reloadGrid", this, "reloadGrid");
+        dojo.subscribe('Timecard.changeDate', this, 'changeDate');
+        dojo.subscribe('Timecard.reloadGrid', this, 'reloadGrid');
 
         this._gridWidget = phpr.Timecard.Grid;
         this._formWidget = phpr.Timecard.Form;

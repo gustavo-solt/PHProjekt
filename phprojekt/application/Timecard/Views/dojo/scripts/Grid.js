@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Timecard.Grid");
@@ -57,7 +57,7 @@ dojo.declare("phpr.Timecard.Grid", null, {
             phpr.DataStore.deleteData({url: this._url});
             this._setUrl();
             phpr.DataStore.addStore({url: this._url});
-            phpr.DataStore.requestData({url: this._url, processData: dojo.hitch(this, "_getGridData")});
+            phpr.DataStore.requestData({url: this._url, processData: dojo.hitch(this, '_getGridData')});
         }
     },
 
@@ -83,7 +83,7 @@ dojo.declare("phpr.Timecard.Grid", null, {
                 baseClass: 'positive',
                 iconClass: 'export',
                 disabled:  false,
-                onClick:   dojo.hitch(this, "_exportData")
+                onClick:   dojo.hitch(this, '_exportData')
             };
             var button = new dijit.form.Button(params);
             dojo.byId('buttonRow').appendChild(button.domNode);
@@ -106,7 +106,7 @@ dojo.declare("phpr.Timecard.Grid", null, {
                 week:      phpr.Date.getShortTranslateWeekDay(content[i]['week']),
                 weekClass: weekClass,
                 date:      content[i]['date'],
-                sum:       (content[i]['sumInHours'] != '0') ? content[i]['sumInHours'] : "-",
+                sum:       (content[i]['sumInHours'] != '0') ? content[i]['sumInHours'] : '-',
                 sumClass:  (content[i]['openPeriod'] == 1) ? 'open' : weekClass
             });
             if (content[i]['sumInMinutes'] != '0') {
@@ -150,7 +150,7 @@ dojo.declare("phpr.Timecard.Grid", null, {
 
             var cell = row.insertCell(1);
             var link = document.createElement('a');
-            link.setAttribute('href', "javascript:void(0)");
+            link.setAttribute('href', 'javascript:void(0)');
             this._connect.push(dojo.connect(link, 'onclick', function() {
                 var date = phpr.Date.isoDateTojsDate(this.innerHTML);
                 dijit.byId('selectDate-Timecard').set('value',
@@ -181,7 +181,7 @@ dojo.declare("phpr.Timecard.Grid", null, {
         var txt = document.createTextNode(phpr.Date.convertMinutesToTime(total));
         cell.appendChild(txt);
 
-        dijit.byId("selectDate-Timecard").set('value', new Date(this._year, this._month, this._date.getDate()));
+        dijit.byId('selectDate-Timecard').set('value', new Date(this._year, this._month, this._date.getDate()));
     },
 
     _getNodeId:function() {

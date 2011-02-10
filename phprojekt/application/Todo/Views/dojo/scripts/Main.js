@@ -25,7 +25,7 @@ dojo.declare("phpr.Todo.Main", phpr.Default.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this._module = "Todo";
+        this._module = 'Todo';
 
         this._loadFunctions();
 

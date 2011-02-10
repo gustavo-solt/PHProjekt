@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Project.FormBasicData");
@@ -37,6 +37,8 @@ dojo.declare("phpr.Project.FormBasicData", phpr.Project.Form, {
     },
 
     _initData:function() {
+        // Summary:
+        //    Init all the data before draw the form.
         var projectId = this._id;
         var parentId  = phpr.Tree.getParentId(phpr.currentProjectId);
 
@@ -64,12 +66,16 @@ dojo.declare("phpr.Project.FormBasicData", phpr.Project.Form, {
     },
 
     _postRenderForm:function() {
-        if (dijit.byId("deleteButton-" + this._module)) {
-            dijit.byId("deleteButton-" + this._module).domNode.style.display = 'none';
+        // Summary:
+        //    User functions after render the form.
+        if (dijit.byId('deleteButton-' + this._module)) {
+            dijit.byId('deleteButton-' + this._module).domNode.style.display = 'none';
         }
     },
 
     _submitForm:function() {
+        // Summary:
+        //    Submit the forms.
         if (!this._prepareSubmission()) {
             return false;
         }
@@ -93,8 +99,8 @@ dojo.declare("phpr.Project.FormBasicData", phpr.Project.Form, {
                                 new phpr.handleResponse('serverFeedback', data);
                             }
                             if (data.type == 'success') {
-                                dojo.publish(phpr.module + ".updateCacheData");
-                                dojo.publish(phpr.module + ".changeProject", [this._id]);
+                                dojo.publish(phpr.module + '.updateCacheData');
+                                dojo.publish(phpr.module + '.changeProject', [this._id]);
                             }
                         })
                     });

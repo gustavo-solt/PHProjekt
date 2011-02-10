@@ -36,7 +36,7 @@ dojo.declare("phpr.Timecard.ContentBar", null, {
     getHeight:function() {
         // Summary:
         //    Get the height of the dojo node.
-        return Math.abs(this._dojoNode.style.height.replace(/px/, ""));
+        return Math.abs(this._dojoNode.style.height.replace(/px/, ''));
     },
 
     convertHourToPixels:function(hourHeight, time) {
@@ -57,10 +57,10 @@ dojo.declare("phpr.Timecard.Favorites", dojo.dnd.Source, {
         //    Extend the onDrop for set a fixed height.
         if (this != source) {
             this.onDropExternal(source, nodes, copy);
-            if (source.node.id == 'projectFavoritesSource') {
-                dojo.style('projectFavoritesTarget', 'height', '250px');
-            } else if (source.node.id == 'projectFavoritesTarget') {
-                dojo.style('projectFavoritesSource', 'height', '250px');
+            if (source.node.id == 'projectFavoritesSource-Timecard') {
+                dojo.style('projectFavoritesTarget-Timecard', 'height', '250px');
+            } else if (source.node.id == 'projectFavoritesTarget-Timecard') {
+                dojo.style('projectFavoritesSource-Timecard', 'height', '250px');
             }
         } else {
             this.onDropInternal(nodes, copy);
@@ -81,7 +81,7 @@ dojo.dnd._defaultCreator = function(node) {
 	return function(item, hint) {
 		var isObj = item && dojo.isObject(item), data, type, n;
 		data  = (isObj && item.data) ? item.data : item;
-		type  = (isObj && item.type) ? item.type : ["text"];
+		type  = (isObj && item.type) ? item.type : ['text'];
 		n     = dojo.create('div', {innerHTML: data});
 		n.id  = item.id
 

@@ -39,7 +39,7 @@ phpr.grid.formatIcon = function(value) {
     //    Format the value into and icon for show in the grid.
     data = value.split('||');
     if (!data[1]) {
-        data[1] = "";
+        data[1] = '';
     }
 
     return '<div class="' + data[0] + '" title="' + data[1] + '"></div>';
@@ -82,7 +82,7 @@ dojo.declare("phpr.grid.cells.Percentage", dojox.grid.cells._Widget, {
             return this.formatEditing(d, inRowIndex);
         } else {
             var v = dojo.number.round(d, 1);
-            return (typeof v == "undefined" ? this.defaultValue : v);
+            return (typeof v == 'undefined' ? this.defaultValue : v);
         }
     }
 });
@@ -103,7 +103,7 @@ dojo.declare("phpr.grid.cells.Select", dojox.grid.cells.Select, {
                     v = o;
                 }
             }
-            return (typeof v == "undefined" ? this.defaultValue : v);
+            return (typeof v == 'undefined' ? this.defaultValue : v);
         }
     }
 });
@@ -130,7 +130,7 @@ dojo.declare("phpr.grid.cells.DateTextBox", dojox.grid.cells.DateTextBox, {
 
     setValue:function(inRowIndex, inValue) {
         if (this.widget) {
-            var parts = inValue.split("-");
+            var parts = inValue.split('-');
             var year  = parts[0];
             var month = parts[1]-1;
             var day   = parts[2];
@@ -141,7 +141,7 @@ dojo.declare("phpr.grid.cells.DateTextBox", dojox.grid.cells.DateTextBox, {
     },
 
     getWidgetProps:function(inDatum) {
-        var parts = inDatum.split("-");
+        var parts = inDatum.split('-');
         var year  = parts[0];
         var month = parts[1]-1;
         var day   = parts[2];
@@ -347,8 +347,8 @@ dojo.declare('phpr.grid._View', [dojox.grid._View], {
             this.grid.onStyleRow(row);
             var item = this.grid.getItem(inRowIndex);
             if (item) {
-                if (item['gridComboBox'] == "true") {
-                    row.customClasses += " dojoxGridRowChecked";
+                if (item['gridComboBox'] == 'true') {
+                    row.customClasses += ' dojoxGridRowChecked';
                 }
             }
             this.grid.rows.applyStyles(row);
@@ -379,7 +379,7 @@ dojo.declare('phpr.grid._View', [dojox.grid._View], {
 			this.contentWidth = this.getContentWidth();
 			this.headerContentNode.firstChild.style.width = this.contentWidth;
 		}
-		dojox.grid.util.fire(this, "onAfterRow", [-1, this.structure.cells, this.headerContentNode]);
+		dojox.grid.util.fire(this, 'onAfterRow', [-1, this.structure.cells, this.headerContentNode]);
 	}
 });
 
@@ -394,7 +394,7 @@ dojo.declare('phpr.grid.FilterExpandoPane', [dojox.layout.ExpandoPane], {
         this._closedSize  = 0;
 
         this._currentSize = dojo.contentBox(this.domNode);
-        this._showSize    = this._currentSize["h"];
+        this._showSize    = this._currentSize['h'];
         this._setupAnims();
 
         if (this.startExpanded) {
@@ -425,30 +425,13 @@ dojo.declare('phpr.grid.FilterExpandoPane', [dojox.layout.ExpandoPane], {
         if (this._contentBox.h < 0) {
             this._contentBox.h = 0;
         }
-        dojo.style(this.containerNode, "height", this._contentBox.h + "px");
-        dojo.style(this.containerNode, "overflowX", "hidden");
+        dojo.style(this.containerNode, 'height', this._contentBox.h + 'px');
+        dojo.style(this.containerNode, 'overflowX', 'hidden');
         this._layoutChildren();
     }
 });
 
 /************* Helpers *************/
-
-/*
-dojo.extend(dojox.grid.DataGrid, {
-    // Summary
-    //    Extend the DataGrid for call custom functions.
-    doclick:function(e) {
-        dojo.publish(phpr.module + '.gridProxy', ['doClick', e]);
-    },
-
-    dodblclick:function(e) {
-        dojo.publish(phpr.module + '.gridProxy', ['doDblClick', e]);
-    },
-
-    onRowClick:function(e) {
-    }
-});
-*/
 
 dojo.declare("phpr.grid.layout", null, {
     // Summary:
@@ -475,13 +458,13 @@ dojo.declare("phpr.grid.layout", null, {
         // Summary:
         //    Add a checkbox to the layout.
         var meta = {
-            label:    " ",
+            label:    ' ',
             key:      'gridComboBox',
             readOnly: false
         }
         var field       = this._initData(meta);
         field.type      = dojox.grid.cells.Bool;
-        field.width     = "20px";
+        field.width     = '20px';
         field.filterKey = null;
 
         this.gridLayout['gridComboBox'] = field;
@@ -491,13 +474,13 @@ dojo.declare("phpr.grid.layout", null, {
         // Summary:
         //    Add an edit icon to the layout.
         var meta = {
-            label:    " ",
+            label:    ' ',
             key:      'gridEdit',
             readOnly: true
         }
         var field       = this._initData(meta);
-        field.width     = "20px";
-        field.styles    = "vertical-align: middle;";
+        field.width     = '20px';
+        field.styles    = 'vertical-align: middle;';
         field.formatter = phpr.grid.formatIcon;
         field.filterKey = null;
 
@@ -508,13 +491,13 @@ dojo.declare("phpr.grid.layout", null, {
         // Summary:
         //    Add an ID field to the layout.
         var meta = {
-            label:    "ID",
+            label:    'ID',
             key:      'id',
             readOnly: true
         }
         var field         = this._initData(meta);
-        field.width       = "40px";
-        field.styles      = "text-align: right;";
+        field.width       = '40px';
+        field.styles      = 'text-align: right;';
         field.filterKey   = 'gridId';
 
         this.gridLayout['gridId'] = field;
@@ -525,10 +508,10 @@ dojo.declare("phpr.grid.layout", null, {
         //    Add all the fields to the layout.
         for (var i = 0; i < meta.length; i++) {
             var data = this._initData(meta[i]);
-            switch(meta[i]["type"]) {
+            switch(meta[i]['type']) {
                 case 'selectbox':
                     this._setRangeValues(meta[i]);
-                    data.styles        = "text-align: center;";
+                    data.styles        = 'text-align: center;';
                     data.type          = phpr.grid.cells.Select;
                     data.width         = (this._maxLength * 8) + 'px';
                     data.options       = this._opts;
@@ -541,10 +524,10 @@ dojo.declare("phpr.grid.layout", null, {
 
                 case 'date':
                     data.width         = '90px';
-                    data.styles        = "text-align: center;";
+                    data.styles        = 'text-align: center;';
                     data.type          = phpr.grid.cells.DateTextBox;
                     data.promptMessage = 'yyyy-MM-dd';
-                    data.constraint    = {formatLength: 'short', selector: "date", datePattern:'yyyy-MM-dd'};
+                    data.constraint    = {formatLength: 'short', selector: 'date', datePattern:'yyyy-MM-dd'};
                     data.filterType    = 'date';
 
                     this.gridLayout[data.field] = data;
@@ -555,10 +538,10 @@ dojo.declare("phpr.grid.layout", null, {
                     dateData.name          = dateData.name + ' (' + phpr.nls.get('Date') + ')';
                     dateData.field         = dateData.field + '_forDate';
                     dateData.width         = '90px';
-                    dateData.styles        = "text-align: center;";
+                    dateData.styles        = 'text-align: center;';
                     dateData.type          = phpr.grid.cells.DateTextBox;
                     dateData.promptMessage = 'yyyy-MM-dd';
-                    dateData.constraint    = {formatLength: 'short', selector: "date", datePattern:'yyyy-MM-dd'};
+                    dateData.constraint    = {formatLength: 'short', selector: 'date', datePattern:'yyyy-MM-dd'};
                     dateData.filterKey     = dateData.field;
                     dateData.filterLabel   = dateData.name;
                     dateData.filterType    = 'date';
@@ -608,7 +591,7 @@ dojo.declare("phpr.grid.layout", null, {
                     // Has it values for translating an Id into a descriptive String?
                     if (meta[i]['range'][0] != undefined) {
                         this._setRangeValues(meta[i]);
-                        data.styles        = "text-align: center;";
+                        data.styles        = 'text-align: center;';
                         data.type          = phpr.grid.cells.Select;
                         data.width         = (this._maxLength * 8) + 'px';
                         data.options       = this._opts;
@@ -617,7 +600,7 @@ dojo.declare("phpr.grid.layout", null, {
                         data.filterOptions = meta[i]['range'];
                         data.editable      = false;
                     } else {
-                        data.styles        = "text-align: center;";
+                        data.styles        = 'text-align: center;';
                         data.type          = phpr.grid.cells.Text;
                         data.editable      = false;
                     }
@@ -640,7 +623,7 @@ dojo.declare("phpr.grid.layout", null, {
 
                 case 'rating':
                     this._setRatingValues(meta[i]);
-                    data.styles        = "text-align: center;";
+                    data.styles        = 'text-align: center;';
                     data.type          = phpr.grid.cells.Select;
                     data.width         = (this._maxLength * 8) + 'px';
                     data.options       = this._opts;
@@ -664,14 +647,14 @@ dojo.declare("phpr.grid.layout", null, {
         // Summary:
         //    Add an extra field to the layout.
         var meta = {
-            label:    " ",
+            label:    ' ',
             key:      key,
             readOnly: true
         };
 
         var field       = this._initData(meta);
-        field.width     = "20px";
-        field.styles    = "vertical-align: middle";
+        field.width     = '20px';
+        field.styles    = 'vertical-align: middle';
         field.filterKey = null;
 
         this.gridLayout[key] = field;
@@ -685,7 +668,7 @@ dojo.declare("phpr.grid.layout", null, {
         return {
             name:          meta['label'],
             field:         meta['key'],
-            styles:        "",
+            styles:        '',
             type:          dojox.grid.cells.Cell,
             width:         'auto',
             options:       null,
@@ -711,7 +694,7 @@ dojo.declare("phpr.grid.layout", null, {
             this._vals.push(data['range'][j]['id']);
             this._opts.push(data['range'][j]['name']);
             if (data['range'][j]['name'].length > this._maxLength) {
-                this._maxLength = data['range'][j]["name"].length;
+                this._maxLength = data['range'][j]['name'].length;
             }
         }
     },
@@ -822,7 +805,7 @@ dojo.declare("phpr.grid.filter", null, {
             });
 
             // Table
-            var table           = dojo.doc.createElement("table");
+            var table           = dojo.doc.createElement('table');
             table.style.padding = '5px 5px 3px 5px';
             var row             = table.insertRow(table.rows.length);
             row.id              = 'filterRow-' + this._module;
@@ -830,7 +813,7 @@ dojo.declare("phpr.grid.filter", null, {
             // Label
             var cell        = row.insertCell(0);
             var label       = document.createElement('label');
-            label.innerHTML = phpr.nls.get("Add a filter");
+            label.innerHTML = phpr.nls.get('Add a filter');
             cell.appendChild(label);
 
             // Space
@@ -847,13 +830,13 @@ dojo.declare("phpr.grid.filter", null, {
                 disabled:       false,
                 autoComplete:   false,
                 store:          new dojo.data.ItemFileWriteStore({data: {
-                    identifier: "id",
-                    label:      "name",
+                    identifier: 'id',
+                    label:      'name',
 			        items:      [
-                        {id: 'AND', name: phpr.nls.get("Filter_AND")},
-                        {id: 'OR',  name: phpr.nls.get("Filter_OR")}
+                        {id: 'AND', name: phpr.nls.get('Filter_AND')},
+                        {id: 'OR',  name: phpr.nls.get('Filter_OR')}
                     ]}}),
-                searchAttr:     "name",
+                searchAttr:     'name',
                 value:          'AND',
                 invalidMessage: '',
                 style:          'width: 70px;'
@@ -875,10 +858,10 @@ dojo.declare("phpr.grid.filter", null, {
                 disabled:       false,
                 autoComplete:   false,
                 store:          new dojo.data.ItemFileWriteStore({data: {
-                    identifier: "id",
-                    label:      "name",
+                    identifier: 'id',
+                    label:      'name',
 			        items:      []}}),
-                searchAttr:     "name",
+                searchAttr:     'name',
                 invalidMessage: '',
                 onChange:       dojo.hitch(this, '_changeInputAndRule')
             });
@@ -903,10 +886,10 @@ dojo.declare("phpr.grid.filter", null, {
                 disabled:       false,
                 autoComplete:   false,
                 store:          new dojo.data.ItemFileWriteStore({data: {
-                    identifier: "id",
-                    label:      "name",
+                    identifier: 'id',
+                    label:      'name',
 			        items:      range}}),
-                searchAttr:     "name",
+                searchAttr:     'name',
                 invalidMessage: '',
                 style:          'width: 120px;'
             });
@@ -950,7 +933,7 @@ dojo.declare("phpr.grid.filter", null, {
             cell.setAttribute('colspan', 10);
 
             var label       = document.createElement('label');
-            label.innerHTML = phpr.nls.get("Please, delete some filters for get a correct result set.");
+            label.innerHTML = phpr.nls.get('Please, delete some filters for get a correct result set.');
             cell.appendChild(label);
 
             // Add the table to the form
@@ -968,8 +951,8 @@ dojo.declare("phpr.grid.filter", null, {
             var params        = {
                 label:     phpr.nls.get('Delete all'),
                 showLabel: true,
-                baseClass: "positive",
-                iconClass: "cross",
+                baseClass: 'positive',
+                iconClass: 'cross',
                 disabled:  false,
                 style:     'margin-left: 10px;',
                 onClick:   dojo.hitch(this, '_deleteFilter', ['all'])
@@ -1019,8 +1002,8 @@ dojo.declare("phpr.grid.filter", null, {
                     range.push({id: this._fields[i].key, name: this._fields[i].label});
                 }
                 this._fieldSelect.store = new dojo.data.ItemFileWriteStore({data: {
-                    identifier: "id",
-                    label:      "name",
+                    identifier: 'id',
+                    label:      'name',
 			        items:      range}});
             }
             dojo.byId('filterRowEmpty-' + this._module).style.display = 'none';
@@ -1094,7 +1077,7 @@ dojo.declare("phpr.grid.filter", null, {
         if (cookie == undefined) {
             var filters = [];
         } else {
-            var filters = cookie.split(",");
+            var filters = cookie.split(',');
             for (var i in filters) {
                 var data  = filters[i].split(this._filterSeparator, 4);
                 if (!data[0] || !data[1] || !data[2] || !data[3]) {
@@ -1192,7 +1175,7 @@ dojo.declare("phpr.grid.filter", null, {
         button.className = 'displayFilerButton';
         var link = document.createElement('a');
         link.style.textDecoration = 'none';
-        link.setAttribute('href', "javascript:void(0)");
+        link.setAttribute('href', 'javascript:void(0)');
         dojo.connect(link, 'onclick', dojo.hitch(this, '_deleteFilter', [filterId]));
         link.innerHTML = '<span class="closeButton close">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>';
         button.appendChild(link);
@@ -1247,8 +1230,8 @@ dojo.declare("phpr.grid.filter", null, {
                     params.autoComplete = false;
                     params.searchAttr   = 'name';
                     params.store        = new dojo.data.ItemFileWriteStore({data: {
-                        identifier: "id",
-                        label:      "name",
+                        identifier: 'id',
+                        label:      'name',
     			        items:      range}})
 
                     var widget = new phpr.form.FilteringSelect(params);
@@ -1287,8 +1270,8 @@ dojo.declare("phpr.grid.filter", null, {
                     params.autoComplete = false;
                     params.searchAttr   = 'name';
                     params.store        = new dojo.data.ItemFileWriteStore({data: {
-                        identifier: "id",
-                        label:      "name",
+                        identifier: 'id',
+                        label:      'name',
     			        items:      range}})
 
                     var widget = new phpr.form.FilteringSelect(params);
@@ -1316,15 +1299,15 @@ dojo.declare("phpr.grid.filter", null, {
 
         // Update the store of the rule select
         var range = [];
-        range.push({id: "", name: ""});
+        range.push({id: '', name: ''});
         for (var i in rulesOptions) {
             range.push({id: rulesOptions[i], name: this._rules[rulesOptions[i]]});
         }
         this._ruleSelect.store = new dojo.data.ItemFileWriteStore({data: {
-            identifier: "id",
-            label:      "name",
+            identifier: 'id',
+            label:      'name',
 	        items:      range}});
-        this._ruleSelect.set('value', "");
+        this._ruleSelect.set('value', '');
     },
 
     _submitFilterForm:function() {

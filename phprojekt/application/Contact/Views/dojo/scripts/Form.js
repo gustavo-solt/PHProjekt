@@ -64,8 +64,8 @@ dojo.declare("phpr.Contact.Form", phpr.Default.Form, {
                     this._id = data['id'];
                 }
                 if (data.type == 'success') {
-                    dojo.publish(phpr.module + ".updateCacheData");
-                    dojo.publish(phpr.module + ".setUrlHash", [phpr.module]);
+                    dojo.publish(phpr.module + '.updateCacheData');
+                    dojo.publish(phpr.module + '.setUrlHash', [phpr.module]);
                 }
             })
         });
@@ -81,8 +81,8 @@ dojo.declare("phpr.Contact.Form", phpr.Default.Form, {
             onSuccess: dojo.hitch(this, function(data) {
                 new phpr.handleResponse('serverFeedback', data);
                 if (data.type == 'success') {
-                    dojo.publish(phpr.module + ".updateCacheData");
-                    dojo.publish(phpr.module + ".setUrlHash", [phpr.module]);
+                    dojo.publish(phpr.module + '.updateCacheData');
+                    dojo.publish(phpr.module + '.setUrlHash', [phpr.module]);
                 }
             })
         });

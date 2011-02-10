@@ -89,7 +89,7 @@ dojo.declare("phpr.Default.Grid", null, {
         } else {
             var getHashForCookie = phpr.module + '.' + phpr.currentProjectId;
         }
-        this._scrollTopCookie  = getHashForCookie + ".grid.scroll";
+        this._scrollTopCookie  = getHashForCookie + '.grid.scroll';
         this._sortAscCookie    = getHashForCookie + '.grid.sortAsc';
         this._sortColumnCookie = getHashForCookie + '.grid.sortColumn';
 
@@ -123,7 +123,7 @@ dojo.declare("phpr.Default.Grid", null, {
         phpr.DataStore.requestData({url: this._url, serverQuery: {'filters': filterData},
             processData: dojo.hitch(this, function() {
                 phpr.DataStore.addStore({url: this._getActionsUrl});
-                phpr.DataStore.requestData({url: this._getActionsUrl, processData: dojo.hitch(this, "_getGridData")});
+                phpr.DataStore.requestData({url: this._getActionsUrl, processData: dojo.hitch(this, '_getGridData')});
             })
         });
     },
@@ -188,7 +188,7 @@ dojo.declare("phpr.Default.Grid", null, {
         // Set a new time for wait
         if (null === this._lastTime) {
             this._lastTime = date.getMilliseconds();
-            window.gridTimeOut = window.setTimeout(dojo.hitch(this, "doClick", e), 500);
+            window.gridTimeOut = window.setTimeout(dojo.hitch(this, 'doClick', e), 500);
             return;
         }
 
@@ -280,7 +280,7 @@ dojo.declare("phpr.Default.Grid", null, {
         phpr.DataStore.deleteData({url: this._url});
         phpr.DataStore.addStore({url: this._url});
         phpr.DataStore.requestData({url: this._url, serverQuery: {'filters': filterData},
-            processData: dojo.hitch(this, "_getGridData")});
+            processData: dojo.hitch(this, '_getGridData')});
     },
 
     /************* Private functions *************/
@@ -350,7 +350,7 @@ dojo.declare("phpr.Default.Grid", null, {
                     id:        'gridNewEntry',
                     label:     phpr.nls.get('Add a new item'),
                     showLabel: true,
-                    baseClass: "positive",
+                    baseClass: 'positive',
                     iconClass: 'add',
                     onClick:   function() { dojo.publish(phpr.module + '.newEntry') }
                 };
@@ -404,7 +404,7 @@ dojo.declare("phpr.Default.Grid", null, {
                 var gridLayout = this._setGridLayout(meta);
 
                 // Create the grid, one per module
-                var type   = this._useCheckbox() ? "phpr.grid._View" : "dojox.grid._View";
+                var type   = this._useCheckbox() ? 'phpr.grid._View' : 'dojox.grid._View';
 
                 // Discover the module
                 if (phpr.module == this._module || 'Administration' == phpr.parentmodule) {
@@ -436,18 +436,18 @@ dojo.declare("phpr.Default.Grid", null, {
                 this._setClickEdit();
 
                 // Events for the grid
-                dojo.connect(this._grid, "onCellClick", dojo.hitch(this, "_cellClick"));
-                dojo.connect(this._grid, "onCellMouseOver", dojo.hitch(this, "_showTooltip"));
-                dojo.connect(this._grid, "onCellMouseOut", dojo.hitch(this, "_hideTooltip"));
-                dojo.connect(this._grid, "onStartEdit", dojo.hitch(this, "_startEdit"));
-                dojo.connect(this._grid, "onApplyCellEdit", dojo.hitch(this, "_cellEdited"));
-                dojo.connect(this._grid, "onHeaderCellClick", this, "_saveGridSorting");
-                dojo.connect(this._grid.views.views[0].scrollboxNode, "onscroll", this, "_saveGridScroll");
+                dojo.connect(this._grid, 'onCellClick', dojo.hitch(this, '_cellClick'));
+                dojo.connect(this._grid, 'onCellMouseOver', dojo.hitch(this, '_showTooltip'));
+                dojo.connect(this._grid, 'onCellMouseOut', dojo.hitch(this, '_hideTooltip'));
+                dojo.connect(this._grid, 'onStartEdit', dojo.hitch(this, '_startEdit'));
+                dojo.connect(this._grid, 'onApplyCellEdit', dojo.hitch(this, '_cellEdited'));
+                dojo.connect(this._grid, 'onHeaderCellClick', this, '_saveGridSorting');
+                dojo.connect(this._grid.views.views[0].scrollboxNode, 'onscroll', this, '_saveGridScroll');
 
                 // Add a form for use the checkboxs
                 if (this._useCheckbox()) {
                     // Create Action table
-                    var table = dojo.doc.createElement("table");
+                    var table = dojo.doc.createElement('table');
                     var row   = table.insertRow(table.rows.length);
 
                     // Create arrow
@@ -457,7 +457,7 @@ dojo.declare("phpr.Default.Grid", null, {
                         align:         'center',
                         verticalAlign: 'middle'
                     });
-                    var div = dojo.doc.createElement("div");
+                    var div = dojo.doc.createElement('div');
                     div.id  = 'arrow';
                     cell.appendChild(div);
 
@@ -465,10 +465,10 @@ dojo.declare("phpr.Default.Grid", null, {
                     var cell         = row.insertCell(1);
                     cell.style.align = 'center';
 
-                    var div = document.createElement("div");
+                    var div = document.createElement('div');
 
                     var linkCheck = document.createElement('a');
-                    linkCheck.setAttribute('href', "javascript:void(0)");
+                    linkCheck.setAttribute('href', 'javascript:void(0)');
                     dojo.connect(linkCheck, 'onclick', dojo.hitch(this, '_itemsCheck', [true]));
                     linkCheck.innerHTML = phpr.nls.get('Check All');
 
@@ -476,7 +476,7 @@ dojo.declare("phpr.Default.Grid", null, {
                     space.innerHTML = '&nbsp;/&nbsp;';
 
                     var linkUncheck = document.createElement('a');
-                    linkUncheck.setAttribute('href', "javascript:void(0)");
+                    linkUncheck.setAttribute('href', 'javascript:void(0)');
                     dojo.connect(linkUncheck, 'onclick', dojo.hitch(this, '_itemsCheck', [false]));
                     linkUncheck.innerHTML = phpr.nls.get('Uncheck All');
 
@@ -487,13 +487,13 @@ dojo.declare("phpr.Default.Grid", null, {
 
                     // Create Extra action select
                     var cell    = row.insertCell(2);
-                    var select  = dojo.doc.createElement("select")
+                    var select  = dojo.doc.createElement('select')
                     select.id   = 'gridComboAction-' + this._module;
                     select.name = 'gridComboAction-' + this._module;
                     select.size = 1,
                     select.style.width = '160px';
                     for (var i in this._comboActions) {
-                        var option = dojo.doc.createElement("option")
+                        var option = dojo.doc.createElement('option')
                         option.value     = this._comboActions[i]['key'];
                         option.className = this._comboActions[i]['class'];
                         option.text      = this._comboActions[i]['label'];
@@ -501,7 +501,7 @@ dojo.declare("phpr.Default.Grid", null, {
                     }
                     cell.appendChild(select)
                     this._grid.views.views[0].gridActions.appendChild(table);
-                    dojo.connect(select, "onchange", dojo.hitch(this, '_doComboAction'));
+                    dojo.connect(select, 'onchange', dojo.hitch(this, '_doComboAction'));
                 }
 
                 // Start the grid
@@ -623,8 +623,8 @@ dojo.declare("phpr.Default.Grid", null, {
 
             if (content[i]['rights'] && content[i]['rights']['currentUser']) {
                 this._access.push({
-                    write: content[i]["rights"]["currentUser"]["write"],
-                    admin: content[i]["rights"]["currentUser"]["admin"]
+                    write: content[i]['rights']['currentUser']['write'],
+                    admin: content[i]['rights']['currentUser']['admin']
                 });
             } else {
                 this._access.push({
@@ -721,7 +721,7 @@ dojo.declare("phpr.Default.Grid", null, {
     _getNodeId:function() {
         // Summary:
         //    Set the node Id where put the grid.
-        return "gridBox-" + this._module;
+        return 'gridBox-' + this._module;
     },
 
     _loadGridSorting:function() {
@@ -788,7 +788,7 @@ dojo.declare("phpr.Default.Grid", null, {
                     }
                 };
                 var button = new dijit.form.Button(params);
-                dojo.byId("buttonRow").appendChild(button.domNode);
+                dojo.byId('buttonRow').appendChild(button.domNode);
             } else {
                 dojo.style(button.domNode, 'display', 'inline');
             }
@@ -928,7 +928,7 @@ dojo.declare("phpr.Default.Grid", null, {
             var useCheckBox = this._useCheckbox();
             var index       = e.cellIndex;
             if ((!useCheckBox || (useCheckBox && index != 0)) && e.cell.editable) {
-                dijit.showTooltip(phpr.nls.get("Double click to edit"), e.cellNode, 'above');
+                dijit.showTooltip(phpr.nls.get('Double click to edit'), e.cellNode, 'above');
             }
         }
     },
@@ -1038,7 +1038,7 @@ dojo.declare("phpr.Default.Grid", null, {
         // Description:
         //    Wait until the last call is finished.
         if (this._active == true) {
-            setTimeout(dojo.hitch(this, "_applyChanges"), 500);
+            setTimeout(dojo.hitch(this, '_applyChanges'), 500);
         } else {
             this._active = true;
             this._saveChanges();

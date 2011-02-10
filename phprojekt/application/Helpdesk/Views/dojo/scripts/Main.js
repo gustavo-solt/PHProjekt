@@ -25,7 +25,7 @@ dojo.declare("phpr.Helpdesk.Main", phpr.Default.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this._module = "Helpdesk";
+        this._module = 'Helpdesk';
 
         this._loadFunctions();
 

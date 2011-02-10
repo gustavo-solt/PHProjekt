@@ -25,7 +25,7 @@ dojo.declare("phpr.Groups.Main", phpr.Core.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this.module = "Groups";
+        this.module = 'Groups';
 
         this._loadFunctions();
 

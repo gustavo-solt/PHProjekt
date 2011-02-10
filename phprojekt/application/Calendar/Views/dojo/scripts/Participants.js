@@ -138,7 +138,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
                 range:    this._users,
                 hint:     ''
             };
-            var userWidgetClass = new phpr.Default.SelectField(fieldValues, this._module);
+            var userWidgetClass = new phpr.Field.SelectField(fieldValues, this._module);
 
             if (!row) {
                 // Have access but the row don't exists => Create it
@@ -246,7 +246,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
             value:    value,
             hint:     ''
         };
-        var displayWidgetClass = new phpr.Default.HiddenField(hiddenFieldValues, this._module);
+        var displayWidgetClass = new phpr.Field.HiddenField(hiddenFieldValues, this._module);
 
         var row = dojo.byId(rowId);
         if (!row) {

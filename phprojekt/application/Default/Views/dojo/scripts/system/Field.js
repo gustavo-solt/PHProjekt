@@ -19,27 +19,27 @@
  * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
-dojo.provide("phpr.Default.TableForm");
-dojo.provide("phpr.Default.Field");
+dojo.provide("phpr.TableForm");
+dojo.provide("phpr.Field");
 
-dojo.provide("phpr.Default.ButtonActionField");
-dojo.provide("phpr.Default.CheckField");
-dojo.provide("phpr.Default.DateField");
-dojo.provide("phpr.Default.DatetimeField");
-dojo.provide("phpr.Default.DisplayField");
-dojo.provide("phpr.Default.HiddenField");
-dojo.provide("phpr.Default.MultipleselectField");
-dojo.provide("phpr.Default.PasswordField");
-dojo.provide("phpr.Default.PercentageField");
-dojo.provide("phpr.Default.RatingField");
-dojo.provide("phpr.Default.SelectField");
-dojo.provide("phpr.Default.TextareaField");
-dojo.provide("phpr.Default.HtmltextareaField");
-dojo.provide("phpr.Default.TimeField");
-dojo.provide("phpr.Default.UploadField");
-dojo.provide("phpr.Default.TextField");
+dojo.provide("phpr.Field.ButtonActionField");
+dojo.provide("phpr.Field.CheckField");
+dojo.provide("phpr.Field.DateField");
+dojo.provide("phpr.Field.DatetimeField");
+dojo.provide("phpr.Field.DisplayField");
+dojo.provide("phpr.Field.HiddenField");
+dojo.provide("phpr.Field.MultipleselectField");
+dojo.provide("phpr.Field.PasswordField");
+dojo.provide("phpr.Field.PercentageField");
+dojo.provide("phpr.Field.RatingField");
+dojo.provide("phpr.Field.SelectField");
+dojo.provide("phpr.Field.TextareaField");
+dojo.provide("phpr.Field.HtmltextareaField");
+dojo.provide("phpr.Field.TimeField");
+dojo.provide("phpr.Field.UploadField");
+dojo.provide("phpr.Field.TextField");
 
-dojo.declare("phpr.Default.TableForm", null, {
+dojo.declare("phpr.TableForm", null, {
     // Summary:
     //    Class for rendering form fields
     // Description:
@@ -58,17 +58,17 @@ dojo.declare("phpr.Default.TableForm", null, {
         var tableId = this._getTableId(tabId);
 
         if (!this._tables[tableId]) {
-            this._tables[tableId] = dojo.doc.createElement("table");
-            this._tables[tableId].className = "form";
-            var colgroup = document.createElement("colgroup");
-    		var col1 = document.createElement("col");
-    		col1.className = "col1";
+            this._tables[tableId] = dojo.doc.createElement('table');
+            this._tables[tableId].className = 'form';
+            var colgroup = document.createElement('colgroup');
+    		var col1 = document.createElement('col');
+    		col1.className = 'col1';
     		colgroup.appendChild(col1);
-    		var col2 = document.createElement("col");
-    		col2.className = "col2";
+    		var col2 = document.createElement('col');
+    		col2.className = 'col2';
     		colgroup.appendChild(col2);
-    		var col3 = document.createElement("col");
-    		col3.className = "col3";
+    		var col3 = document.createElement('col');
+    		col3.className = 'col3';
     		colgroup.appendChild(col3);
     		this._tables[tableId].appendChild(colgroup);
         }
@@ -107,7 +107,7 @@ dojo.declare("phpr.Default.TableForm", null, {
 
             // Label
             var cell       = row.insertCell(0);
-            cell.className = "label";
+            cell.className = 'label';
             cell.appendChild(widgetClass.getLabel());
 
             // Field
@@ -165,55 +165,55 @@ dojo.declare("phpr.Default.TableForm", null, {
         var widgetClass;
         switch (field['type']) {
             case 'buttonAction':
-                widgetClass = new phpr.Default.ButtonActionField(field, this._module);
+                widgetClass = new phpr.Field.ButtonActionField(field, this._module);
                 break;
             case 'checkbox':
-                widgetClass = new phpr.Default.CheckField(field, this._module);
+                widgetClass = new phpr.Field.CheckField(field, this._module);
                 break;
             case 'date':
-                widgetClass = new phpr.Default.DateField(field, this._module);
+                widgetClass = new phpr.Field.DateField(field, this._module);
                 break;
             case 'datetime':
-                widgetClass = new phpr.Default.DatetimeField(field, this._module);
+                widgetClass = new phpr.Field.DatetimeField(field, this._module);
                 break;
             case 'display':
-                widgetClass = new phpr.Default.DisplayField(field, this._module);
+                widgetClass = new phpr.Field.DisplayField(field, this._module);
                 break;
             case 'formButtons':
                 widgetClass = new phpr.Default.FormButtonsField(field, this._module);
                 break;
             case 'hidden':
-                widgetClass = new phpr.Default.HiddenField(field, this._module);
+                widgetClass = new phpr.Field.HiddenField(field, this._module);
                 break;
             case 'multipleselectbox':
-                widgetClass = new phpr.Default.MultipleselectField(field, this._module);
+                widgetClass = new phpr.Field.MultipleselectField(field, this._module);
                 break;
             case 'password':
-                widgetClass = new phpr.Default.PasswordField(field, this._module);
+                widgetClass = new phpr.Field.PasswordField(field, this._module);
                 break;
             case 'percentage':
-                widgetClass = new phpr.Default.PercentageField(field, this._module);
+                widgetClass = new phpr.Field.PercentageField(field, this._module);
                 break;
             case 'rating':
-                widgetClass = new phpr.Default.RatingField(field, this._module);
+                widgetClass = new phpr.Field.RatingField(field, this._module);
                 break;
             case 'selectbox':
-                widgetClass = new phpr.Default.SelectField(field, this._module);
+                widgetClass = new phpr.Field.SelectField(field, this._module);
                 break;
             case 'simpletextarea':
-                widgetClass = new phpr.Default.TextareaField(field, this._module);
+                widgetClass = new phpr.Field.TextareaField(field, this._module);
                 break;
             case 'textarea':
-                widgetClass = new phpr.Default.HtmltextareaField(field, this._module);
+                widgetClass = new phpr.Field.HtmltextareaField(field, this._module);
                 break;
             case 'time':
-                widgetClass = new phpr.Default.TimeField(field, this._module);
+                widgetClass = new phpr.Field.TimeField(field, this._module);
                 break;
             case 'upload':
-                widgetClass = new phpr.Default.UploadField(field, this._module);
+                widgetClass = new phpr.Field.UploadField(field, this._module);
                 break;
             default:
-                widgetClass = new phpr.Default.TextField(field, this._module);
+                widgetClass = new phpr.Field.TextField(field, this._module);
                 break;
         }
 
@@ -221,7 +221,7 @@ dojo.declare("phpr.Default.TableForm", null, {
     }
 });
 
-dojo.declare("phpr.Default.Field", null, {
+dojo.declare("phpr.Field", null, {
     buttonsId: null,
     fieldId:   null,
     _field:    null,
@@ -261,13 +261,13 @@ dojo.declare("phpr.Default.Field", null, {
     addHighlight:function() {
         if (dijit.byId(this.fieldId)) {
             this._setFieldValue();
-            this._updateChangedClass("add");
+            this._updateChangedClass('add');
         }
     },
 
     removeHighlight:function() {
         if (dijit.byId(this.fieldId)) {
-            this._updateChangedClass("remove");
+            this._updateChangedClass('remove');
         }
     },
 
@@ -336,8 +336,8 @@ dojo.declare("phpr.Default.Field", null, {
             var widget = new dijit.form.DropDownButton({
                 id:        this.buttonsId,
                 showLabel: false,
-                baseClass: "smallIcon",
-                iconClass: "help",
+                baseClass: 'smallIcon',
+                iconClass: 'help',
                 dropDown:  dialog
             });
         }
@@ -395,14 +395,14 @@ dojo.declare("phpr.Default.Field", null, {
 
     _updateChangedClass:function(action) {
         if (action == 'add') {
-            dojo.addClass(dojo.byId(this.fieldId).parentNode.parentNode, "highlightChanges");
+            dojo.addClass(dojo.byId(this.fieldId).parentNode.parentNode, 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(this.fieldId).parentNode.parentNode, "highlightChanges");
+            dojo.removeClass(dojo.byId(this.fieldId).parentNode.parentNode, 'highlightChanges');
         }
     }
 });
 
-dojo.declare("phpr.Default.ButtonActionField", phpr.Default.Field, {
+dojo.declare("phpr.Field.ButtonActionField", phpr.Field, {
     _createField:function() {
         return new dijit.form.Button({
             id:        this.fieldId,
@@ -418,19 +418,7 @@ dojo.declare("phpr.Default.ButtonActionField", phpr.Default.Field, {
     }
 });
 
-dojo.declare("phpr.Default.CheckField", phpr.Default.Field, {
-    /*
-    constructor:function(field) {
-        if (field['disabled'] && (field['value'] == 1)) {
-            field['disabled'] = true;
-        } else {
-            field['disabled'] = false;
-        }
-
-        this.inherited(arguments);
-    },
-    */
-
+dojo.declare("phpr.Field.CheckField", phpr.Field, {
     _getValue:function() {
         return (this._field['value'] == 1) ? true : false;
     },
@@ -458,14 +446,14 @@ dojo.declare("phpr.Default.CheckField", phpr.Default.Field, {
 
     _updateChangedClass:function(action) {
         if (action == 'add') {
-            dojo.addClass(dojo.byId(this.fieldId).parentNode, "highlightChanges");
+            dojo.addClass(dojo.byId(this.fieldId).parentNode, 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(this.fieldId).parentNode, "highlightChanges");
+            dojo.removeClass(dojo.byId(this.fieldId).parentNode, 'highlightChanges');
         }
     }
 });
 
-dojo.declare("phpr.Default.DateField", phpr.Default.Field, {
+dojo.declare("phpr.Field.DateField", phpr.Field, {
     _getValue:function() {
         return (this._field['value']) ? phpr.Date.isoDateTojsDate(this._field['value']) : new Date();
     },
@@ -477,14 +465,14 @@ dojo.declare("phpr.Default.DateField", phpr.Default.Field, {
             required:       this._field['required'],
             disabled:       this._field['disabled'],
             value:          this._getValue(),
-            constraints:    {datePattern: "yyyy-MM-dd"},
-            promptMessage:  "yyyy-MM-dd",
-            invalidMessage: "Invalid date. Use yyyy-MM-dd format."
+            constraints:    {datePattern: 'yyyy-MM-dd'},
+            promptMessage:  'yyyy-MM-dd',
+            invalidMessage: 'Invalid date. Use yyyy-MM-dd format.'
         });
     }
 });
 
-dojo.declare("phpr.Default.DatetimeField", phpr.Default.Field, {
+dojo.declare("phpr.Field.DatetimeField", phpr.Field, {
     _fieldWidgetId: null,
 
     destroy:function() {
@@ -529,9 +517,9 @@ dojo.declare("phpr.Default.DatetimeField", phpr.Default.Field, {
             required:       this._field['required'],
             disabled:       this._field['disabled'],
             value:          value,
-            constraints:    {datePattern: "yyyy-MM-dd"},
-            promptMessage:  "yyyy-MM-dd",
-            invalidMessage: "Invalid date. Use yyyy-MM-dd format.",
+            constraints:    {datePattern: 'yyyy-MM-dd'},
+            promptMessage:  'yyyy-MM-dd',
+            invalidMessage: 'Invalid date. Use yyyy-MM-dd format.',
             onChange:       function() {
                 dijit.byId(fieldWidgetId).set('value',
                     phpr.Date.getIsoDatetime(this.value, dijit.byId(idForTime).get('value')));
@@ -547,7 +535,7 @@ dojo.declare("phpr.Default.DatetimeField", phpr.Default.Field, {
         if (minutes < 10) {
             minutes = '0' + minutes;
         }
-        var time = dojo.date.stamp.fromISOString("T" + hour + ":" + minutes + ":00");
+        var time = dojo.date.stamp.fromISOString('T' + hour + ':' + minutes + ':00');
 
         var widgetTime = new phpr.form.TimeTextBox({
             id:          idForTime,
@@ -601,16 +589,16 @@ dojo.declare("phpr.Default.DatetimeField", phpr.Default.Field, {
         var idForTime = this._field['id'] + '_forTime-' + this._module;
 
         if (action == 'add') {
-            dojo.addClass(dojo.byId(idForDate).parentNode.parentNode, "highlightChanges");
-            dojo.addClass(dojo.byId(idForTime).parentNode.parentNode, "highlightChanges");
+            dojo.addClass(dojo.byId(idForDate).parentNode.parentNode, 'highlightChanges');
+            dojo.addClass(dojo.byId(idForTime).parentNode.parentNode, 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(idForDate).parentNode.parentNode, "highlightChanges");
-            dojo.removeClass(dojo.byId(idForTime).parentNode.parentNode, "highlightChanges");
+            dojo.removeClass(dojo.byId(idForDate).parentNode.parentNode, 'highlightChanges');
+            dojo.removeClass(dojo.byId(idForTime).parentNode.parentNode, 'highlightChanges');
         }
     }
 });
 
-dojo.declare("phpr.Default.DisplayField", phpr.Default.Field, {
+dojo.declare("phpr.Field.DisplayField", phpr.Field, {
     _setFieldId:function() {
         this.fieldId = this._field['id'] + '-' + this._module + '_div';
     },
@@ -655,14 +643,14 @@ dojo.declare("phpr.Default.DisplayField", phpr.Default.Field, {
 
     _updateChangedClass:function(action) {
         if (action == 'add') {
-            dojo.addClass(dojo.byId(this.fieldId), "highlightChanges");
+            dojo.addClass(dojo.byId(this.fieldId), 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(this.fieldId), "highlightChanges");
+            dojo.removeClass(dojo.byId(this.fieldId), 'highlightChanges');
         }
     }
 });
 
-dojo.declare("phpr.Default.FormButtonsField", phpr.Default.Field, {
+dojo.declare("phpr.Default.FormButtonsField", phpr.Field, {
     destroy:function() {
         if (dijit.byId('submitButton-' + this._module)) {
             dijit.byId('submitButton-' + this._module).destroy();
@@ -736,7 +724,7 @@ dojo.declare("phpr.Default.FormButtonsField", phpr.Default.Field, {
     }
 });
 
-dojo.declare("phpr.Default.HiddenField", phpr.Default.Field, {
+dojo.declare("phpr.Field.HiddenField", phpr.Field, {
     _setFieldId:function() {
         this.fieldId = this._field['id'] + '-' + this._module;
     },
@@ -755,7 +743,7 @@ dojo.declare("phpr.Default.HiddenField", phpr.Default.Field, {
     }
 });
 
-dojo.declare("phpr.Default.HtmltextareaField", phpr.Default.Field, {
+dojo.declare("phpr.Field.HtmltextareaField", phpr.Field, {
     _fieldWidgetId: null,
 
     isHtml:function() {
@@ -831,7 +819,7 @@ dojo.declare("phpr.Default.HtmltextareaField", phpr.Default.Field, {
             id:        'dialogFor_' + fieldWidgetId,
             draggable: false,
             refocus:   false,
-            style:     "width: 82%;",
+            style:     'width: 82%;',
             execute:   function() {
                 var value = dijit.byId('editorFor_' + fieldWidgetId).get('value');
                 dojo.byId('displayHtml_' + fieldWidgetId).innerHTML = value;
@@ -848,7 +836,7 @@ dojo.declare("phpr.Default.HtmltextareaField", phpr.Default.Field, {
         var editor    = new dijit.Editor({
             id:       'editorFor_' + fieldWidgetId,
             disabled: this._field['disabled'],
-            style:    "width: 99%; height: 99%; border: 1px solid;",
+            style:    'width: 99%; height: 99%; border: 1px solid;',
             plugins:  ['bold', 'italic', 'underline',
                       'strikethrough', 'subscript', 'superscript', 'removeFormat', '|', 'justifyCenter',
                       'justifyFull', 'justifyLeft', 'justifyRight', 'delete', '|', 'insertOrderedList',
@@ -903,8 +891,8 @@ dojo.declare("phpr.Default.HtmltextareaField", phpr.Default.Field, {
 
             var tooltip = new dijit.form.DropDownButton({
                 showLabel: false,
-                baseClass: "smallIcon",
-                iconClass: "help",
+                baseClass: 'smallIcon',
+                iconClass: 'help',
                 dropDown:  dialog
             });
 
@@ -997,21 +985,21 @@ dojo.declare("phpr.Default.HtmltextareaField", phpr.Default.Field, {
         var isHtml = this.isHtml();
         if (action == 'add') {
             if (isHtml) {
-                dojo.addClass(dojo.byId('displayHtml_' + this._fieldWidgetId).parentNode, "highlightChanges");
+                dojo.addClass(dojo.byId('displayHtml_' + this._fieldWidgetId).parentNode, 'highlightChanges');
             } else {
-                dojo.addClass(dojo.byId(this._fieldWidgetId), "highlightChanges");
+                dojo.addClass(dojo.byId(this._fieldWidgetId), 'highlightChanges');
             }
         } else {
             if (isHtml) {
-                dojo.removeClass(dojo.byId('displayHtml_' + this._fieldWidgetId).parentNode, "highlightChanges");
+                dojo.removeClass(dojo.byId('displayHtml_' + this._fieldWidgetId).parentNode, 'highlightChanges');
             } else {
-                dojo.removeClass(dojo.byId(this._fieldWidgetId), "highlightChanges");
+                dojo.removeClass(dojo.byId(this._fieldWidgetId), 'highlightChanges');
             }
         }
     }
 });
 
-dojo.declare("phpr.Default.MultipleselectField", phpr.Default.Field, {
+dojo.declare("phpr.Field.MultipleselectField", phpr.Field, {
     _setFieldId:function() {
         this.fieldId = this._field['id'] + '[]-' + this._module;
     },
@@ -1031,8 +1019,8 @@ dojo.declare("phpr.Default.MultipleselectField", phpr.Default.Field, {
             name:           this.fieldId,
             required:       this._field['required'],
             store:          new dojo.data.ItemFileWriteStore({data: {
-                identifier: "id",
-			    label:      "name",
+                identifier: 'id',
+			    label:      'name',
 			    items:      this._field['range']
             }}),
             multiple:       true,
@@ -1051,14 +1039,14 @@ dojo.declare("phpr.Default.MultipleselectField", phpr.Default.Field, {
 
     _updateChangedClass:function(action) {
         if (action == 'add') {
-            dojo.addClass(dojo.byId(this.fieldId).parentNode, "highlightChanges");
+            dojo.addClass(dojo.byId(this.fieldId).parentNode, 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(this.fieldId).parentNode, "highlightChanges");
+            dojo.removeClass(dojo.byId(this.fieldId).parentNode, 'highlightChanges');
         }
     }
 });
 
-dojo.declare("phpr.Default.PercentageField", phpr.Default.Field, {
+dojo.declare("phpr.Field.PercentageField", phpr.Field, {
     _getValue:function() {
         if (!this._field['value'] || isNaN(this._field['value'])) {
             this._field['value'] = 0;
@@ -1082,22 +1070,22 @@ dojo.declare("phpr.Default.PercentageField", phpr.Default.Field, {
         node.appendChild(rulesBottomNode);
 
         var sliderLabels = new dijit.form.HorizontalRuleLabels({
-            container:     "topDecoration",
+            container:     'topDecoration',
             count:         5,
             numericMargin: 1,
-            style:         "height: 1.2em; font-size: 75%; color: gray;"
+            style:         'height: 1.2em; font-size: 75%; color: gray;'
         }, rulesLabelNode);
 
         var sliderTopRule = new dijit.form.HorizontalRule({
-            container: "topDecoration",
+            container: 'topDecoration',
             count:     5,
-            style:     "height: 5px;"
+            style:     'height: 5px;'
         }, rulesTopNode);
 
         var sliderBottomRule = new dijit.form.HorizontalRule({
-            container: "bottomDecoration",
+            container: 'bottomDecoration',
             count:     11,
-            style:     "height: 5px;"
+            style:     'height: 5px;'
         }, rulesBottomNode);
 
         // Slider
@@ -1113,7 +1101,7 @@ dojo.declare("phpr.Default.PercentageField", phpr.Default.Field, {
             required:            this._field['required'],
             disabled:            this._field['disabled'],
             value:               this._getValue(),
-            style:               "height: 20px;"
+            style:               'height: 20px;'
         }, node);
 
         widget.startup();
@@ -1124,14 +1112,14 @@ dojo.declare("phpr.Default.PercentageField", phpr.Default.Field, {
 
     _updateChangedClass:function(action) {
         if (action == 'add') {
-            dojo.addClass(dojo.byId(this.fieldId), "highlightChanges");
+            dojo.addClass(dojo.byId(this.fieldId), 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(this.fieldId), "highlightChanges");
+            dojo.removeClass(dojo.byId(this.fieldId), 'highlightChanges');
         }
     }
 });
 
-dojo.declare("phpr.Default.RatingField", phpr.Default.Field, {
+dojo.declare("phpr.Field.RatingField", phpr.Field, {
     _createField:function() {
         return new phpr.form.Rating({
             id:       this.fieldId,
@@ -1154,14 +1142,14 @@ dojo.declare("phpr.Default.RatingField", phpr.Default.Field, {
 
     _updateChangedClass:function(action) {
         if (action == 'add') {
-            dojo.addClass(dojo.byId(this.fieldId).parentNode, "highlightChanges");
+            dojo.addClass(dojo.byId(this.fieldId).parentNode, 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(this.fieldId).parentNode, "highlightChanges");
+            dojo.removeClass(dojo.byId(this.fieldId).parentNode, 'highlightChanges');
         }
     }
 });
 
-dojo.declare("phpr.Default.SelectField", phpr.Default.Field, {
+dojo.declare("phpr.Field.SelectField", phpr.Field, {
     _getValue:function() {
         var found = false;
         var first = null;
@@ -1212,7 +1200,7 @@ dojo.declare("phpr.Default.SelectField", phpr.Default.Field, {
     }
 });
 
-dojo.declare("phpr.Default.TextareaField", phpr.Default.Field, {
+dojo.declare("phpr.Field.TextareaField", phpr.Field, {
     _getValue:function() {
         return (this._field['value']) ? this._field['value'] : '\n\n';
     },
@@ -1229,14 +1217,14 @@ dojo.declare("phpr.Default.TextareaField", phpr.Default.Field, {
 
     _updateChangedClass:function(action) {
         if (action == 'add') {
-            dojo.addClass(dojo.byId(this.fieldId), "highlightChanges");
+            dojo.addClass(dojo.byId(this.fieldId), 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(this.fieldId), "highlightChanges");
+            dojo.removeClass(dojo.byId(this.fieldId), 'highlightChanges');
         }
     }
 });
 
-dojo.declare("phpr.Default.TextField", phpr.Default.Field, {
+dojo.declare("phpr.Field.TextField", phpr.Field, {
     _createField:function() {
         return new dijit.form.TextBox({
             id:             this.fieldId,
@@ -1251,7 +1239,7 @@ dojo.declare("phpr.Default.TextField", phpr.Default.Field, {
     }
 });
 
-dojo.declare("phpr.Default.TimeField", phpr.Default.Field, {
+dojo.declare("phpr.Field.TimeField", phpr.Field, {
     _getValue:function() {
         return (this._field['value']) ? phpr.Date.isoTimeTojsDate(this._field['value']) : new Date();
     },
@@ -1268,7 +1256,7 @@ dojo.declare("phpr.Default.TimeField", phpr.Default.Field, {
     }
 });
 
-dojo.declare("phpr.Default.PasswordField", phpr.Default.Field, {
+dojo.declare("phpr.Field.PasswordField", phpr.Field, {
     _createField:function(field) {
         return new dijit.form.TextBox({
             id:             this.fieldId,
@@ -1283,7 +1271,7 @@ dojo.declare("phpr.Default.PasswordField", phpr.Default.Field, {
     }
 });
 
-dojo.declare("phpr.Default.UploadField", phpr.Default.Field, {
+dojo.declare("phpr.Field.UploadField", phpr.Field, {
     _fieldWidgetId: null,
 
     destroy:function() {
@@ -1321,7 +1309,7 @@ dojo.declare("phpr.Default.UploadField", phpr.Default.Field, {
                 + ' style="overflow: hidden; border: 0px;"></iframe>';
             var iframe = dojo.doc.createElement(html);
 		} else {
-		 	iframe     = dojo.create("iframe");
+		 	iframe     = dojo.create('iframe');
 		 	iframe.id  = 'filesIframe_' + this._fieldWidgetId;
 			iframe.src = this._field['iFramePath'];
             iframe.setAttribute('height', '25px');
@@ -1355,9 +1343,9 @@ dojo.declare("phpr.Default.UploadField", phpr.Default.Field, {
 
     _updateChangedClass:function(action) {
         if (action == 'add') {
-            dojo.addClass(dojo.byId(this.fieldId), "highlightChanges");
+            dojo.addClass(dojo.byId(this.fieldId), 'highlightChanges');
         } else {
-            dojo.removeClass(dojo.byId(this.fieldId), "highlightChanges");
+            dojo.removeClass(dojo.byId(this.fieldId), 'highlightChanges');
         }
     }
 });

@@ -30,7 +30,7 @@ dojo.declare("phpr.Project.Main", phpr.Default.Main, {
         this._module = 'Project';
 
         this._loadFunctions();
-        dojo.subscribe("Project.basicData", this, "basicData");
+        dojo.subscribe('Project.basicData', this, 'basicData');
 
         this._gridWidget          = phpr.Project.Grid;
         this._formWidget          = phpr.Project.Form;
@@ -75,7 +75,7 @@ dojo.declare("phpr.Project.Main", phpr.Default.Main, {
         phpr.currentProjectId = id;
         phpr.Tree.fadeIn();
         dojo.publish(module + '.reload');
-        this.setUrlHash(module, null, ["basicData"]);
+        this.setUrlHash(module, null, ['basicData']);
     },
 
     basicData:function() {
@@ -98,10 +98,10 @@ dojo.declare("phpr.Project.Main", phpr.Default.Main, {
 
         // _renderTemplate() for BasicData
         if (!dojo.byId('defaultMainContent-BasicData')) {
-            phpr.Render.render(["phpr.Project.template", "basicData.html"], dojo.byId('centerMainContent'));
+            phpr.Render.render(['phpr.Project.template', 'basicData.html'], dojo.byId('centerMainContent'));
         } else {
             dojo.place('defaultMainContent-BasicData', 'centerMainContent');
-            dojo.style(dojo.byId('defaultMainContent-BasicData'), "display", "block");
+            dojo.style(dojo.byId('defaultMainContent-BasicData'), 'display', 'block');
         }
 
         // openForm() for BasicData

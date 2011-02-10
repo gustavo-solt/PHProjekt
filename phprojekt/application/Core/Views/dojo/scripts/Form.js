@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Core.Form");
@@ -116,11 +116,11 @@ dojo.declare("phpr.Core.Form", phpr.Default.Form, {
                 new phpr.handleResponse('serverFeedback', data);
                 if (data.type == 'success') {
                     this._customActionOnSuccess();
-                    dojo.publish(phpr.module + ".updateCacheData");
+                    dojo.publish(phpr.module + '.updateCacheData');
                     if (this._isSystemModule) {
-                        dojo.publish(phpr.module + ".setUrlHash", [phpr.parentmodule, null, [phpr.module]]);
+                        dojo.publish(phpr.module + '.setUrlHash', [phpr.parentmodule, null, [phpr.module]]);
                     } else {
-                        dojo.publish(phpr.module + ".setUrlHash", [phpr.parentmodule]);
+                        dojo.publish(phpr.module + '.setUrlHash', [phpr.parentmodule]);
                     }
                 }
             })
@@ -140,8 +140,8 @@ dojo.declare("phpr.Core.Form", phpr.Default.Form, {
             onSuccess: dojo.hitch(this, function(data) {
                 new phpr.handleResponse('serverFeedback', data);
                 if (data.type == 'success') {
-                    dojo.publish(phpr.module + ".updateCacheData");
-                    dojo.publish(phpr.module + ".setUrlHash", [phpr.parentmodule, null, [phpr.module]]);
+                    dojo.publish(phpr.module + '.updateCacheData');
+                    dojo.publish(phpr.module + '.setUrlHash', [phpr.parentmodule, null, [phpr.module]]);
                 }
             })
         });

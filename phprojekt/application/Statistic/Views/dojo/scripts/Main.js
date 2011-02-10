@@ -25,10 +25,10 @@ dojo.declare("phpr.Statistic.Main", phpr.Default.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this._module = "Statistic";
+        this._module = 'Statistic';
 
         this._loadFunctions();
-        dojo.subscribe("Statistic.changeDate", this, "changeDate");
+        dojo.subscribe('Statistic.changeDate', this, 'changeDate');
 
         this._gridWidget = phpr.Statistic.Grid;
         this._formWidget = phpr.Statistic.Form;
@@ -58,7 +58,7 @@ dojo.declare("phpr.Statistic.Main", phpr.Default.Main, {
                 baseClass: 'positive',
                 iconClass: 'export',
                 disabled:  false,
-                onClick:   dojo.hitch(this, "_exportData")
+                onClick:   dojo.hitch(this, '_exportData')
             };
             var button = new dijit.form.Button(params);
             dojo.byId('buttonRow').appendChild(button.domNode);
@@ -76,7 +76,7 @@ dojo.declare("phpr.Statistic.Main", phpr.Default.Main, {
             new Date(end.getFullYear(), end.getMonth(), end.getDate()));
 
         // Clean table
-        dijit.byId('statisticContent').set('content', '');
+        dijit.byId('content-' + this._module).set('content', '');
 
         this._url = phpr.webpath + 'index.php/Statistic/index/jsonGetStatistic'
             + '/nodeId/' + phpr.currentProjectId
@@ -160,7 +160,7 @@ dojo.declare("phpr.Statistic.Main", phpr.Default.Main, {
         };
 
         // Create the table
-        var table              = dojo.doc.createElement("table");
+        var table              = dojo.doc.createElement('table');
         table.className        = 'statisticsTable';
         table.style.marginLeft = '10px';
         table.style.marginTop  = '10px';
@@ -231,7 +231,7 @@ dojo.declare("phpr.Statistic.Main", phpr.Default.Main, {
         cell.innerHTML = '<b>' + totalRow.title + '</b>';
 
         // Replace the content with the new table
-        dijit.byId('statisticContent').set('content', table);
+        dijit.byId('content-' + this._module).set('content', table);
     },
 
     _setNewEntry:function() {

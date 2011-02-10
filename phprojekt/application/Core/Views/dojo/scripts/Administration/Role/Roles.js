@@ -52,9 +52,9 @@ dojo.declare("phpr.Role.Roles", null, {
         this._cellIndex = 0;
 
         if (!this._table) {
-            this._table                   = dojo.doc.createElement("table");
+            this._table                   = dojo.doc.createElement('table');
             this._table.id                = 'roleModuleRelationTable-' + this._module;
-            this._table.className         = "form";
+            this._table.className         = 'form';
             this._table.style.width       = 'auto';
             this._table.style.marginRight = '35px';
 
@@ -129,7 +129,7 @@ dojo.declare("phpr.Role.Roles", null, {
             value:    jsonValue,
             hint:     ''
         };
-        var displayWidgetClass = new phpr.Default.HiddenField(hiddenFieldValues, this._module);
+        var displayWidgetClass = new phpr.Field.HiddenField(hiddenFieldValues, this._module);
 
         // Create/Update checkbox field value
         var widgetClass = [];
@@ -144,7 +144,7 @@ dojo.declare("phpr.Role.Roles", null, {
                 value:    value,
                 hint:     ''
             };
-            widgetClass[i] = new phpr.Default.CheckField(fieldValues, this._module);
+            widgetClass[i] = new phpr.Field.CheckField(fieldValues, this._module);
         }
 
         var row = dojo.byId(rowId);
@@ -165,7 +165,7 @@ dojo.declare("phpr.Role.Roles", null, {
                 var checkWidget = dijit.byId(widgetClass[i].fieldId);
                 var node        = this._createDivNode(checkWidget.domNode);
                 container.appendChild(node);
-                dojo.connect(checkWidget, "onClick", dojo.hitch(this, function(e) {
+                dojo.connect(checkWidget, 'onClick', dojo.hitch(this, function(e) {
                     var widget = dijit.byId('dataAccess[' + roleId + ']-' + this._module);
                     var data   = dojo.fromJson(widget.get('value'));
 

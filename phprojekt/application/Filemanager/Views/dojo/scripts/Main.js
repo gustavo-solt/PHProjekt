@@ -25,7 +25,7 @@ dojo.declare("phpr.Filemanager.Main", phpr.Default.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this._module = "Filemanager";
+        this._module = 'Filemanager';
 
         this._loadFunctions();
 

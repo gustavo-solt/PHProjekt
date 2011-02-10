@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.MinutesItem.Grid");
@@ -57,7 +57,7 @@ dojo.declare("phpr.MinutesItem.Grid", phpr.Default.SubModule.Grid, {
                 name:     phpr.nls.get('Comment', this._module),
                 field:    'comment',
                 type:     phpr.grid.cells.Textarea,
-                styles:   "text-align: left;",
+                styles:   'text-align: left;',
                 editable: false,
                 colSpan:  4
             }

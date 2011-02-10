@@ -73,9 +73,9 @@ dojo.declare("phpr.Project.Roles", null, {
         }
 
         if (!this._table) {
-            this._table                   = dojo.doc.createElement("table");
+            this._table                   = dojo.doc.createElement('table');
             this._table.id                = 'roleRelationTable-' + this._module;
-            this._table.className         = "form";
+            this._table.className         = 'form';
             this._table.style.width       = 'auto';
             this._table.style.marginLeft  = '35px';
             this._table.style.marginRight = '35px';
@@ -138,7 +138,7 @@ dojo.declare("phpr.Project.Roles", null, {
                 range:    this._users,
                 hint:     ''
             };
-            var userWidgetClass = new phpr.Default.SelectField(fieldValues, this._module);
+            var userWidgetClass = new phpr.Field.SelectField(fieldValues, this._module);
 
             // Create and set the Role widget
             var fieldValues = {
@@ -150,7 +150,7 @@ dojo.declare("phpr.Project.Roles", null, {
                 range:    this._roles,
                 hint:     ''
             };
-            var roleWidgetClass = new phpr.Default.SelectField(fieldValues, this._module);
+            var roleWidgetClass = new phpr.Field.SelectField(fieldValues, this._module);
 
             if (!row) {
                 // Have access but the row don't exists => Create it
@@ -173,7 +173,7 @@ dojo.declare("phpr.Project.Roles", null, {
                     };
                     var addButton = new dijit.form.Button(params);
                     var container = this._createDivNode(addButton.domNode);
-                    dojo.connect(addButton, "onClick", dojo.hitch(this, '_newUserRow'));
+                    dojo.connect(addButton, 'onClick', dojo.hitch(this, '_newUserRow'));
                 } else {
                     var container = this._createDivNode(document.createTextNode("\u00a0"));
                 }
@@ -208,7 +208,7 @@ dojo.declare("phpr.Project.Roles", null, {
             var tr    = dojo.byId(rowId);
             if (tr && tr.parentNode.id == 'garbage') {
                 // Restore tr into tbody
-                dojo.place(tr, this._table.firstChild, "last");
+                dojo.place(tr, this._table.firstChild, 'last');
             }
             this._addUserRow(userId, isCurrentUser);
             toKeep[userId] = 1;
@@ -263,7 +263,7 @@ dojo.declare("phpr.Project.Roles", null, {
             value:    value,
             hint:     ''
         };
-        var displayWidgetClass = new phpr.Default.HiddenField(hiddenFieldValues, this._module);
+        var displayWidgetClass = new phpr.Field.HiddenField(hiddenFieldValues, this._module);
 
         var row = dojo.byId(rowId);
         if (!row) {
@@ -278,7 +278,7 @@ dojo.declare("phpr.Project.Roles", null, {
             var cell = this._createCell(row, dijit.byId(displayWidgetClass.fieldId).domNode);
             var txt  = document.createTextNode(this._relations[userId]['userDisplay']);
             if (isCurrentUser) {
-                var bold = document.createElement("b");
+                var bold = document.createElement('b');
                 bold.appendChild(txt);
                 cell.appendChild(bold);
             } else {
@@ -326,7 +326,7 @@ dojo.declare("phpr.Project.Roles", null, {
                         baseClass: 'dijitButton, smallIcon'
                     };
                     var deleteButton = new dijit.form.Button(params);
-                    dojo.connect(deleteButton, "onClick", dojo.hitch(this, function() {
+                    dojo.connect(deleteButton, 'onClick', dojo.hitch(this, function() {
                         this._removeUserRow(userId);
                         this._showMessage('delete');
                         this._fixRowColors();
@@ -381,7 +381,7 @@ dojo.declare("phpr.Project.Roles", null, {
 
             if (tr) {
                 // Move it into tbody
-                dojo.place(tr, this._table.firstChild, "last");
+                dojo.place(tr, this._table.firstChild, 'last');
             }
             // Add/Update user row
             this._addUserRow(userId, false);
@@ -407,7 +407,7 @@ dojo.declare("phpr.Project.Roles", null, {
         dijit.byId('userRoleRelation' + '[' + userId + ']' + '-' + this._module).set('value', null);
 
         // Move the row to garbage
-        dojo.place('trRoleFor' + userId + '-' + this._module, "garbage");
+        dojo.place('trRoleFor' + userId + '-' + this._module, 'garbage');
     },
 
     _getColor:function() {

@@ -16,7 +16,7 @@
  * @link       http://www.phprojekt.com
  * @since      File available since Release 6.0
  * @version    Release: @package_version@
- * @author     Gustavo Solt <solt@mayflower.de>
+ * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
 dojo.provide("phpr.Tree");
@@ -53,8 +53,8 @@ dojo.declare("phpr.Tree", null, {
                     this._tree = this._getTree();
                     this._tree.startup();
                     this._getNode().set('content', this._tree.domNode);
-                    dojo.connect(this._tree, "onClick", dojo.hitch(this, "_onItemClick"));
-                    dojo.byId("navigation-container-title").innerHTML = phpr.nls.get('Projects');
+                    dojo.connect(this._tree, 'onClick', dojo.hitch(this, '_onItemClick'));
+                    dojo.byId('navigation-container-title').innerHTML = phpr.nls.get('Projects');
                 } else {
                     this._processDataDiff();
                 }
@@ -75,16 +75,16 @@ dojo.declare("phpr.Tree", null, {
     fadeOut:function() {
         // Summary:
         //     Manage the visibility of the tree panel.
-        if (dojo.style("treeBox", "opacity") != 0.5) {
-            dojo.style("treeBox", "opacity", 0.5);
+        if (dojo.style('treeBox', 'opacity') != 0.5) {
+            dojo.style('treeBox', 'opacity', 0.5);
         }
     },
 
     fadeIn:function() {
         // Summary:
         //     Manage the visibility of the tree panel.
-        if (dojo.style("treeBox", "opacity") != 1) {
-            dojo.style("treeBox", "opacity", 1);
+        if (dojo.style('treeBox', 'opacity') != 1) {
+            dojo.style('treeBox', 'opacity', 1);
         }
     },
 
@@ -147,7 +147,7 @@ dojo.declare("phpr.Tree", null, {
     _getNode:function() {
         // Summary:
         //    Set the node to put the tree.
-        return dijit.byId("treeBox");
+        return dijit.byId('treeBox');
     },
 
     _getModel:function() {
@@ -231,13 +231,13 @@ dojo.declare("phpr.Tree", null, {
                         if (paths[i] > 0 && paths[i] != phpr.currentProjectId) {
                             var subItem = storeData[paths[i]];
                             if (subItem) {
-                                projects.push({"id":   subItem.id,
-                                               "name": subItem.longName});
+                                projects.push({id:   subItem.id,
+                                               name: subItem.longName});
                             }
                         }
                     }
-                    projects.push({"id":   item.id,
-                                   "name": item.longName});
+                    projects.push({id:   item.id,
+                                   name: item.longName});
                 }
                 phpr.BreadCrumb.setProjects(projects);
             }
@@ -255,7 +255,7 @@ dojo.declare("phpr.Tree", null, {
             // Remove last bold
             var node = this._getNodeByidentity(phpr.treeLastProjectSelected);
             if (node) {
-                dojo.removeClass(node.rowNode, "selected");
+                dojo.removeClass(node.rowNode, 'selected');
             }
 
             if (id > 1) {
@@ -274,7 +274,7 @@ dojo.declare("phpr.Tree", null, {
                 var node = this._getNodeByidentity(id);
                 if (node) {
                     this._tree.focusNode(node);
-                    dojo.addClass(node.rowNode, "selected");
+                    dojo.addClass(node.rowNode, 'selected');
                     phpr.treeLastProjectSelected = id;
                 }
             }

@@ -19,9 +19,9 @@
  * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
-dojo.provide("phpr.Access");
+dojo.provide("phpr.Default.Access");
 
-dojo.declare("phpr.Access", null, {
+dojo.declare("phpr.Default.Access", null, {
     // Summary:
     //    Class for display an access matrix.
     // Description:
@@ -158,7 +158,7 @@ dojo.declare("phpr.Access", null, {
                 range:    this._users,
                 hint:     ''
             };
-            var widgetClass = new phpr.Default.SelectField(fieldValues, this._module);
+            var widgetClass = new phpr.Field.SelectField(fieldValues, this._module);
 
             if (!row) {
                 // Have access but the row don't exists => Create it
@@ -180,7 +180,7 @@ dojo.declare("phpr.Access", null, {
                 for (var i = 0; i < this._rights.length; i++) {
                     fieldValues['id'] = this._rights[i].id + 'Add';
 
-                    var widgetClass = new phpr.Default.CheckField(fieldValues, this._module);
+                    var widgetClass = new phpr.Field.CheckField(fieldValues, this._module);
 
                     var node = this._createDivNode(dijit.byId(widgetClass.fieldId).domNode);
                     container.appendChild(node);
@@ -302,7 +302,7 @@ dojo.declare("phpr.Access", null, {
             value:    jsonValue,
             hint:     ''
         };
-        var displayWidgetClass = new phpr.Default.HiddenField(hiddenFieldValues, this._module);
+        var displayWidgetClass = new phpr.Field.HiddenField(hiddenFieldValues, this._module);
 
         var row = dojo.byId(rowId);
         if (!row) {

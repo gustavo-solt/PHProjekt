@@ -237,29 +237,29 @@ dojo.declare("phpr.Default.Main", null, {
         if (id && module) {
             if (!phpr.isGlobalModule(module)) {
                 // Module,projectId,id,xx (Open form for edit in normal modules)
-                var url = new Array([module, phpr.currentProjectId, "id", id]);
+                var url = new Array([module, phpr.currentProjectId, 'id', id]);
             } else {
                 phpr.currentProjectId = phpr.rootProjectId;
                 if (params && params.length > 0) {
                     // GlobalModule,Module,id,xx (Open form for edit in Adminisration)
-                    var url = new Array([module, params.shift(), "id", id]);
+                    var url = new Array([module, params.shift(), 'id', id]);
                 } else {
                     // GlobalModule,id,xx (Open form for edit in global modules)
-                    var url = new Array([module, "id", id]);
+                    var url = new Array([module, 'id', id]);
                 }
             }
         } else if (module && id == 0) {
             if (!phpr.isGlobalModule(module)) {
                 // Module,projectId,id,0 (Open form for add in normal modules)
-                var url = new Array([module, phpr.currentProjectId, "id", 0]);
+                var url = new Array([module, phpr.currentProjectId, 'id', 0]);
             } else {
                 phpr.currentProjectId = phpr.rootProjectId;
                 if (params && params.length > 0) {
                     // GlobalModule,Module,id,xx (Open form for add in Adminisration)
-                    var url = new Array([module, params.shift(), "id", 0]);
+                    var url = new Array([module, params.shift(), 'id', 0]);
                 } else {
                     // GlobalModule,id,xx (Open a form for add in global modules)
-                    var url = new Array([module, "id", 0]);
+                    var url = new Array([module, 'id', 0]);
                 }
             }
         } else {
@@ -280,7 +280,7 @@ dojo.declare("phpr.Default.Main", null, {
             url.push(params[i]);
         }
 
-        var hash = url.join(",");
+        var hash = url.join(',');
         phpr.Url.addUrl(hash);
 
         if (hash.indexOf('Administration') < 0) {
@@ -469,7 +469,7 @@ dojo.declare("phpr.Default.Main", null, {
                 var tag = document.createElement('a');
                 tag.id  = 'tagFor_' + data[i]['string'];
                 dojo.style(tag, 'float', 'left');
-                tag.setAttribute('href', "javascript:void(0)");
+                tag.setAttribute('href', 'javascript:void(0)');
                 dojo.connect(tag, 'onclick',
                     dojo.hitch(this, 'setUrlHash', phpr.module, null, ['Tag', data[i]['string']]));
                 tag.innerHTML = '<span style="font-size: ' + size + 'px">' + data[i]['string'] + '</span></a>&nbsp;';
@@ -674,7 +674,7 @@ dojo.declare("phpr.Default.Main", null, {
                 }
                 // Set content
                 var content = new dijit.layout.ContentPane({
-                    style:   "width: 650px; height: 400px; border: 2px solid #294064;",
+                    style:   'width: 650px; height: 400px; border: 2px solid #294064;',
                     content: this._getHelpTabContainer(helpData, phpr.nls)
                 });
 
@@ -727,7 +727,7 @@ dojo.declare("phpr.Default.Main", null, {
 
                         // Set content
                         var content = new dijit.layout.ContentPane({
-                            style:   "width: 650px; height: 400px; border: 2px solid #294064;",
+                            style:   'width: 650px; height: 400px; border: 2px solid #294064;',
                             content: (tab) ? tab : emptyNode
                         });
 
@@ -770,9 +770,9 @@ dojo.declare("phpr.Default.Main", null, {
         dojo.subscribe(this._module + '.destroyLayout', this, 'destroyLayout');
         dojo.subscribe(this._module + '.gridProxy', this, 'gridProxy');
         dojo.subscribe(this._module + '.formProxy', this, 'formProxy');
-        dojo.subscribe(this._module + ".clickResult", this, "clickResult");
-        dojo.subscribe(this._module + ".loadResult", this, "loadResult");
-        dojo.subscribe(this._module + ".showHelp", this, "showHelp");
+        dojo.subscribe(this._module + '.clickResult', this, 'clickResult');
+        dojo.subscribe(this._module + '.loadResult', this, 'loadResult');
+        dojo.subscribe(this._module + '.showHelp', this, 'showHelp');
     },
 
     _addLogoTooltip:function(userList) {
@@ -1096,7 +1096,7 @@ dojo.declare("phpr.Default.Main", null, {
                 window.clearTimeout(window.mytimeout);
             }
             if (dijit.byId('searchField').isValid()) {
-                window.mytimeout = window.setTimeout(dojo.hitch(this, "_showSearchSuggest"), 500);
+                window.mytimeout = window.setTimeout(dojo.hitch(this, '_showSearchSuggest'), 500);
             }
         }
     },
@@ -1122,15 +1122,15 @@ dojo.declare("phpr.Default.Main", null, {
                         if (!results[modulesData.moduleLabel]) {
                             results[modulesData.moduleLabel] = '';
                         }
-                        results[modulesData.moduleLabel] += phpr.Render.render(["phpr.Default.template.results",
-                            "results.html"], null, {
+                        results[modulesData.moduleLabel] += phpr.Render.render(['phpr.Default.template.results',
+                            'results.html'], null, {
                             id :           modulesData.id,
                             moduleId :     modulesData.modulesId,
                             moduleName:    modulesData.moduleName,
                             projectId:     modulesData.projectId,
                             firstDisplay:  modulesData.firstDisplay,
                             secondDisplay: modulesData.secondDisplay,
-                            resultType:    "search"
+                            resultType:    'search'
                         });
                     }
                     var moduleLabel = '';
@@ -1138,23 +1138,23 @@ dojo.declare("phpr.Default.Main", null, {
                     for (var i in results) {
                         moduleLabel = i;
                         html       = results[i];
-                        search += phpr.Render.render(["phpr.Default.template.results", "suggestBlock.html"], null, {
+                        search += phpr.Render.render(['phpr.Default.template.results', 'suggestBlock.html'], null, {
                             moduleLabel:   moduleLabel,
                             results:       html
                         });
                     }
 
                     if (search == '') {
-                        search += "<div class=\"searchsuggesttitle\" dojoType=\"dijit.layout.ContentPane\">";
+                        search += '<div class="searchsuggesttitle" dojoType="dijit.layout.ContentPane">';
                         search += phpr.drawEmptyMessage('There are no Results');
-                        search += "</div>";
+                        search += '</div>';
                     } else {
-                        search += "<div class=\"searchsuggesttitle\" dojoType=\"dijit.layout.ContentPane\">";
+                        search += '<div class="searchsuggesttitle" dojoType="dijit.layout.ContentPane">';
                         search += "<a class=\"searchsuggesttitle\" href='javascript: dojo.publish(\""
                             + this._module + ".clickResult\", [\"search\"]); dojo.publish(\""
-                            + this._module + ".setUrlHash\", [\"" +this._modulee
+                            + this._module + ".setUrlHash\", [\"" + this._module
                             + "\",  null, [\"Search\", \"" + words + "\"]])'>" + phpr.nls.get('View all') + "</a>";
-                        search += "</div>";
+                        search += '</div>';
                     }
 
                     this._setSuggest(search);
@@ -1233,7 +1233,7 @@ dojo.declare("phpr.Default.Main", null, {
                         projectId:     modulesData.projectId,
                         firstDisplay:  modulesData.firstDisplay,
                         secondDisplay: modulesData.secondDisplay,
-                        resultType:    "tag"
+                        resultType:    'tag'
                     });
                 }
                 var moduleLabel = '';
@@ -1251,7 +1251,7 @@ dojo.declare("phpr.Default.Main", null, {
                 }
 
                 // Show the results
-                dijit.byId("resultsContent").set('content', search);
+                dijit.byId('resultsContent').set('content', search);
             })
         });
     },
