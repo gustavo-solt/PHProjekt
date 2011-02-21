@@ -110,7 +110,7 @@ dojo.declare("phpr.Calendar.ViewDayListSelect", phpr.Calendar.DefaultView, {
     },
 
     _getScheduleBarContent:function() {
-        // Summary
+        // Summary:
         //    Returns the string for show in the bar.
         var date        = phpr.Date.isoDateTojsDate(this._date);
         var days        = dojo.date.locale.getNames('days', 'wide');

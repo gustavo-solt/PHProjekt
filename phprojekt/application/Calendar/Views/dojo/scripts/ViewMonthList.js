@@ -115,7 +115,7 @@ dojo.declare("phpr.Calendar.ViewMonthList", phpr.Calendar.DefaultView, {
     },
 
     _getScheduleBarContent:function() {
-        // Summary
+        // Summary:
         //    Returns the string for show in the bar.
         var date        = phpr.Date.isoDateTojsDate(this._date);
         var months      = dojo.date.locale.getNames('months', 'wide');

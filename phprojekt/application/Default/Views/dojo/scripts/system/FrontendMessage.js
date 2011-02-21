@@ -77,8 +77,6 @@ dojo.declare("phpr.FrontendMessage", null, {
         var moduleUrl  = '#' + data.module + ',' + data.projectId + ',id,' + data.itemId;
         var currentUrl = window.location.hash;
 
-        console.debug(moduleUrl);
-        console.debug(currentUrl);
         // Be fault tolerant and catch any error if the highlighting of a field does not run.
         try {
             if ('edit' == data.process) {

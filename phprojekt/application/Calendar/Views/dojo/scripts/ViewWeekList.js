@@ -24,7 +24,7 @@ dojo.provide("phpr.Calendar.ViewWeekList");
 dojo.declare("phpr.Calendar.ViewWeekList", phpr.Calendar.DefaultView, {
     // Summary:
     //    Class for displaying a Calendar Week List
-    // description:
+    // Description:
     //    Takes care of displaying the list information we receive from our Server in a HTML table.
     _htmlEventDivsAmount: null,
     _weekDays:            [],
@@ -119,7 +119,7 @@ dojo.declare("phpr.Calendar.ViewWeekList", phpr.Calendar.DefaultView, {
     },
 
     _getScheduleBarContent:function() {
-        // Summary
+        // Summary:
         //    Returns the string for show in the bar.
         var date         = phpr.Date.isoDateTojsDate(this._date);
         var firstDayYear = new Date(date.getFullYear(), 0, 1);
@@ -318,7 +318,7 @@ dojo.declare("phpr.Calendar.ViewWeekList", phpr.Calendar.DefaultView, {
     },
 
     _setCellTimeAndColumnSize:function() {
-        // Summary
+        // Summary:
         //    Updates internal class variables with current sizes of schedule.
         var scheduleBkg      = dojo.byId(this.getDivId('table')).getElementsByTagName('td');
         this._cellTimeWidth  = scheduleBkg[0].offsetWidth;
@@ -329,7 +329,7 @@ dojo.declare("phpr.Calendar.ViewWeekList", phpr.Calendar.DefaultView, {
     },
 
     _setStepValues:function() {
-        // Summary
+        // Summary:
         //     Updates internal class variables with current sizes of schedule.
         this.stepH             = (dojo.byId(this.getDivId('table')).offsetWidth - this._cellTimeWidth) / 7;
         this.stepH             = dojo.number.round(this.stepH, 1);
@@ -381,7 +381,7 @@ dojo.declare("phpr.Calendar.ViewWeekList", phpr.Calendar.DefaultView, {
     },
 
     _divPositionToColumn:function(horizontalPos) {
-        // Summary
+        // Summary:
         //    Receives a number for the corresponding horizontal position in pixels on the schedule and returns a week
         //    column order number.
         var widthDays       = dojo.byId(this.getDivId('table')).offsetWidth - this._cellTimeWidth;

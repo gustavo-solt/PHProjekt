@@ -69,7 +69,6 @@ dojo.declare("phpr.Project.Main", phpr.Default.Main, {
     loadResult:function(id, module, projectId) {
         // Summary:
         //     Clean the result page and reload the selected module-item.
-        console.debug('aaa');
         this._cleanPage();
         phpr.parentmodule     = null;
         phpr.currentProjectId = id;

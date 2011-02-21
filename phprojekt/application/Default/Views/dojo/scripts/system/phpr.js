@@ -209,7 +209,6 @@ phpr.initWidgets = function(el) {
 phpr.destroySubWidgets = function(el) {
     // Destroy all the old widgets, so dojo can init the new ones with the same IDs again.
     if (dojo.byId(el)) {
-          //  phpr.purge(dojo.byId(el));
         var oldWidgetNodes = dojo.query("[widgetId]", dojo.byId(el));
         for (var i = 0; i < oldWidgetNodes.length; i++) {
             if (dijit.byNode(oldWidgetNodes[i])) {
@@ -217,7 +216,6 @@ phpr.destroySubWidgets = function(el) {
             }
         }
     } else if (dijit.byId(el)) {
-        //    phpr.purge(dijit.byId(el.domNode));
         dijit.byId(el).destroyRecursive();
     }
 };
@@ -225,34 +223,9 @@ phpr.destroySubWidgets = function(el) {
 phpr.destroyWidget = function(el) {
     // Destroy only one widgwt using the id
     if (dijit.byId(el)) {
-        //phpr.purge(dijit.byId(el.domNode));
         dijit.byId(el).destroyRecursive();
     }
 };
-
-phpr.purge = function(el) {
-    var a = el.dojoAttachevent, i, l, n;
-    if (a) {
-        l = a.length;
-        for (i = 0; i < l; i += 1) {
-                        console.debug(el.id + " " + a[n]);
-            n = a[i].name;
-            //console.debug(el.id + " " + el[n]);
-            if (typeof el[n] === 'function') {
-                console.debug('NULL');
-                el[n] = null;
-            }
-        }
-    }
-
-    a = el.childNodes;
-    if (a) {
-        l = a.length;
-        for (i = 0; i < l; i += 1) {
-            phpr.purge(el.childNodes[i]);
-        }
-    }
-}
 
 phpr.send = function(/*Object*/paramsIn) {
     // Send the given content to the server using the Default values,

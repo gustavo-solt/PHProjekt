@@ -121,7 +121,7 @@ dojo.declare("phpr.Calendar.DefaultView", phpr.Render, {
     },
 
     timeToDivPosition:function(moment, isEvent, type) {
-        // Summary
+        // Summary:
         //    Receives a time string and returns a number for the corresponding vertical position in pixels.
         // Parameters:
         //    moment:  string, e.g.: '14:40'.
@@ -160,7 +160,7 @@ dojo.declare("phpr.Calendar.DefaultView", phpr.Render, {
     },
 
     columnToDivPosition:function(column, isEvent) {
-        // Summary
+        // Summary:
         //    Receives a column order number and returns a number for the corresponding horizontal position in pixels.
         // Parameters:
         //    isEvent: whether the number returned will be used to position an event
@@ -187,7 +187,7 @@ dojo.declare("phpr.Calendar.DefaultView", phpr.Render, {
     },
 
     getDivId:function(type, index) {
-        // Summary
+        // Summary:
         //    Return the id of a div used by the view, with the index and current date.
         switch (type) {
             case 'container':
@@ -1370,7 +1370,7 @@ dojo.declare("phpr.Calendar.DefaultView", phpr.Render, {
     },
 
     _scrollDone:function(e) {
-        // Summary
+        // Summary:
         //    Called whenever the user scrolls the mouse wheel over the grid.
         //    Detects whether to interpret it as a request for changing to previous or next day/week/month grid.
         // Equalize event object
@@ -1445,7 +1445,7 @@ dojo.declare("phpr.Calendar.DefaultView", phpr.Render, {
     },
 
     _divPositionToTime:function(verticalPos) {
-        // Summary
+        // Summary:
         //    Receives a schedule position in pixels and returns a time string.
         var row     = Math.floor(verticalPos / this.cellTimeHeight);
         var hour    = 8 + Math.floor(row / 2);

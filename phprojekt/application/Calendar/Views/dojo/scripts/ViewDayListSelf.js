@@ -24,7 +24,7 @@ dojo.provide("phpr.Calendar.ViewDayListSelf");
 dojo.declare("phpr.Calendar.ViewDayListSelf", phpr.Calendar.DefaultView, {
     // Summary:
     //    Class for displaying a Calendar Day List for the logged user (self).
-    // description:
+    // Description:
     //    This Class takes care of displaying the list information we receive from our Server in a HTML table.
     updateData:function(id, startDate, endDate, newItem) {
         // Summary:
@@ -87,7 +87,7 @@ dojo.declare("phpr.Calendar.ViewDayListSelf", phpr.Calendar.DefaultView, {
     },
 
     _getScheduleBarContent:function() {
-        // Summary
+        // Summary:
         //    Returns the string for show in the bar.
         var date        = phpr.Date.isoDateTojsDate(this._date);
         var days        = dojo.date.locale.getNames('days', 'wide');
@@ -225,7 +225,7 @@ dojo.declare("phpr.Calendar.ViewDayListSelf", phpr.Calendar.DefaultView, {
     },
 
     _setCellTimeAndColumnSize:function() {
-        // Summary
+        // Summary:
         //    Updates internal class variables with current sizes of schedule.
         var scheduleBkg      = dojo.byId(this.getDivId('table')).getElementsByTagName('td');
         this._cellTimeWidth  = scheduleBkg[0].offsetWidth;
@@ -236,7 +236,7 @@ dojo.declare("phpr.Calendar.ViewDayListSelf", phpr.Calendar.DefaultView, {
     },
 
     _setStepValues:function() {
-        // Summary
+        // Summary:
         //     Updates internal class variables with current sizes of schedule.
         this.stepH             = dojo.byId(this.getDivId('table')).offsetWidth - this._cellTimeWidth;
         this.stepH             = dojo.number.round(this.stepH, 1);

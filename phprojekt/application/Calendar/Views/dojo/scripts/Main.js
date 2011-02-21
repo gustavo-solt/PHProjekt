@@ -144,7 +144,7 @@ dojo.declare("phpr.Calendar.Main", phpr.Default.Main, {
     },
 
     setDate:function(day) {
-        // Summary
+        // Summary:
         //    Called by the buttons '<< Today >>' to load a specific date into the views.
         var PREVIOUS = 0;
         var TODAY    = 1;
