@@ -81,14 +81,18 @@ dojo.declare("phpr.Calendar.Participants", null, {
         }
 
         if (!this._table) {
-            this._table                   = dojo.doc.createElement("table");
+            this._table                   = dojo.doc.createElement('table');
             this._table.id                = 'participantTable-' + this._module;
-            this._table.className         = "form";
+            this._table.className         = 'form';
             this._table.style.width       = 'auto';
             this._table.style.marginLeft  = '35px';
             this._table.style.marginRight = '35px';
 
             var row = this._table.insertRow(this._table.rows.length);
+
+            // Hidden field
+            var cell           = this._createCell(row, this._createContainer());
+            cell.style.display = 'none';
 
             // User
             var label = document.createElement('label');
@@ -145,6 +149,10 @@ dojo.declare("phpr.Calendar.Participants", null, {
                 var row = this._table.insertRow(1);
                 row.id  = rowId;
 
+                // Hidden field
+                var cell           = this._createCell(row, this._createContainer());
+                cell.style.display = 'none';
+
                 // User Select
                 this._createCell(row, dijit.byId(userWidgetClass.fieldId).domNode);
 
@@ -158,7 +166,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
                     };
                     var addButton = new dijit.form.Button(params);
                     var container = this._createDivNode(addButton.domNode);
-                    dojo.connect(addButton, "onClick", dojo.hitch(this, '_newUserRow'));
+                    dojo.connect(addButton, 'onClick', dojo.hitch(this, '_newUserRow'));
                 } else {
                     var container = this._createDivNode(document.createTextNode("\u00a0"));
                 }
@@ -192,7 +200,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
             var tr    = dojo.byId(rowId);
             if (tr && tr.parentNode.id == 'garbage') {
                 // Restore tr into tbody
-                dojo.place(tr, this._table.firstChild, "last");
+                dojo.place(tr, this._table.firstChild, 'last');
             }
             this._addUserRow(userId, isCurrentUser);
             toKeep[userId] = 1;
@@ -239,7 +247,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
 
         // Create/Update field value
         var hiddenFieldValues = {
-            id:       'dataParticipant'+ '[' + userId + ']',
+            id:       'dataParticipant' + '[' + userId + ']',
             type:     'hidden',
             disabled: (!this._accessPermissions) ? true : false,
             required: false,
@@ -256,6 +264,10 @@ dojo.declare("phpr.Calendar.Participants", null, {
             row.className             = 'participantRow';
             row.style.backgroundColor = this._getColor();
             row.setAttribute('internalId', userId);
+
+            // Hidden field
+            var cell           = this._createCell(row, dijit.byId(displayWidgetClass.fieldId).domNode);
+            cell.style.display = 'none';
 
             // User display
             var containerDiv = this._createContainer();
@@ -291,7 +303,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
                     baseClass: 'dijitButton, smallIcon'
                 };
                 var deleteButton = new dijit.form.Button(params);
-                dojo.connect(deleteButton, "onClick", dojo.hitch(this, function() {
+                dojo.connect(deleteButton, 'onClick', dojo.hitch(this, function() {
                     this._removeUserRow(userId);
                     this._showMessage('delete');
                     this._fixRowColors();
@@ -339,7 +351,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
 
             if (tr) {
                 // Move it into tbody
-                dojo.place(tr, this._table.firstChild, "last");
+                dojo.place(tr, this._table.firstChild, 'last');
             }
             // Add/Update user row
             this._addUserRow(userId, false);
@@ -365,7 +377,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
         dijit.byId('dataParticipant' + '[' + userId + ']' + '-' + this._module).set('value', null);
 
         // Move the row to garbage
-        dojo.place('trParticipantFor' + userId + '-' + this._module, "garbage");
+        dojo.place('trParticipantFor' + userId + '-' + this._module, 'garbage');
     },
 
     _getColor:function() {
@@ -416,7 +428,7 @@ dojo.declare("phpr.Calendar.Participants", null, {
         //    If child is defined, append it to the cell.
         var cell = row.insertCell(this._cellIndex);
         this._cellIndex++;
-        if (this._cellIndex == 2) {
+        if (this._cellIndex == 3) {
             this._cellIndex = 0;
         }
         if (child) {

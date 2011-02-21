@@ -34,11 +34,8 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
 
     // Participants
     _participantsRender:    null,
-    _hiddenParticipantsTab: false,
 
     // Events
-    // Events Tabs
-    _eventForParticipantsTab: null,
     // Events Buttons
     _eventForDateField: null,
     _eventForTimeField: null,
@@ -82,10 +79,9 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
         this.inherited(arguments);
 
         // Calendar vars
-        this._participantsRender      = new phpr.Calendar.Participants(this._module);
-        this._eventForParticipantsTab = null;
-        this._eventForDateField       = null;
-        this._eventForTimeField       = null;
+        this._participantsRender = new phpr.Calendar.Participants(this._module);
+        this._eventForDateField  = null;
+        this._eventForTimeField  = null;
     },
 
     _initData:function() {
@@ -114,7 +110,7 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
     _addModuleTabs:function(data) {
         this._owner = true;
         if (this._id > 0) {
-            this._owner = data[0]["rights"]["currentUser"]["admin"];
+            this._owner = data[0]['rights']['currentUser']['admin'];
         }
         this._addParticipantsTab(data);
         this._addRecurrenceTab(data);
@@ -256,42 +252,25 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
         //    Participants tab.
         // Description:
         //    Display all the users for add into the event.
-        var currentUser             = data[0]["rights"]["currentUser"]["userId"] || 0;
-        this._hiddenParticipantsTab = true;
+        var currentUser             = data[0]['rights']['currentUser']['userId'] || 0;
         this._relatedData           = phpr.DataStore.getData({url: this._relatedDataUrl});
 
         var tabId  = 'tabParticipants-' + this._module;
         var formId = 'participantsFormTab-' + this._module;
         this._addTab(null, tabId, 'Participants', formId);
 
-        // Create table only when the tab is required
-        if (!this._eventForParticipantsTab) {
-            this._eventForParticipantsTab = dojo.connect(dijit.byId(tabId), "onShow", dojo.hitch(this, function() {
-                if (this._hiddenParticipantsTab) {
-                    // Do not refresh the data until the module is reloaded
-                    this._hiddenParticipantsTab = false;
-
-                    var data                  = this._getParticipantsData();
-                    data['accessPermissions'] = this._owner;
-                    data['currentUser']       = currentUser;
-
-                    this._participantsRender.createTable(data);
-
-                    if (dijit.byId(formId).getChildren().length == 0) {
-                        dijit.byId(formId).domNode.appendChild(this._participantsRender.getTable());
-                    }
-                }
-            }));
-        }
-    },
-
-    _getParticipantsData:function() {
-        // Summary:
-        //    Set the new data for show the tab.
-        return {
-            userList:     this._userStore.getList(),
-            participants: this._relatedData.participants
+        var data = {
+            userList:          this._userStore.getList(),
+            participants:      this._relatedData.participants,
+            accessPermissions: this._owner,
+            currentUser:       currentUser
         };
+
+        this._participantsRender.createTable(data);
+
+        if (dijit.byId(formId).getChildren().length == 0) {
+            dijit.byId(formId).domNode.appendChild(this._participantsRender.getTable());
+        }
     },
 
     _postRenderForm:function() {
@@ -302,7 +281,7 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
         if (dijit.byId('startDatetime_forDate-Calendar')) {
             this._currentDate = dijit.byId('startDatetime_forDate-Calendar').value;
             if (!this._eventForDateField) {
-                this._eventForDateField = dojo.connect(dojo.byId('startDatetime_forDate-Calendar'), "onblur", this,
+                this._eventForDateField = dojo.connect(dojo.byId('startDatetime_forDate-Calendar'), 'onblur', this,
                     '_startDateBlur');
                 this._events.push('_eventForDateField');
             }
@@ -310,7 +289,7 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
         if (dijit.byId('startDatetime_forTime-Calendar')) {
             this._currentTime = dijit.byId('startDatetime_forTime-Calendar').value;
             if (!this._eventForTimeField) {
-                this._eventForTimeField = dojo.connect(dojo.byId('startDatetime_forTime-Calendar'), "onblur", this,
+                this._eventForTimeField = dojo.connect(dojo.byId('startDatetime_forTime-Calendar'), 'onblur', this,
                     '_startTimeBlur');
                 this._events.push('_eventForTimeField');
             }
@@ -358,23 +337,21 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
             return false;
         }
 
-        this._participantsInDb  = (this._relatedData.participants) ? this._relatedData.participants.length : 0;
-        this._participantsInTab = (!this._hiddenParticipantsTab) ?
-            dojo.query('.participantRow', this._participantsRender.getTable()).length : 0;
+        this._participantsInDb  = (this._relatedData.participants)
+            ? this._relatedData.participants.split(',').length : 0;
+        this._participantsInTab = dojo.query('.participantRow', this._participantsRender.getTable()).length;
 
         if (this._id > 0) {
-            if (this._sendData['rruleFreq'] && null === this._multipleEvents) {
+            if (this._sendData['rruleFreq'] != 'NONE' && null === this._multipleEvents) {
                 // If the event has recurrence ask what to modify
-                this._showEventSelector('Edit', "_submitForm");
+                this._showEventSelector('Edit', '_submitForm');
                 return false;
             } else if (null === this._multipleParticipants) {
-                if (this._participantsInDb > 0 &&
-                        (this._hiddenParticipantsTab ||
-                            (!this._hiddenParticipantsTab && this._participantsInDb == this._participantsInTab))) {
+                if (this._participantsInDb > 1 && (this._participantsInDb == this._participantsInTab)) {
                     // If there is at least one user in Participant tab and the user hasn't changed that tab, ask him
                     this._showParticipSelector('Edit', '_submitForm');
                     return false;
-                } else if (!this._hiddenParticipantsTab && this._participantsInDb != this._participantsInTab) {
+                } else if (this._participantsInDb != this._participantsInTab) {
                     // If the user has modified Participant tab, changes apply for all participants
                     this._multipleParticipants = true;
                 } else if (this._participantsInDb < 1) {
@@ -387,7 +364,7 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
         // Check if rule for recurrence is set
         if (this._id > 0 && false === this._multipleEvents) {
             this._sendData['rrule'] = null;
-        } else if (this._sendData['rruleFreq']) {
+        } else if (this._sendData['rruleFreq'] != 'NONE') {
             // Set frequence
             var rrule = 'FREQ=' + this._sendData['rruleFreq'];
 
@@ -451,7 +428,7 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
 
             var title             = document.createElement('h2');
             title.id              = 'eventSelectorTitle-' + this._module;
-            title.style.textAlign = "center";
+            title.style.textAlign = 'center';
 
             // Add button for one event
             var singleEvent = new dijit.form.Button({
@@ -506,7 +483,7 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
 
             var title             = document.createElement('h2');
             title.innerHTML       = phpr.nls.get('To whom will this apply');
-            title.style.textAlign = "center";
+            title.style.textAlign = 'center';
 
             // Add button for one Participant
             var singleParticipant = new dijit.form.Button({
@@ -546,27 +523,69 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
         dialog.show();
     },
 
+    _submitForm:function() {
+        // Summary:
+        //    Submit the forms.
+        // Description:
+        //    Add params for update the views.
+        if (!this._prepareSubmission()) {
+            return false;
+        }
+
+        // Save data
+        phpr.send({
+            url: phpr.webpath + 'index.php/' + phpr.module + '/index/jsonSave/nodeId/' + phpr.currentProjectId
+                + '/id/' + this._id,
+            content:   this._sendData,
+            onSuccess: dojo.hitch(this, function(data) {
+               new phpr.handleResponse('serverFeedback', data);
+               var newItem = false;
+               if (!this._id) {
+                   var newItem = true;
+                   this._id    = data['id'];
+               }
+               if (data.type == 'success') {
+                   // Save tags
+                   phpr.send({
+                        url: phpr.webpath + 'index.php/Default/Tag/jsonSaveTags/moduleName/' + phpr.module
+                            + '/id/' + this._id,
+                        content:   this._sendData,
+                        onSuccess: dojo.hitch(this, function(data) {
+                            if (this._sendData['string']) {
+                                new phpr.handleResponse('serverFeedback', data);
+                            }
+                            if (data.type == 'success') {
+                                dojo.publish(phpr.module + '.updateCacheData', [this._id,
+                                    phpr.Date.getIsoDate(this._sendData['startDatetime_forDate']),
+                                    phpr.Date.getIsoDate(this._sendData['endDatetime_forDate']), newItem]);
+                                dojo.publish(phpr.module + '.setUrlHash', [phpr.module]);
+                            }
+                        })
+                    });
+                }
+            })
+        });
+    },
+
     _deleteForm:function() {
         // Summary:
         //    Delete an item.
         var rruleFreq           = dijit.byId('recurrenceFormTab-' + this._module).get('value')['rruleFreq-Calendar'];
-        this._participantsInDb  = (this._relatedData.participants) ? this._relatedData.participants.length : 0;
-        this._participantsInTab = (!this._hiddenParticipantsTab) ?
-            dojo.query('.participantRow', this._participantsRender.getTable()).length : 0;
+        this._participantsInDb  = (this._relatedData.participants)
+            ? this._relatedData.participants.split(',').length : 0;
+        this._participantsInTab = dojo.query('.participantRow', this._participantsRender.getTable()).length;
 
         if (this._id > 0) {
-            if (rruleFreq && null === this._multipleEvents) {
+            if (rruleFreq != 'NONE' && null === this._multipleEvents) {
                 // If the event has recurrence ask what to modify
-                this._showEventSelector('Delete', "_deleteForm");
+                this._showEventSelector('Delete', '_deleteForm');
                 return false;
             } else if (null === this._multipleParticipants) {
-                if (this._participantsInDb > 0 &&
-                        (this._hiddenParticipantsTab ||
-                            (!this._hiddenParticipantsTab && this._participantsInDb == this._participantsInTab))) {
+                if (this._participantsInDb > 1 && (this._participantsInDb == this._participantsInTab)) {
                     // If there is at least one user in Participant tab and the user hasn't changed that tab, ask him
-                    this._showParticipSelector('Delete', "_deleteForm");
+                    this._showParticipSelector('Delete', '_deleteForm');
                     return false;
-                } else if (!this._hiddenParticipantsTab && this._participantsInDb != this._participantsInTab) {
+                } else if (this._participantsInDb != this._participantsInTab) {
                     // If the user has modified Participant tab, changes apply for all participants
                     this._multipleParticipants = true;
                 } else if (this._participantsInDb < 1) {
@@ -591,8 +610,10 @@ dojo.declare("phpr.Calendar.Form", phpr.Default.Form, {
                         onSuccess: dojo.hitch(this, function(data) {
                             new phpr.handleResponse('serverFeedback', data);
                             if (data.type == 'success') {
-                                dojo.publish(phpr.module + ".updateCacheData");
-                                dojo.publish(phpr.module + ".setUrlHash", [phpr.module]);
+                                dojo.publish(phpr.module + '.updateCacheData', [this._id,
+                                    phpr.Date.getIsoDate(this._sendData['startDatetime_forDate']),
+                                    phpr.Date.getIsoDate(this._sendData['endDatetime_forDate']), false]);
+                                dojo.publish(phpr.module + '.setUrlHash', [phpr.module]);
                             }
                         })
                     });

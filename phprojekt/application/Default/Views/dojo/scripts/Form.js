@@ -32,7 +32,6 @@ dojo.declare("phpr.Default.Form", null, {
     _fieldTemplate:     null,
     _form:              null,
     _module:            null,
-    _presetValuesArray: null,
     _userStore:         null,
     _accessPermissions: true,
     _deletePermissions: false,
@@ -40,6 +39,7 @@ dojo.declare("phpr.Default.Form", null, {
     _writePermissions:  true,
     _initDataArray:     [],
     _formsWidget:       [],
+    _presetValuesArray: [],
     _sendData:          [],
     _subModules:        [],
 
@@ -86,16 +86,13 @@ dojo.declare("phpr.Default.Form", null, {
         // Summary:
         //    Init the form for a new render.
         // Reset vars
-        this._id = id;
-        if (undefined != params) {
-            this._presetValuesArray = params;
-        }
+        this._id                = id;
         this._userStore         = null;
         this._accessPermissions = true;
         this._deletePermissions = false;
         this._writePermissions  = true;
         this._initDataArray     = [];
-        this._presetValuesArray = [];
+        this._presetValuesArray = (params) ? params : [];
 
         // If the form was updated with a highlight class (from FrontEndMesage)
         // Call the remove function
@@ -491,10 +488,8 @@ dojo.declare("phpr.Default.Form", null, {
         // Description:
         //    The form is able to receive some values when it is instanced for adding and item,
         //    and put that values in each field.
-        if (this._presetValuesArray && (typeof this._presetValuesArray === 'object')) {
-            for (var field in this._presetValuesArray) {
-                data[0][field] = this._presetValuesArray[field];
-            }
+        for (var field in this._presetValuesArray) {
+            data[0][field] = this._presetValuesArray[field];
         }
     },
 

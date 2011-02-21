@@ -562,6 +562,10 @@ dojo.declare("phpr.Field.DatetimeField", phpr.Field, {
         node.domNode.appendChild(widgetDate.domNode);
         node.domNode.appendChild(widgetTime.domNode);
         node.domNode.appendChild(widget.domNode);
+
+        // Set a ISO dateTime value
+        dijit.byId(fieldWidgetId).set('value',
+            phpr.Date.getIsoDatetime(dijit.byId(idForDate).get('value'), dijit.byId(idForTime).get('value')));
     },
 
     _setFieldValue:function() {

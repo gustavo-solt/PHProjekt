@@ -25,16 +25,19 @@ dojo.declare("phpr.Contact.Main", phpr.Default.Main, {
     constructor:function() {
         // Summary:
         //    Create a new instance of the module.
-        this._module     = 'Contact';
+        this._module = 'Contact';
+
+        this._loadFunctions();
+
         this._gridWidget = phpr.Contact.Grid;
         this._formWidget = phpr.Contact.Form;
-
-        this.inherited(arguments);
     },
 
     updateCacheData:function() {
         // Summary:
         //    Forces every widget of the page to update its data, by deleting its cache.
         phpr.DataStore.deleteAllCache();
+
+        this.inherited(arguments);
     }
 });
