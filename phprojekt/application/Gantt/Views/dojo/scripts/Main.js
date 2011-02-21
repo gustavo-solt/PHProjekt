@@ -405,7 +405,7 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
                 var slider       = document.createElement('li');
                 slider.className = 'slider';
                 row.appendChild(slider);
-                var bar = new phpr.form.HorizontalRangeSlider({
+                var bar = new phpr.Form.HorizontalRangeSlider({
                     id:             'horizontalRangeSlider_' + this._projects[j].id,
                     secondary:      33,
                     name:           'horizontalRangeSlider_' + this._projects[j].id,
@@ -436,7 +436,7 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
         //    Render the calendar widgets.
         // the project begin date widget (calendar view)
         if (!dojo.byId('minDate-Gantt')) {
-            new phpr.form.DateTextBox({
+            new phpr.Form.DateTextBox({
                 name:          'minDate-Gantt',
                 id:            'minDate-Gantt',
                 constraints:   {datePattern: 'yyyy-MM-dd', strict: true},
@@ -449,7 +449,7 @@ dojo.declare("phpr.Gantt.Main", phpr.Default.Main, {
 
         // The project end date widget (calendar view)
         if (!dojo.byId('maxDate-Gantt')) {
-            new phpr.form.DateTextBox({
+            new phpr.Form.DateTextBox({
                 name:          'maxDate-Gantt',
                 id:            'maxDate-Gantt',
                 constraints:   {datePattern: 'yyyy-MM-dd', strict: true},

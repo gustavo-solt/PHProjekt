@@ -297,7 +297,7 @@ dojo.declare("phpr.Default.Grid", null, {
         this._module = module
 
         // Create a new filter render
-        this._filterRender = new phpr.grid.filter(this._module);
+        this._filterRender = new phpr.Grid.Filter(this._module);
     },
 
     _setGetExtraActionsUrl:function() {
@@ -404,7 +404,7 @@ dojo.declare("phpr.Default.Grid", null, {
                 var gridLayout = this._setGridLayout(meta);
 
                 // Create the grid, one per module
-                var type   = this._useCheckbox() ? 'phpr.grid._View' : 'dojox.grid._View';
+                var type   = this._useCheckbox() ? 'phpr.Grid._View' : 'dojox.grid._View';
 
                 // Discover the module
                 if (phpr.module == this._module || 'Administration' == phpr.parentmodule) {
@@ -419,7 +419,7 @@ dojo.declare("phpr.Default.Grid", null, {
                                  rows:        gridLayout,
                                  defaultCell: {
                                     editable: true,
-                                    type:     phpr.grid.cells.Text,
+                                    type:     phpr.Grid.Cells.Text,
                                     styles:   'text-align: left;'
                                 }}],
                     doclick:function(e) {
@@ -646,7 +646,7 @@ dojo.declare("phpr.Default.Grid", null, {
     _setGridLayout:function(meta) {
         // Summary:
         //    Create the layout using the different field types and set the _filterField.
-        var layout = new phpr.grid.layout();
+        var layout = new phpr.Grid.Layout();
 
         // Checkbox column
         if (this._useCheckbox()) {

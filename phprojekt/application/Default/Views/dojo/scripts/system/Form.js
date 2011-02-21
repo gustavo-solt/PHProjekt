@@ -19,14 +19,14 @@
  * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
-dojo.provide("phpr.form.CheckBox");
-dojo.provide("phpr.form.DateTextBox");
-dojo.provide("phpr.form.FilteringSelect");
-dojo.provide("phpr.form.HorizontalSlider");
-dojo.provide("phpr.form.Rating");
-dojo.provide("phpr.form.TimeTextBox");
+dojo.provide("phpr.Form.CheckBox");
+dojo.provide("phpr.Form.DateTextBox");
+dojo.provide("phpr.Form.FilteringSelect");
+dojo.provide("phpr.Form.HorizontalSlider");
+dojo.provide("phpr.Form.Rating");
+dojo.provide("phpr.Form.TimeTextBox");
 
-dojo.declare("phpr.form.CheckBox", dijit.form.CheckBox, {
+dojo.declare("phpr.Form.CheckBox", dijit.form.CheckBox, {
     // Summary:
     //    Re-write the widget for return 0 on no-checked
 
@@ -40,7 +40,7 @@ dojo.declare("phpr.form.CheckBox", dijit.form.CheckBox, {
     }
 });
 
-dojo.declare("phpr.form.DateTextBox", dijit.form.DateTextBox, {
+dojo.declare("phpr.Form.DateTextBox", dijit.form.DateTextBox, {
     _blankValue: '', // used by filter() when the textbox is blank
 
     parse:function(value, constraints) {
@@ -74,7 +74,7 @@ dojo.declare("phpr.form.DateTextBox", dijit.form.DateTextBox, {
     }
 });
 
-dojo.declare("phpr.form.FilteringSelect", dijit.form.FilteringSelect, {
+dojo.declare("phpr.Form.FilteringSelect", dijit.form.FilteringSelect, {
     // Summary:
     //    Extend the dojo FilteringSelect for fix some bugs.
     // Description:
@@ -211,14 +211,14 @@ dojo.extend(dijit.form._ComboBoxMenu, {
     }
 });
 
-dojo.declare("phpr.form.HorizontalSlider", dijit.form.HorizontalSlider, {
+dojo.declare("phpr.Form.HorizontalSlider", dijit.form.HorizontalSlider, {
     _layoutHackIE7: function() {
         // Summary:
         //    Disable work around table sizing bugs on IE7 by forcing redraw
     }
 });
 
-dojo.declare("phpr.form.Rating", dojox.form.Rating, {
+dojo.declare("phpr.Form.Rating", dojox.form.Rating, {
     // Summary:
     //    Re-write the widget for fix some issues
     constructor:function(params) {
@@ -251,7 +251,7 @@ dojo.declare("phpr.form.Rating", dojox.form.Rating, {
     }
 });
 
-dojo.declare("phpr.form.TimeTextBox", dijit.form.TimeTextBox, {
+dojo.declare("phpr.Form.TimeTextBox", dijit.form.TimeTextBox, {
     _onBlur: function() {
         // Fix until http://bugs.dojotoolkit.org/changeset/22842 is applied
         // Keep the dropdown node for destroy it

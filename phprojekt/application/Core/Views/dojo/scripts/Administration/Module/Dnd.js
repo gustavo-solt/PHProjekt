@@ -590,26 +590,26 @@ dojo.declare("phpr.ModuleDesigner", null, {
             case 'checkbox':
                 formLabel = params['formLabel'] || 'Checkbox';
                 labelFor  = 'checkbox';
-                inputTxt  = new phpr.form.CheckBox({value: 1});
+                inputTxt  = new phpr.Form.CheckBox({value: 1});
                 break;
             case 'date':
                 formLabel = params['formLabel'] || 'Date';
                 labelFor  = 'date';
-                inputTxt  = new phpr.form.DateTextBox({constraints: {datePattern: 'yyyy-MM-dd'}, promptMessage: 'dd.mm.yy'});
+                inputTxt  = new phpr.Form.DateTextBox({constraints: {datePattern: 'yyyy-MM-dd'}, promptMessage: 'dd.mm.yy'});
                 break;
             case 'time':
                 formLabel = params['formLabel'] || 'Time';
                 labelFor  = 'time';
-                inputTxt  = new phpr.form.TimeTextBox({constraints: {formatLength: 'short', timePattern: 'HH:mm'}});
+                inputTxt  = new phpr.Form.TimeTextBox({constraints: {formatLength: 'short', timePattern: 'HH:mm'}});
                 break;
             case 'datetime':
                 formLabel = params['formLabel'] || 'Datetime';
                 labelFor  = 'datetime';
                 inputTxt  = document.createElement('div');
                 inputTxt.className = 'twoFields';
-                var dateInput = new phpr.form.DateTextBox({constraints: {datePattern: 'yyyy-MM-dd'},
+                var dateInput = new phpr.Form.DateTextBox({constraints: {datePattern: 'yyyy-MM-dd'},
                     promptMessage: 'dd.mm.yy'});
-                var timeInput = new phpr.form.TimeTextBox({constraints: {formatLength: 'short', timePattern: 'HH:mm'}});
+                var timeInput = new phpr.Form.TimeTextBox({constraints: {formatLength: 'short', timePattern: 'HH:mm'}});
                 inputTxt.appendChild(dateInput.domNode);
                 inputTxt.appendChild(timeInput.domNode);
                 break;
@@ -621,7 +621,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 var range        = rangeData.range;
                 var defaultValue = rangeData.defaultValue;
 
-                inputTxt = new phpr.form.FilteringSelect({
+                inputTxt = new phpr.Form.FilteringSelect({
                     autoComplete:   false,
                     store:          new dojo.data.ItemFileWriteStore({data: {
                         identifier: 'id',
@@ -666,7 +666,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 }, rulesBottomNode);
 
                 // Slider
-                var inputTxt = new phpr.form.HorizontalSlider({
+                var inputTxt = new phpr.Form.HorizontalSlider({
                     maximum:             100,
                     minimum:             0,
                     discreteValues:      1001,
@@ -685,7 +685,7 @@ dojo.declare("phpr.ModuleDesigner", null, {
                 var numStars = params['formRange'] || 10;
                 formLabel    = params['formLabel'] || 'Rating';
                 labelFor     = 'rating';
-                inputTxt     = new phpr.form.Rating({name: 'rating', numStars: numStars, value: 1});
+                inputTxt     = new phpr.Form.Rating({name: 'rating', numStars: numStars, value: 1});
                 break;
             case 'textarea':
                 formLabel = params['formLabel'] || 'Textarea';

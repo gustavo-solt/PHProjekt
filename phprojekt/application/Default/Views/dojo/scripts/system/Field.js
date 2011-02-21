@@ -424,7 +424,7 @@ dojo.declare("phpr.Field.CheckField", phpr.Field, {
     },
 
     _createField:function() {
-        return new phpr.form.CheckBox({
+        return new phpr.Form.CheckBox({
             id:       this.fieldId,
             name:     this.fieldId,
             required: this._field['required'],
@@ -459,7 +459,7 @@ dojo.declare("phpr.Field.DateField", phpr.Field, {
     },
 
     _createField:function() {
-        return new phpr.form.DateTextBox({
+        return new phpr.Form.DateTextBox({
             id:             this.fieldId,
             name:           this.fieldId,
             required:       this._field['required'],
@@ -511,7 +511,7 @@ dojo.declare("phpr.Field.DatetimeField", phpr.Field, {
         }, document.createElement('div'));
 
         var fieldWidgetId = this._fieldWidgetId;
-        var widgetDate    = new phpr.form.DateTextBox({
+        var widgetDate    = new phpr.Form.DateTextBox({
             id:             idForDate,
             name:           idForDate,
             required:       this._field['required'],
@@ -537,7 +537,7 @@ dojo.declare("phpr.Field.DatetimeField", phpr.Field, {
         }
         var time = dojo.date.stamp.fromISOString('T' + hour + ':' + minutes + ':00');
 
-        var widgetTime = new phpr.form.TimeTextBox({
+        var widgetTime = new phpr.Form.TimeTextBox({
             id:          idForTime,
             name:        idForTime,
             required:    this._field['required'],
@@ -707,7 +707,11 @@ dojo.declare("phpr.Default.FormButtonsField", phpr.Field, {
             dijit.byId('submitButton' + '-' + this._module).domNode.style.display = 'inline';
         }
 
-        var disabled = (this._field['writePermissions']) ? (this._field['deletePermissions']) ? false : true : false;
+        if (this._field['writePermissions']) {
+            var disabled = (this._field['deletePermissions']) ? false : true;
+        } else {
+             var disabled = true;
+        }
         dijit.byId('deleteButton' + '-' + this._module).set('disabled', disabled);
         if (disabled) {
             dijit.byId('deleteButton' + '-' + this._module).domNode.style.display = 'none';
@@ -1093,7 +1097,7 @@ dojo.declare("phpr.Field.PercentageField", phpr.Field, {
         }, rulesBottomNode);
 
         // Slider
-        var widget = new phpr.form.HorizontalSlider({
+        var widget = new phpr.Form.HorizontalSlider({
             id:                  this.fieldId,
             name:                this.fieldId,
             maximum:             100,
@@ -1125,7 +1129,7 @@ dojo.declare("phpr.Field.PercentageField", phpr.Field, {
 
 dojo.declare("phpr.Field.RatingField", phpr.Field, {
     _createField:function() {
-        return new phpr.form.Rating({
+        return new phpr.Form.Rating({
             id:       this.fieldId,
             name:     this.fieldId,
             disabled: this._field['disabled'],
@@ -1174,7 +1178,7 @@ dojo.declare("phpr.Field.SelectField", phpr.Field, {
     },
 
     _createField:function() {
-        var widget = new phpr.form.FilteringSelect({
+        var widget = new phpr.Form.FilteringSelect({
             id:             this.fieldId,
             name:           this.fieldId,
             disabled:       this._field['disabled'],
@@ -1249,7 +1253,7 @@ dojo.declare("phpr.Field.TimeField", phpr.Field, {
     },
 
     _createField:function(field) {
-        return new phpr.form.TimeTextBox({
+        return new phpr.Form.TimeTextBox({
             id:          this.fieldId,
             name:        this.fieldId,
             required:    this._field['required'],

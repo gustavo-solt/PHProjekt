@@ -19,20 +19,20 @@
  * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
-dojo.provide("phpr.grid._View");
-dojo.provide("phpr.grid.cells.DateTextBox");
-dojo.provide("phpr.grid.cells.Percentage");
-dojo.provide("phpr.grid.cells.Select");
-dojo.provide("phpr.grid.cells.Text");
-dojo.provide("phpr.grid.cells.Textarea");
-dojo.provide("phpr.grid.cells.Time");
-dojo.provide("phpr.grid.FilterExpandoPane");
-dojo.provide("phpr.grid.filter");
-dojo.provide("phpr.grid.layout");
+dojo.provide("phpr.Grid._View");
+dojo.provide("phpr.Grid.Cells.DateTextBox");
+dojo.provide("phpr.Grid.Cells.Percentage");
+dojo.provide("phpr.Grid.Cells.Select");
+dojo.provide("phpr.Grid.Cells.Text");
+dojo.provide("phpr.Grid.Cells.Textarea");
+dojo.provide("phpr.Grid.Cells.Time");
+dojo.provide("phpr.Grid.FilterExpandoPane");
+dojo.provide("phpr.Grid.Filter");
+dojo.provide("phpr.Grid.Layout");
 
 /************* Formatters *************/
 
-phpr.grid.formatIcon = function(value) {
+phpr.Grid.formatIcon = function(value) {
     // Summary:
     //    Formatter for icon fields.
     // Description:
@@ -45,7 +45,7 @@ phpr.grid.formatIcon = function(value) {
     return '<div class="' + data[0] + '" title="' + data[1] + '"></div>';
 },
 
-phpr.grid.formatUpload = function(value) {
+phpr.Grid.formatUpload = function(value) {
     // Summary:
     //    Formatter for upload fields.
     // Description:
@@ -65,12 +65,12 @@ phpr.grid.formatUpload = function(value) {
 
 /************* Cells *************/
 
-dojo.declare("phpr.grid.cells.Percentage", dojox.grid.cells._Widget, {
+dojo.declare("phpr.Grid.Cells.Percentage", dojox.grid.cells._Widget, {
     // Summary:
     //    Set a percentage widget for edit the value in the grid.
     // Description:
     //    Redefine the function to return the correct value.
-    widgetClass: phpr.form.HorizontalSlider,
+    widgetClass: phpr.Form.HorizontalSlider,
 
     getValue:function(inRowIndex) {
         return dojo.number.round(this.widget.get('value'), 1);
@@ -87,7 +87,7 @@ dojo.declare("phpr.grid.cells.Percentage", dojox.grid.cells._Widget, {
     }
 });
 
-dojo.declare("phpr.grid.cells.Select", dojox.grid.cells.Select, {
+dojo.declare("phpr.Grid.Cells.Select", dojox.grid.cells.Select, {
     // Summary:
     //    Set a select widget for edit the value in the grid.
     // Description:
@@ -108,12 +108,12 @@ dojo.declare("phpr.grid.cells.Select", dojox.grid.cells.Select, {
     }
 });
 
-dojo.declare("phpr.grid.cells.DateTextBox", dojox.grid.cells.DateTextBox, {
+dojo.declare("phpr.Grid.Cells.DateTextBox", dojox.grid.cells.DateTextBox, {
     // Summary:
     //    Set a date widget for edit the value in the grid.
     // Description:
     //    Redefine the function to return the correct value.
-    widgetClass: phpr.form.DateTextBox,
+    widgetClass: phpr.Form.DateTextBox,
 
     getValue:function(inRowIndex) {
         var date = this.widget.get('value');
@@ -155,7 +155,7 @@ dgc.DateTextBox.markupFactory = function(node, cell) {
     dgc._Widget.markupFactory(node, cell);
 };
 
-dojo.declare("phpr.grid.cells.Text", dojox.grid.cells._Widget, {
+dojo.declare("phpr.Grid.Cells.Text", dojox.grid.cells._Widget, {
     // Summary:
     //    Set a text widget for edit the value in the grid.
     // Description:
@@ -200,7 +200,7 @@ dojo.declare("phpr.grid.cells.Text", dojox.grid.cells._Widget, {
     }
 });
 
-dojo.declare("phpr.grid.cells.Textarea", phpr.grid.cells.Text, {
+dojo.declare("phpr.Grid.Cells.Textarea", phpr.Grid.Cells.Text, {
     // Summary:
     //    Set a textarea widget for edit the value in the grid.
     // Description:
@@ -290,7 +290,7 @@ dojo.declare("phpr.grid.cells.Textarea", phpr.grid.cells.Text, {
     }
 });
 
-dojo.declare("phpr.grid.cells.Time", dojox.grid.cells._Widget, {
+dojo.declare("phpr.Grid.Cells.Time", dojox.grid.cells._Widget, {
     // Summary:
     //    Set a textarea widget for edit the value in the grid.
     // Description:
@@ -320,7 +320,7 @@ dojo.declare("phpr.grid.cells.Time", dojox.grid.cells._Widget, {
     }
 });
 
-dojo.declare('phpr.grid._View', [dojox.grid._View], {
+dojo.declare('phpr.Grid._View', [dojox.grid._View], {
     // Summary
     //    Extend the normal grid view.
     // Description
@@ -383,7 +383,7 @@ dojo.declare('phpr.grid._View', [dojox.grid._View], {
 	}
 });
 
-dojo.declare('phpr.grid.FilterExpandoPane', [dojox.layout.ExpandoPane], {
+dojo.declare('phpr.Grid.FilterExpandoPane', [dojox.layout.ExpandoPane], {
     // Summary
     //    Extend the widget for allow height 0.
     _startupSizes:function() {
@@ -433,7 +433,7 @@ dojo.declare('phpr.grid.FilterExpandoPane', [dojox.layout.ExpandoPane], {
 
 /************* Helpers *************/
 
-dojo.declare("phpr.grid.layout", null, {
+dojo.declare("phpr.Grid.Layout", null, {
     // Summary:
     //    Class for set the layout of each field.
     // Description:
@@ -481,7 +481,7 @@ dojo.declare("phpr.grid.layout", null, {
         var field       = this._initData(meta);
         field.width     = '20px';
         field.styles    = 'vertical-align: middle;';
-        field.formatter = phpr.grid.formatIcon;
+        field.formatter = phpr.Grid.formatIcon;
         field.filterKey = null;
 
         this.gridLayout['gridEdit'] = field;
@@ -512,7 +512,7 @@ dojo.declare("phpr.grid.layout", null, {
                 case 'selectbox':
                     this._setRangeValues(meta[i]);
                     data.styles        = 'text-align: center;';
-                    data.type          = phpr.grid.cells.Select;
+                    data.type          = phpr.Grid.Cells.Select;
                     data.width         = (this._maxLength * 8) + 'px';
                     data.options       = this._opts;
                     data.values        = this._vals;
@@ -525,7 +525,7 @@ dojo.declare("phpr.grid.layout", null, {
                 case 'date':
                     data.width         = '90px';
                     data.styles        = 'text-align: center;';
-                    data.type          = phpr.grid.cells.DateTextBox;
+                    data.type          = phpr.Grid.Cells.DateTextBox;
                     data.promptMessage = 'yyyy-MM-dd';
                     data.constraint    = {formatLength: 'short', selector: 'date', datePattern:'yyyy-MM-dd'};
                     data.filterType    = 'date';
@@ -539,7 +539,7 @@ dojo.declare("phpr.grid.layout", null, {
                     dateData.field         = dateData.field + '_forDate';
                     dateData.width         = '90px';
                     dateData.styles        = 'text-align: center;';
-                    dateData.type          = phpr.grid.cells.DateTextBox;
+                    dateData.type          = phpr.Grid.Cells.DateTextBox;
                     dateData.promptMessage = 'yyyy-MM-dd';
                     dateData.constraint    = {formatLength: 'short', selector: 'date', datePattern:'yyyy-MM-dd'};
                     dateData.filterKey     = dateData.field;
@@ -553,7 +553,7 @@ dojo.declare("phpr.grid.layout", null, {
                     timeData.field       = timeData.field + '_forTime';
                     timeData.width       = '60px';
                     timeData.styles      = 'text-align: center;';
-                    timeData.type        = phpr.grid.cells.Time;
+                    timeData.type        = phpr.Grid.Cells.Time;
                     timeData.filterKey   = timeData.field;
                     timeData.filterLabel = timeData.name;
                     timeData.filterType  = 'time';
@@ -564,7 +564,7 @@ dojo.declare("phpr.grid.layout", null, {
                 case 'percentage':
                     data.width  = '90px';
                     data.styles = 'text-align: center;';
-                    data.type   = phpr.grid.cells.Percentage;
+                    data.type   = phpr.Grid.Cells.Percentage;
 
                     this.gridLayout[data.field] = data;
                     break;
@@ -572,7 +572,7 @@ dojo.declare("phpr.grid.layout", null, {
                 case 'time':
                     data.width      = '60px';
                     data.styles     = 'text-align: center;';
-                    data.type       = phpr.grid.cells.Time;
+                    data.type       = phpr.Grid.Cells.Time;
                     data.filterType = 'time';
 
                     this.gridLayout[data.field] = data;
@@ -581,7 +581,7 @@ dojo.declare("phpr.grid.layout", null, {
                 case 'upload':
                     data.styles    = 'text-align: center;';
                     data.type      = dojox.grid.cells._Widget;
-                    data.formatter = phpr.grid.formatUpload;
+                    data.formatter = phpr.Grid.formatUpload;
                     data.editable  = false;
 
                     this.gridLayout[data.field] = data;
@@ -592,7 +592,7 @@ dojo.declare("phpr.grid.layout", null, {
                     if (meta[i]['range'][0] != undefined) {
                         this._setRangeValues(meta[i]);
                         data.styles        = 'text-align: center;';
-                        data.type          = phpr.grid.cells.Select;
+                        data.type          = phpr.Grid.Cells.Select;
                         data.width         = (this._maxLength * 8) + 'px';
                         data.options       = this._opts;
                         data.values        = this._vals;
@@ -601,7 +601,7 @@ dojo.declare("phpr.grid.layout", null, {
                         data.editable      = false;
                     } else {
                         data.styles        = 'text-align: center;';
-                        data.type          = phpr.grid.cells.Text;
+                        data.type          = phpr.Grid.Cells.Text;
                         data.editable      = false;
                     }
 
@@ -609,13 +609,13 @@ dojo.declare("phpr.grid.layout", null, {
                     break;
 
                 case 'text':
-                    data.type = phpr.grid.cells.Text;
+                    data.type = phpr.Grid.Cells.Text;
 
                     this.gridLayout[data.field] = data;
                     break;
 
                 case 'textarea':
-                    data.type     = phpr.grid.cells.Textarea;
+                    data.type     = phpr.Grid.Cells.Textarea;
                     data.editable = false;
 
                     this.gridLayout[data.field] = data;
@@ -624,7 +624,7 @@ dojo.declare("phpr.grid.layout", null, {
                 case 'rating':
                     this._setRatingValues(meta[i]);
                     data.styles        = 'text-align: center;';
-                    data.type          = phpr.grid.cells.Select;
+                    data.type          = phpr.Grid.Cells.Select;
                     data.width         = (this._maxLength * 8) + 'px';
                     data.options       = this._opts;
                     data.values        = this._vals;
@@ -713,7 +713,7 @@ dojo.declare("phpr.grid.layout", null, {
     }
 });
 
-dojo.declare("phpr.grid.filter", null, {
+dojo.declare("phpr.Grid.Filter", null, {
     // Summary:
     //    Display the filters and a form for create/delete them.
     _fields:          [],
@@ -823,7 +823,7 @@ dojo.declare("phpr.grid.filter", null, {
             // Operators
             var cell          = row.insertCell(2);
             this._operatorDiv = document.createElement('div');
-            var select        = new phpr.form.FilteringSelect({
+            var select        = new phpr.Form.FilteringSelect({
                 id:             'filterOperator-' + this._module,
                 name:           'filterOperator-' + this._module,
                 required:       false,
@@ -851,7 +851,7 @@ dojo.declare("phpr.grid.filter", null, {
             // Fields
             var cell          = row.insertCell(4);
             var node          = document.createElement('div');
-            this._fieldSelect = new phpr.form.FilteringSelect({
+            this._fieldSelect = new phpr.Form.FilteringSelect({
                 id:             'filterField-' + this._module,
                 name:           'filterField-' + this._module,
                 required:       false,
@@ -879,7 +879,7 @@ dojo.declare("phpr.grid.filter", null, {
             for (var i in this._rules) {
                 range.push({id: i, name: this._rules[i]});
             }
-            this._ruleSelect = new phpr.form.FilteringSelect({
+            this._ruleSelect = new phpr.Form.FilteringSelect({
                 id:             'filterRule-' + this._module,
                 name:           'filterRule-' + this._module,
                 required:       false,
@@ -1234,7 +1234,7 @@ dojo.declare("phpr.grid.filter", null, {
                         label:      'name',
     			        items:      range}})
 
-                    var widget = new phpr.form.FilteringSelect(params);
+                    var widget = new phpr.Form.FilteringSelect(params);
                     this._inputDiv.domNode.appendChild(widget.domNode);
                 }
                 rulesOptions = ['equal', 'notEqual'];
@@ -1245,7 +1245,7 @@ dojo.declare("phpr.grid.filter", null, {
                     params.constraints   = {datePattern: 'yyyy-MM-dd'};
                     params.promptMessage = 'yyyy-MM-dd';
 
-                    var widget = new phpr.form.DateTextBox(params);
+                    var widget = new phpr.Form.DateTextBox(params);
                     this._inputDiv.domNode.appendChild(widget.domNode);
                 }
                 rulesOptions = ['equal', 'notEqual', 'major', 'majorEqual', 'minor', 'minorEqual'];
@@ -1255,7 +1255,7 @@ dojo.declare("phpr.grid.filter", null, {
                 if (!widget) {
                     params.constraints = {formatLength: 'short', timePattern: 'HH:mm'};
 
-                    var widget = new phpr.form.TimeTextBox(params);
+                    var widget = new phpr.Form.TimeTextBox(params);
                     this._inputDiv.domNode.appendChild(widget.domNode);
                 }
                 rulesOptions = ['equal', 'notEqual'];
@@ -1274,7 +1274,7 @@ dojo.declare("phpr.grid.filter", null, {
                         label:      'name',
     			        items:      range}})
 
-                    var widget = new phpr.form.FilteringSelect(params);
+                    var widget = new phpr.Form.FilteringSelect(params);
                     this._inputDiv.domNode.appendChild(widget.domNode);
                 }
                 rulesOptions = ['equal', 'notEqual', 'major', 'majorEqual', 'minor', 'minorEqual'];

@@ -56,7 +56,7 @@ dojo.declare("phpr.MinutesItem.Grid", phpr.Default.SubModule.Grid, {
                 width:    'auto',
                 name:     phpr.nls.get('Comment', this._module),
                 field:    'comment',
-                type:     phpr.grid.cells.Textarea,
+                type:     phpr.Grid.Cells.Textarea,
                 styles:   'text-align: left;',
                 editable: false,
                 colSpan:  4

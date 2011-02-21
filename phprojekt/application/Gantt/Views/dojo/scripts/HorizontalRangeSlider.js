@@ -19,9 +19,9 @@
  * @author     Gustavo Solt <gustavo.solt@mayflower.de>
  */
 
-dojo.provide("phpr.form.HorizontalRangeSlider");
+dojo.provide("phpr.Form.HorizontalRangeSlider");
 
-dojo.declare("phpr.form._RangeSliderMixin", dojox.form._RangeSliderMixin, {
+dojo.declare("phpr.Form._RangeSliderMixin", dojox.form._RangeSliderMixin, {
     postCreate: function() {
         // Summary:
         //    Overwrite function for redefine the movers,
@@ -100,7 +100,7 @@ dojo.declare("phpr.form._RangeSliderMixin", dojox.form._RangeSliderMixin, {
     }
 });
 
-dojo.declare("phpr.form.HorizontalRangeSlider", [dijit.form.HorizontalSlider, phpr.form._RangeSliderMixin], {
+dojo.declare("phpr.Form.HorizontalRangeSlider", [dijit.form.HorizontalSlider, phpr.Form._RangeSliderMixin], {
     templateString: "<table class=\"dijit dijitReset dijitSlider dojoxRangeSlider\" cellspacing=\"0\" "
         + "cellpadding=\"0\" border=\"0\" rules=\"none\"\r\n    ><tr class=\"dijitReset\"\r\n        >"
         + "<td class=\"dijitReset\" colspan=\"2\"></td\r\n        >"
