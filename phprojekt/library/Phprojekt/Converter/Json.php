@@ -110,15 +110,12 @@ class Phprojekt_Converter_Json
      * Convert a model or a model information into a json stream.
      *
      * @param Phprojekt_Interface_Model | array $models The model(s) to convert.
-     * @param integer                           $order
-     *          A Phprojekt_ModelInformation_Default::ORDERING_* const that
-     *          defines the ordering for the convert.
+     * @param integer                           $order  A Phprojekt_ModelInformation_Default::ORDERING_* const that
+     *                                                  defines the ordering for the convert.
      *
      * @return string Data in JSON format.
      */
-    private static function _convertModel(
-            $models,
-            $order = Phprojekt_ModelInformation_Default::ORDERING_DEFAULT)
+    private static function _convertModel($models, $order = Phprojekt_ModelInformation_Default::ORDERING_DEFAULT)
     {
         if (empty($models)) {
             throw new Exception('Called with empty value');
@@ -129,16 +126,16 @@ class Phprojekt_Converter_Json
         $information     = $models[0]->getInformation($order);
         $fieldDefinition = $information->getFieldDefinition($order);
 
-        $datas   = array();
+        $datas = array();
+        $ids   = array();
         foreach ($models as $model) {
             $data = array();
-            $ids  = array();
 
-            $data['id'] = (int) $models->id;
+            $data['id'] = (int) $model->id;
             $ids[]      = $data['id'];
             foreach ($fieldDefinition as $field) {
                 $key   = $field['key'];
-                $value = $models->$key;
+                $value = $model->$key;
                 $data[$key] = self::_convertModelValue($value, $field);
             }
             $data['rights'] = array();
@@ -146,6 +143,7 @@ class Phprojekt_Converter_Json
         }
 
         $rights = $models[0]->getMultipleRights($ids);
+        // We need the $idx to modify the $datas elements instead of just copies.
         foreach ($datas as $index => $data) {
             $datas[$index]['rights'] = $rights[$datas[$index]['id']];
         }
@@ -186,6 +184,7 @@ class Phprojekt_Converter_Json
         if (is_array($value)) {
             return array_map(array(get_class(), __FUNCTION__), $value);
         }
+
         return (string) $value;
     }
 
