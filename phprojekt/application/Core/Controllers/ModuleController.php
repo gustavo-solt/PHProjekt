@@ -169,7 +169,7 @@ class Core_ModuleController extends Core_IndexController
         $model = $this->getModelObject()->find($id);
 
         if ($model instanceof Phprojekt_ActiveRecord_Abstract) {
-            if (is_dir(PHPR_CORE_PATH . $model->name)) {
+            if (is_dir(PHPR_CORE_PATH . DIRECTORY_SEPARATOR . $model->name)) {
                 throw new Phprojekt_PublishedException(self::CAN_NOT_DELETE_SYSTEM_MODULE);
             }
 
